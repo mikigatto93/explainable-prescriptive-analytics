@@ -1,0 +1,56 @@
+/*
+	STYLE FOR BASE VIEW
+*/
+
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+.container {
+	display: flex;
+	height: 100%;
+	width: 100%;
+	position:absolute;
+	align-items: center;
+}
+
+.left_col {
+	order: 1;
+	width: 20%;
+	margin: auto;
+	text-align: center;
+}
+
+.main_content {
+	order: 2;
+	flex: 1;
+}
+
+
+.right_col {
+	order: 3;
+	width: 20%;
+	margin: auto;
+	text-align: center;
+}
+
+.skip_page_btn {
+	height: 80px;
+	line-height: 80px;
+	width: 80px;
+	font-size: 2em;
+	font-weight: bold;
+	border-radius: 50%;
+	background-color: #4CAF50;
+	color: white;
+	text-align: center;
+	cursor: pointer;
+}
+
+.skip_page_btn:disabled {
+	/*border: 1px solid #999999;*/
+  	background-color: #cccccc;
+  	color: #666666;
+	cursor: auto;
+}
