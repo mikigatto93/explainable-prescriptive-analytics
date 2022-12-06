@@ -3,7 +3,7 @@ import os
 
 import dash
 
-from gui.app import app
+from app import app
 from dash_extensions.enrich import Input, Output, State
 
 from gui.model.Experiment import Experiment
@@ -16,12 +16,12 @@ from tkinter import filedialog
 
 
 class TrainPresenter(Presenter):
-    def __init__(self, views, trainer: Trainer):
+    def __init__(self, views):
         super().__init__(views)
         self.data_source = None
         self.file_path = None
         self.experiment_info = None
-        self.trainer = trainer
+        self.trainer = None
 
     def register_callbacks(self):
         @app.callback(Output(self.views['train'].IDs.LOAD_FILE_AREA, 'children'),
@@ -56,13 +56,14 @@ class TrainPresenter(Presenter):
         @app.callback([Output(self.views['train'].IDs.ID_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'options'),
+                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options')],
                       Input(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
                       prevent_initial_call=True)
         def populate_dropdown_options(fade):
             if fade:
                 options_group = self.data_source.columns_list
-                return [options_group] * 4  # generate a list of 4 option_group for the dropdowns
+                return [options_group] * 5  # generate a list of 5 option_group for the dropdowns
             else:
                 raise dash.exceptions.PreventUpdate
 
@@ -88,16 +89,15 @@ class TrainPresenter(Presenter):
                 # TODO: validate data
                 self.experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
                 print(self.experiment_info)
-                self.trainer.set_experiment_info(self.experiment_info)
-                self.data_source.set_experiment_info(self.experiment_info)
+                self.trainer = Trainer(self.experiment_info, self.data_source)
                 return json.dumps({'validated': True}, indent=2)
             else:
                 # TODO: invalida data
                 raise dash.exceptions.PreventUpdate
 
-        # @app.callback(Output(),
-        #               Input(self.views['base'].IDS.EXPERIMENT_DATA_STORE, 'data'))
-        # def start_training(validation_res):
-        #     if validation_res['validated']:
-        #         self.data_source.prepare_dataset()
+        @app.callback(Input(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'))
+        def start_training(validation_res):
+            if json.loads(validation_res)['validated']:
+                self.trainer.prepare_dataset()
+                self.trainer.train()
 

@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 
 import os
 from IO import read, write, folders
+import gui.model.IO.IOManager as gui_io
+
 
 def prepare_csv_results(predictions, test_case_ids, test_activities, target_column_name, pred_column,
                         mode, column_type, current, pred_attributes=None, y_test=None):
@@ -33,7 +35,7 @@ def prepare_csv_results(predictions, test_case_ids, test_activities, target_colu
                         current.reset_index(drop=True),
                         predictions.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1)
     else:
-        #if you are in real running cases you have only one prediction per case
+        # if you are in real running cases you have only one prediction per case
         df = pd.concat([pd.Series(test_case_ids.unique()), test_activities.reset_index(drop=True),
                         current.reset_index(drop=True), predictions.reset_index(drop=True)], axis=1)
     if pred_column == 'remaining_time':
@@ -41,7 +43,7 @@ def prepare_csv_results(predictions, test_case_ids, test_activities, target_colu
         if mode == "train":
             df.iloc[:, 2:] = df.iloc[:, 2:] / (24.0 * 3600)
         else:
-            #convert to milliseconds if you have to return results to MyInvenio, otherwise predict in local in seconds
+            # convert to milliseconds if you have to return results to MyInvenio, otherwise predict in local in seconds
             df.iloc[:, 2:] = df.iloc[:, 2:] * 1000
     df.rename(columns={df.columns[0]: 'CASE ID', df.columns[1]: "Activity"}, inplace=True)
     return df
@@ -114,7 +116,8 @@ def write_and_plot_results(df, pred_attributes):
     # plt.savefig(experiment_name + "/plots/error_heatmap_median.png", dpi=300, bbox_inches="tight")
     # print("Plotted Errors")
 
-def write_scores(y_test, y_pred, target_column_name, pred_attributes=None):
+
+def write_scores(y_test, y_pred, target_column_name, pred_attributes=None, paths: gui_io.Paths = None):
     if pred_attributes is None:
         mae = mean_absolute_error(y_test, y_pred)
         to_days = lambda x: x / (3600 * 24)
@@ -144,8 +147,12 @@ def write_scores(y_test, y_pred, target_column_name, pred_attributes=None):
         # print(f"Average precision recall score: {average_precision}")
         # print(f"F1 score for {target}: {f1}\n")
         res = {'F1': f1, "Accuracy": accuracy}
-        write(res, folders['results']['scores'])
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Will not be performed', 'Will be performed'])
+        if paths:
+            gui_io.write(res, paths.folders['results']['scores'])
+        else:
+            write(res, folders['results']['scores'])
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm,
+                                      display_labels=['Will not be performed', 'Will be performed'])
         disp.plot(cmap=plt.cm.Blues, values_format='.5g')
         plt.savefig(f"{os.getcwd()}/experiment_files/plots/confusion_matrix_{target}.png", dpi=300, bbox_inches="tight")
 
@@ -195,7 +202,8 @@ def plot_auroc_curve(df, predictions_names, target_column_names, experiment_name
     # colors = cycle(['aqua', 'darkorange', 'cornflowerblue'])
     for i, color in zip(range(n_classes), colors):
         plt.plot(false_positive_rates[i], true_positive_rates[i], color=color, lw=2,
-                 label='ROC curve of class {0} (area = {1:0.2f})'.format(predictions_names[i].replace(" prediction", ""), roc_auc[i]))
+                 label='ROC curve of class {0} (area = {1:0.2f})'.format(
+                     predictions_names[i].replace(" prediction", ""), roc_auc[i]))
 
     plt.plot([0, 1], [0, 1], 'k--', lw=2)
     plt.xlim([0.0, 1.0])
@@ -249,9 +257,11 @@ def plot_precision_recall_curve(df, predictions_names, target_column_names):
     plt.ylim([0.0, 1.05])
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    #plt.title('Extension of Precision-Recall curve to multi-class')
-    plt.legend(lines, labels, loc=(1.02,+.01), prop=dict(size=14))
-    plt.savefig(f"{os.getcwd()}/experiment_files/plots/pr_curve_{predictions_names[0]}.png", dpi=300, bbox_inches="tight")
+    # plt.title('Extension of Precision-Recall curve to multi-class')
+    plt.legend(lines, labels, loc=(1.02, +.01), prop=dict(size=14))
+    plt.savefig(f"{os.getcwd()}/experiment_files/plots/pr_curve_{predictions_names[0]}.png", dpi=300,
+                bbox_inches="tight")
+
 
 def cast_from_seconds_to_days_hours(seconds):
     from datetime import datetime, timedelta
@@ -265,6 +275,7 @@ def cast_from_seconds_to_days_hours(seconds):
         date += f"{date_extended.minute}m"
 
     return date
+
 
 def write_grid_results(model_type, mean_events, model_score, model_best_params, column_type):
     if model_type != "no history":
@@ -328,7 +339,7 @@ def write_grid_results(model_type, mean_events, model_score, model_best_params, 
         best_saved_value = overall_scores.pop("Best")
         best_model = (list(overall_scores.keys())[list(overall_scores.values()).index(
             best_saved_value)]).replace('_validation', '')
-        #this is needed just in case validation best score is equal to train best score
+        # this is needed just in case validation best score is equal to train best score
         if "_train" in best_model:
             best_model = best_model.replace('_train', '')
         best_params["history"] = best_model
@@ -339,6 +350,7 @@ def write_grid_results(model_type, mean_events, model_score, model_best_params, 
         # write(overall_scores, folders['model']['scores'])
     else:
         return
+
 
 def compare_best_validation_curves(pred_column, mean_reference_target=None):
     x = []
@@ -358,7 +370,7 @@ def compare_best_validation_curves(pred_column, mean_reference_target=None):
                 else:
                     y_validation.append(score)
                     if mean_reference_target is not None:
-                        y_validation_percentage.append(round((score / mean_reference_target)*100, 2))
+                        y_validation_percentage.append(round((score / mean_reference_target) * 100, 2))
             else:
                 if pred_column == "remaining_time":
                     y_train.append(score / 3600)
@@ -366,7 +378,7 @@ def compare_best_validation_curves(pred_column, mean_reference_target=None):
                 else:
                     y_train.append(score)
                     if mean_reference_target is not None:
-                        y_train_percentage.append(round((score / mean_reference_target)*100, 2))
+                        y_train_percentage.append(round((score / mean_reference_target) * 100, 2))
 
     if mean_reference_target is not None:
         plt.clf()
@@ -376,7 +388,8 @@ def compare_best_validation_curves(pred_column, mean_reference_target=None):
         plt.plot(x, y_validation_percentage, color="blue", lw=lw, label="Validation score")
         plt.xticks(rotation=30)
         plt.legend(loc="best")
-        plt.savefig(f"{os.getcwd()}/experiment_files/plots/compare_best_error_percentage.png", dpi=300, bbox_inches="tight")
+        plt.savefig(f"{os.getcwd()}/experiment_files/plots/compare_best_error_percentage.png", dpi=300,
+                    bbox_inches="tight")
 
     plt.clf()
     plt.xlabel("History timesteps")
@@ -396,22 +409,23 @@ def compare_best_validation_curves(pred_column, mean_reference_target=None):
         plt.savefig(f"{os.getcwd()}/experiment_files/plots/compare_best_error.png", dpi=300, bbox_inches="tight")
     print("Plotted train and validation curves")
 
+
 def histogram_median_events_per_dataset(df, case_id_name, activity_column_name, start_date_name, end_date_name=None):
-    #the dataset has dates in milliseconds
+    # the dataset has dates in milliseconds
     if end_date_name is not None:
         avg_duration_days = (df.groupby(case_id_name)[end_date_name].max() -
-                             df.groupby(case_id_name)[start_date_name].min()).mean() / (1000*3600*24)
+                             df.groupby(case_id_name)[start_date_name].min()).mean() / (1000 * 3600 * 24)
         median_duration_days = (df.groupby(case_id_name)[end_date_name].max() -
-                             df.groupby(case_id_name)[start_date_name].min()).median() / (1000*3600*24)
+                                df.groupby(case_id_name)[start_date_name].min()).median() / (1000 * 3600 * 24)
         std_dev_duration_days = (df.groupby(case_id_name)[end_date_name].max() -
-                                df.groupby(case_id_name)[start_date_name].min()).std() / (1000 * 3600 * 24)
+                                 df.groupby(case_id_name)[start_date_name].min()).std() / (1000 * 3600 * 24)
     else:
         avg_duration_days = (df.groupby(case_id_name)[start_date_name].max() -
-                             df.groupby(case_id_name)[start_date_name].min()).mean() / (1000*3600*24)
+                             df.groupby(case_id_name)[start_date_name].min()).mean() / (1000 * 3600 * 24)
         median_duration_days = (df.groupby(case_id_name)[start_date_name].max() -
-                             df.groupby(case_id_name)[start_date_name].min()).median() / (1000*3600*24)
+                                df.groupby(case_id_name)[start_date_name].min()).median() / (1000 * 3600 * 24)
         std_dev_duration_days = (df.groupby(case_id_name)[start_date_name].max() -
-                                df.groupby(case_id_name)[start_date_name].min()).std() / (1000 * 3600 * 24)
+                                 df.groupby(case_id_name)[start_date_name].min()).std() / (1000 * 3600 * 24)
 
     # la serie è gruppata per sè stessa per avere il count
     distribution_of_cases_length = df.groupby(case_id_name).count()[activity_column_name].groupby(
@@ -432,7 +446,7 @@ def histogram_median_events_per_dataset(df, case_id_name, activity_column_name, 
     # place a text box in upper left in axes coords
     ax.text(0.95, 0.95, text, transform=ax.transAxes, fontsize=14,
             verticalalignment='top', horizontalalignment='right', bbox=props)
-    
+
     plt.savefig(f"{os.getcwd()}/experiment_files/plots/distribution_of_cases_length.png", dpi=300, bbox_inches="tight")
     plt.clf()
     print("Plotted dataset statistics")

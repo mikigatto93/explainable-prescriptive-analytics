@@ -2,7 +2,7 @@ from strenum import StrEnum
 from dash_extensions.enrich import html, dcc, Output, Input, dcc
 import dash_bootstrap_components as dbc
 
-from views.View import View
+from gui.views.View import View
 
 
 class _IDs(StrEnum):

@@ -1,7 +1,7 @@
 from strenum import StrEnum
 from dash_extensions.enrich import html, dcc
 
-from views.View import View
+from gui.views.View import View
 
 
 class _IDs(StrEnum):

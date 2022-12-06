@@ -2,7 +2,7 @@ import json
 
 import joblib
 import pandas as pd
-from numpy import np
+import numpy as np
 
 
 def read_json(path, **kwargs):

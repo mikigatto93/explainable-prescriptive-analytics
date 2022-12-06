@@ -1,6 +1,6 @@
 import dash
 
-from gui.app import app
+from app import app
 from dash_extensions.enrich import Input, Output, State
 
 from gui.presenters.Presenter import Presenter

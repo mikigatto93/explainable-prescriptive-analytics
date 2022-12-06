@@ -19,6 +19,7 @@ from logme import log_it
 
 from IO import read, write, folders
 from os.path import join, exists
+import gui.model.IO.IOManager as gui_io
 
 import pickle
 
@@ -26,12 +27,14 @@ import pickle
 @log_it
 def save_column_information_for_real_predictions(dfTrain, dfTrain_without_valid, dfTest, dfValid, train_cases,
                                                  event_level, target_column_name, column_type, categorical_features,
-                                                 activity_name):
+                                                 activity_name, paths: gui_io.Paths = None):
     # save columns info to be later retrieved when predicting real data
     # you need this for the shape when you have to predict real data
     # save also case indexes you have randomly taken (for old replication purposes, now fixed seed)
-
-    info = read(folders['model']['data_info'])
+    if paths:
+        info = gui_io.read(paths.folders['model']['data_info'])
+    else:
+        info = read(folders['model']['data_info'])
 
     if type(train_cases) == np.ndarray:
         info["train_cases"] = train_cases.tolist()
@@ -52,11 +55,18 @@ def save_column_information_for_real_predictions(dfTrain, dfTrain_without_valid,
     dfTrain_without_valid = utils.change_history(dfTrain_without_valid, activity_name)
     dfValid = utils.change_history(dfValid, activity_name)
     dfTest = utils.change_history(dfTest, activity_name)
-    write(info, folders['model']['data_info'])
-    write(dfTrain, folders['model']['dfTrain'])
-    write(dfTrain_without_valid, folders['model']['dfTrain_without_valid'])
-    write(dfValid, folders['model']['dfValid'])
-    write(dfTest, folders['model']['dfTest'])
+    if paths:
+        gui_io.write(info, paths.folders['model']['data_info'])
+        gui_io.write(dfTrain, paths.folders['model']['dfTrain'])
+        gui_io.write(dfTrain_without_valid, paths.folders['model']['dfTrain_without_valid'])
+        gui_io.write(dfValid, paths.folders['model']['dfValid'])
+        gui_io.write(dfTest, paths.folders['model']['dfTest'])
+    else:
+        write(info, folders['model']['data_info'])
+        write(dfTrain, folders['model']['dfTrain'])
+        write(dfTrain_without_valid, folders['model']['dfTrain_without_valid'])
+        write(dfValid, folders['model']['dfValid'])
+        write(dfTest, folders['model']['dfTest'])
 
 
 def custom_2cv(train_indexes, valid_indexes):
@@ -196,7 +206,7 @@ def balance_weights(y_train, params):
 
 @log_it
 def generate_train_and_test_sets(df, target_column, target_column_name, event_level, column_type, override,
-                                 case_id_name, df_completed_cases, activity_name):
+                                 case_id_name, df_completed_cases, activity_name, paths: gui_io.Paths = None):
     # reattach predict column before splitting
     df[target_column_name] = target_column
     df.columns = df.columns.str.replace('time_from_midnight', 'daytime')
@@ -213,11 +223,20 @@ def generate_train_and_test_sets(df, target_column, target_column_name, event_le
     else:
         unbalanced = False
 
+    #conditions
+    is_train_cases_in_data_info = (paths and "train_cases" in gui_io.read(paths.folders['model']['data_info'])) or \
+                                  (paths is None and "train_cases" in read(folders['model']['data_info']))
+
+    model_model_folder_exists = (paths and exists(paths.folders['model']['model'])) or \
+                                (paths is None and exists(folders['model']['model']))
+
     # DO NOT REMOVE CASE, IT IS NEEDED IF WE WANT TO COMPARE DIFFERENT ALGORITHMS ON THE TEST SET
     # if trained model exists just pick the previously chosen case indexes
-    if ("train_cases" in read(folders['model']['data_info'])) or (exists(folders['model']['model'])
-                                                                  and override is False):
-        train_cases = read(folders['model']['data_info'])["train_cases"]
+    if (is_train_cases_in_data_info) or (model_model_folder_exists and override is False):
+        if paths:
+            train_cases = gui_io.read(paths.folders['model']['data_info'])["train_cases"]
+        else:
+            train_cases = read(folders['model']['data_info'])["train_cases"]
         print("Reloaded train cases")
         # dfTrain = df[df[case_id_name].isin(train_cases)]
         dfTest = df[~df[case_id_name].isin(train_cases)]
@@ -245,7 +264,10 @@ def generate_train_and_test_sets(df, target_column, target_column_name, event_le
             # dfTrain = df[df[case_id_name].isin(train_cases)]
             dfTest = df[~df[case_id_name].isin(train_cases)]
     df_completed_cases = df_completed_cases.loc[df_completed_cases['CASE ID'].isin(dfTest[case_id_name].unique()), :]
-    df_completed_cases.to_csv(folders['results']['completed'], index=False)
+    if paths:
+        df_completed_cases.to_csv(paths.folders['results']['completed'], index=False)
+    else:
+        df_completed_cases.to_csv(folders['results']['completed'], index=False)
 
     # TODO: investigate reducing number of 0 examples. Investigate reducing 1 and using fraud detection algo
     # Investigate 3 models in parallel trained on balanced datasets
@@ -253,7 +275,7 @@ def generate_train_and_test_sets(df, target_column, target_column_name, event_le
 
     if unbalanced:
         # The 1 targets should be distributed proportionally also between validation and train
-        if ("train_cases" in read(folders['model']['data_info'])):
+        if is_train_cases_in_data_info:
             dfTrain = df[df[case_id_name].isin(train_cases)]
             train_cases_0 = dfTrain.loc[dfTrain[target_column_name] == 0, case_id_name].unique()
             train_cases_1 = dfTrain.loc[dfTrain[target_column_name] == 1, case_id_name].unique()
@@ -271,24 +293,35 @@ def generate_train_and_test_sets(df, target_column, target_column_name, event_le
     #     #at this point you can balance the number of the targets
     #     dfTrain, dfTrain_without_valid, dfValid = balance_examples_target_column(df, case_id_name, train_cases_0, train_cases_1)
 
-    if not exists(folders['model']['model']) or override:
+    if not model_model_folder_exists or override:
         save_column_information_for_real_predictions(dfTrain, dfTrain_without_valid, dfTest, dfValid, train_cases,
                                                      event_level, target_column_name, column_type, categorical_features,
-                                                     activity_name)
+                                                     activity_name, paths)
 
 
-def fit_model(column_type, history, case_id_name, activity_name, experiment_name, oversample=False):
-
-    info = read(folders['model']['data_info'])
+def fit_model(column_type, history, case_id_name, activity_name, experiment_name, oversample=False,
+              paths: gui_io.Paths = None):
+    if paths:
+        info = gui_io.read(paths.folders['model']['data_info'])
+    else:
+        info = read(folders['model']['data_info'])
     categorical_features = info["categorical_features"]
     column_types = info["column_types"]
 
-    X_train_without_valid = read(folders['model']['dfTrain_without_valid'], dtype=column_types).iloc[:, 1:-1]
-    y_train_without_valid = read(folders['model']['dfTrain_without_valid'], dtype=column_types).iloc[:, -1]
-    X_train = read(folders['model']['dfTrain'], dtype=column_types).iloc[:, 1:-1]
-    y_train = read(folders['model']['dfTrain'], dtype=column_types).iloc[:, -1]
-    X_valid = read(folders['model']['dfValid'], dtype=column_types).iloc[:, 1:-1]
-    y_valid = read(folders['model']['dfValid'], dtype=column_types).iloc[:, -1]
+    if paths:
+        X_train_without_valid = gui_io.read(paths.folders['model']['dfTrain_without_valid'], dtype=column_types).iloc[:, 1:-1]
+        y_train_without_valid = gui_io.read(paths.folders['model']['dfTrain_without_valid'], dtype=column_types).iloc[:, -1]
+        X_train = gui_io.read(paths.folders['model']['dfTrain'], dtype=column_types).iloc[:, 1:-1]
+        y_train = gui_io.read(paths.folders['model']['dfTrain'], dtype=column_types).iloc[:, -1]
+        X_valid = gui_io.read(paths.folders['model']['dfValid'], dtype=column_types).iloc[:, 1:-1]
+        y_valid = gui_io.read(paths.folders['model']['dfValid'], dtype=column_types).iloc[:, -1]
+    else:
+        X_train_without_valid = read(folders['model']['dfTrain_without_valid'], dtype=column_types).iloc[:, 1:-1]
+        y_train_without_valid = read(folders['model']['dfTrain_without_valid'], dtype=column_types).iloc[:, -1]
+        X_train = read(folders['model']['dfTrain'], dtype=column_types).iloc[:, 1:-1]
+        y_train = read(folders['model']['dfTrain'], dtype=column_types).iloc[:, -1]
+        X_valid = read(folders['model']['dfValid'], dtype=column_types).iloc[:, 1:-1]
+        y_valid = read(folders['model']['dfValid'], dtype=column_types).iloc[:, -1]
 
     params = {
         'depth': 10,
@@ -296,12 +329,18 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
         'iterations': 3000,
         'early_stopping_rounds': 5,
         'thread_count': 4,
-        'logging_level': 'Silent',
+        'logging_level': 'Verbose',
         'task_type': "CPU"  # "GPU" if int(os.environ["USE_GPU"]) else "CPU"
     }
 
-    if exists(folders['model']['params']):
-        best_params = read(folders['model']['params'])
+    model_params_folder_exists = (paths and exists(paths.folders['model']['params'])) or \
+                                 (paths is None and exists(folders['model']['params']))
+
+    if model_params_folder_exists:
+        if paths:
+            best_params = gui_io.read(paths.folders['model']['params'])
+        else:
+            best_params = read(folders['model']['params'])
         # comment these 3 lines when you just reload the model
         print(
             f'Best params for model - Depth: {best_params["best_depth"]} Iterations: {best_params["best_iterations"]}')
@@ -309,12 +348,18 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
         params["iterations"] = best_params["best_iterations"]
     else:
         config = {"history": history[0]}
-        write(config, folders['model']['params'])
+        if paths:
+            gui_io.write(config, paths.folders['model']['params'])
+        else:
+            write(config, folders['model']['params'])
 
     # pickle.dump(categorical_features, open('vars/act/categorical_features.pkl','wb'))
     # pickle.dump(params, open('vars/act/model_params.pkl','wb'))
 
-    if not exists(folders['model']['model']):
+    model_model_folder_exists = (paths and exists(paths.folders['model']['model'])) or \
+                                (paths is None and exists(folders['model']['model']))
+
+    if not model_model_folder_exists:
         print('Starting training...')
         if column_type != "Categorical":
             params["loss_function"] = "MAE"
@@ -367,28 +412,40 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             print('Re training on all train set...')
             model.fit(train_data)
 
-        write(model, folders['model']['model'])
-        write(info, folders['model']['data_info'])
+        if paths:
+            gui_io.write(model,paths.folders['model']['model'])
+            gui_io.write(info, paths.folders['model']['data_info'])
+        else:
+            write(model, folders['model']['model'])
+            write(info, folders['model']['data_info'])
         print('Saved model')
 
 
-def predict(column_type, target_column_name, activity_name):
-
-    info = read(folders['model']['data_info'])
+def predict(column_type, target_column_name, activity_name, paths: gui_io.Paths = None):
+    if paths:
+        info = gui_io.read(paths.folders['model']['data_info'])
+    else:
+        info = read(folders['model']['data_info'])
     categorical_features = info["categorical_features"]
     column_types = info["column_types"]
 
-    dfTest = read(folders['model']['dfTest'], dtype=column_types)
+    if paths:
+        dfTest = gui_io.read(paths.folders['model']['dfTest'], dtype=column_types)
+    else:
+        dfTest = read(folders['model']['dfTest'], dtype=column_types)
     X_test = dfTest.iloc[:, 1:-1]
     y_test = dfTest.iloc[:, -1]
     test_data = Pool(X_test, cat_features=categorical_features)
-    model = read(folders['model']['model'])
+    if paths:
+        model = gui_io.read(paths.folders['model']['model'])
+    else:
+        model = read(folders['model']['model'])
     print('Reloaded model')
     print('Starting predicting...')
     if column_type != "Categorical":
         y_pred = predict_numerical_kpi(model, test_data)
     else:
-        y_pred = predict_activity(model, test_data, y_test, target_column_name)
+        y_pred = predict_activity(model, test_data, y_test, target_column_name, paths)
     return y_pred
 
 
@@ -397,8 +454,11 @@ def predict_numerical_kpi(model, test_data):
     return y_pred
 
 
-def predict_activity(model, test_data, y_test, target_column_name):
-    info = read(folders['model']['data_info'])
+def predict_activity(model, test_data, y_test, target_column_name, paths: gui_io.Paths = None):
+    if paths:
+        info = gui_io.read(paths.folders['model']['data_info'])
+    else:
+        info = read(folders['model']['data_info'])
     decision_thresholds = info["decision_thresholds"]
 
     # we train without valid and then we find a good threshold on the valid, to be later applied on the test set
@@ -428,19 +488,27 @@ def predict_activity(model, test_data, y_test, target_column_name):
     print(f"Best decision threshold: {best_decision_threshold}\n")
     y_pred = [0 if x[1] < best_decision_threshold else 1 for x in y_pred_proba]
     info["decision_threshold"] = best_decision_threshold
-    write(info, folders['model']['data_info'])
+    if paths:
+        gui_io.write(info, paths.folders['model']['data_info'])
+    else:
+        write(info, folders['model']['data_info'])
     return y_pred
 
 
-def write_results(y_pred, activity_column_name, target_column_name, pred_attributes, pred_column, mode, column_type, experiment_name, case_id_name):
-    column_types = read(folders['model']['data_info'])["column_types"]
+def write_results(y_pred, activity_column_name, target_column_name, pred_attributes, pred_column, mode, column_type,
+                  experiment_name, case_id_name, paths: gui_io.Paths = None):
+    if paths:
+        column_types = gui_io.read(paths.folders['model']['data_info'])["column_types"]
+        dfTest = gui_io.read(paths.folders['model']['dfTest'], dtype=column_types)
+    else:
+        column_types = read(folders['model']['data_info'])["column_types"]
+        dfTest = read(folders['model']['dfTest'], dtype=column_types)
 
-    dfTest = read(folders['model']['dfTest'], dtype=column_types)
     X_test = dfTest.iloc[:, 1:-1]
     y_test = dfTest.iloc[:, -1]
 
     test_case_ids = X_test.iloc[:, 0]
-    test_activities = dfTest[activity_column_name] #TODO poi rimetti e togli riga sotto
+    test_activities = dfTest[activity_column_name]  # TODO poi rimetti e togli riga sotto
     # test_activities = X_test[activity_name]
 
     # retrieve test case id to later show predictions
@@ -450,10 +518,10 @@ def write_results(y_pred, activity_column_name, target_column_name, pred_attribu
     else:
         current_times = X_test["time_from_start"]
 
-    df = prepare_csv_results(y_pred, test_case_ids, test_activities, target_column_name, pred_column, mode, column_type,
+    prepare_csv_results(y_pred, test_case_ids, test_activities, target_column_name, pred_column, mode, column_type,
                              current_times, pred_attributes, y_test)
     # write_and_plot_results(df, pred_attributes)
-    write_scores(y_test, y_pred, target_column_name, pred_attributes)
+    write_scores(y_test, y_pred, target_column_name, pred_attributes, paths)
 
 
 def explain(pred_column, column_type):
@@ -474,7 +542,6 @@ def prepare_data_for_ml_model_and_predict(df, target_column, target_column_name,
                                           experiment_name, mode, override, activity_column_name, pred_column,
                                           pred_attributes, model_type, mean_events, mean_reference_target, history,
                                           df_completed_cases, case_id_name, grid, shap):
-
     generate_train_and_test_sets(df, target_column, target_column_name, event_level, column_type, override,
                                  case_id_name, df_completed_cases, activity_name=activity_column_name)
 
@@ -490,7 +557,8 @@ def prepare_data_for_ml_model_and_predict(df, target_column, target_column_name,
 
     fit_model(column_type, history, case_id_name, activity_name=activity_column_name, experiment_name=experiment_name)
     y_pred = predict(column_type, target_column_name, activity_name=activity_column_name)
-    write_results(y_pred, activity_column_name, target_column_name, pred_attributes, pred_column, mode, column_type, experiment_name, case_id_name)
+    write_results(y_pred, activity_column_name, target_column_name, pred_attributes, pred_column, mode, column_type,
+                  experiment_name, case_id_name)
 
     if shap is True:
         explain(pred_column, column_type)
