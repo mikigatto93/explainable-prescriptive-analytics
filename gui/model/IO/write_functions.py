@@ -20,3 +20,12 @@ def write_numpy(data, path):
 
 def write_csv(data, path):
     data.to_csv(path, index=False)
+
+
+writer = {
+    'json': write_json,
+    'pkl': write_pickle,
+    'pickle': write_pickle,
+    'npy': write_numpy,
+    'csv': write_csv,
+}

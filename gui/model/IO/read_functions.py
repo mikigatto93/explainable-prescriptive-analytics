@@ -31,3 +31,12 @@ def read_txt(path, **kwargs):
             k, v = li.split(':')
             d[k.strip()] = v.strip()
         return d
+
+
+reader = {
+    'json': read_json,
+    'pkl': read_pickle,
+    'pickle': read_pickle,
+    'npy': read_numpy,
+    'csv': read_csv,
+}

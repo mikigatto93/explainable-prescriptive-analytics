@@ -1,9 +1,9 @@
 import dash
 
-from app import app
+from gui.app import app
 from dash_extensions.enrich import Input, Output, State
 
-from presenters.Presenter import Presenter
+from gui.presenters.Presenter import Presenter
 
 
 class Router(Presenter):

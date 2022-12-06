@@ -3,13 +3,13 @@ import os
 
 import dash
 
-from app import app
+from gui.app import app
 from dash_extensions.enrich import Input, Output, State
 
-from model.Experiment import Experiment
-from model.TrainDataSource import TrainDataSource
-from model.Trainer import Trainer
-from presenters.Presenter import Presenter
+from gui.model.Experiment import Experiment
+from gui.model.TrainDataSource import TrainDataSource
+from gui.model.Trainer import Trainer
+from gui.presenters.Presenter import Presenter
 
 import tkinter as tk
 from tkinter import filedialog

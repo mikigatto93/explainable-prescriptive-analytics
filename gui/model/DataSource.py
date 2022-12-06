@@ -9,7 +9,3 @@ class DataSource(ABC):
     @abstractmethod
     def read_data(self, path):
         pass
-
-    @abstractmethod
-    def prepare_dataset(self):
-        pass

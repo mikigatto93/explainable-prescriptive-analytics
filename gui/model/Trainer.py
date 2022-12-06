@@ -1,7 +1,12 @@
-class Trainer:
-    def __init__(self):
-        self.experiment_info = None
+from gui.model.Experiment import Experiment
 
-    def set_experiment_info(self, ex_info):
-        self.experiment_info = ex_info
+
+class Trainer:
+    def __init__(self, experiment_info: Experiment):
+        self.ex_info = experiment_info
+
+
+
+
+
 
