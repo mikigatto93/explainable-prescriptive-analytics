@@ -7,7 +7,7 @@ from gui.views.View import View
 
 class _IDs(StrEnum):
     LOAD_TRAIN_FILE_BTN = 'load_train_btn',
-    LOAD_FILE_AREA = 'load_file_div',
+    LOAD_FILE_AREA = 'load_file_div_train',
     LOAD_MODEL_BTN = 'load_model_btn',
     EXPERIMENT_NAME_TEXTBOX = 'experiment_name_textbox',
     ID_DROPDOWN = 'id_dropdown',
@@ -20,6 +20,7 @@ class _IDs(StrEnum):
     FADE_ALL_TRAIN_CONTROLS = 'fade_all_controls_train',
     KPI_RADIO_ITEMS = 'kpi_radio_item',
     RESOURCE_NAME_DROPDOWN = 're_name_dropdown',
+    TEMP_TRAINING_OUTPUT = 'temp_out_train',
 
 
 class TrainView(View):
@@ -59,5 +60,6 @@ class TrainView(View):
                 dcc.Slider(id=self.IDs.OUTLIERS_THRS_SLIDER, min=0, max=1, step=0.01, marks=None,
                            tooltip={"placement": "bottom", "always_visible": True}),
                 html.Button('Train', id=self.IDs.START_TRAINING_BTN, n_clicks=0)
-            ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS)
+            ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS),
+            html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT)
         ])

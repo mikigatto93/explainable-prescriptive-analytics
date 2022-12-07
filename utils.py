@@ -23,17 +23,30 @@ import pm4py
 import tqdm
 
 import hash_maps
+
+import gui.model.IO.IOManager as gui_io
+
 np.random.seed(1618)
 
 
 # %% Import test and valid
-def import_vars(experiment_name=str, case_id_name=str):
-    info = read(folders['model']['data_info'])
-    column_types = info["column_types"]
-    dfTrain = read(folders['model']['dfTrain'], dtype=column_types)
-    dfTest = read(folders['model']['dfTest'], dtype=column_types)
-    return dfTrain.iloc[:, :-1].reset_index(drop=True), dfTest.iloc[:, :-1].reset_index(drop=True), dfTrain.iloc[:,-1].reset_index(drop=True), dfTest.iloc[:, -1].reset_index(drop=True)
+def import_vars(paths: gui_io.Paths = None):
+    if paths:
+        info = gui_io.read(paths.folders['model']['data_info'])
+    else:
+        info = read(folders['model']['data_info'])
 
+    column_types = info["column_types"]
+
+    if paths:
+        dfTrain = gui_io.read(paths.folders['model']['dfTrain'], dtype=column_types)
+        dfTest = gui_io.read(paths.folders['model']['dfTest'], dtype=column_types)
+    else:
+        dfTrain = read(folders['model']['dfTrain'], dtype=column_types)
+        dfTest = read(folders['model']['dfTest'], dtype=column_types)
+
+    return dfTrain.iloc[:, :-1].reset_index(drop=True), dfTest.iloc[:, :-1].reset_index(drop=True), \
+           dfTrain.iloc[:, -1].reset_index(drop=True), dfTest.iloc[:, -1].reset_index(drop=True)
 
 # %% Def import predictor function
 def import_predictor(experiment_name=str, pred_column=str):
@@ -272,8 +285,8 @@ def from_trace_to_score(trace, pred_column, activity_name, df_score, columns, pr
     l = list()
     # list(trace[activity_name]) + [rec_act], pred_column, activity_name, df_score, columns
     if pred_column == 'independent_activity':
-        index_pa = list(columns).index('# ACTIVITY='+predict_activities[0]) - sum([('#' not in i) for i in columns])
-        for line in df_score[:,:-1]:
+        index_pa = list(columns).index('# ACTIVITY=' + predict_activities[0]) - sum([('#' not in i) for i in columns])
+        for line in df_score[:, :-1]:
             if (encoded_trace <= line).all():
                 l.append(line - encoded_trace)
         if len(l) > 0:
@@ -291,6 +304,7 @@ def from_trace_to_score(trace, pred_column, activity_name, df_score, columns, pr
         else:
             return None
 
+
 def get_train_test_indexes(path_to_complete_df=str):
     dataset = pd.read_csv(path_to_complete_df)
 
@@ -299,8 +313,9 @@ def get_train_test_indexes(path_to_complete_df=str):
 def change_history(df, activity_name):
     for i, row in df.iterrows():
         act = df.at[i, activity_name]
-        if df.at[i, '# ' + activity_name + '=' + act]!=0: df.at[i, '# ' + activity_name + '=' + act] -= 1
+        if df.at[i, '# ' + activity_name + '=' + act] != 0: df.at[i, '# ' + activity_name + '=' + act] -= 1
     return df
+
 
 def convert_to_csv(filename=str):
     if '.csv' in filename:
@@ -338,5 +353,3 @@ def read_data(filename, start_time_col, date_format="%Y-%m-%d %H:%M:%S"):
         df[start_time_col] = pd.to_datetime(df[start_time_col], format=date_format)
         df[start_time_col] = df[start_time_col].astype(np.int64) / int(1e9)
     return df
-
-

@@ -95,9 +95,14 @@ class TrainPresenter(Presenter):
                 # TODO: invalida data
                 raise dash.exceptions.PreventUpdate
 
-        @app.callback(Input(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'))
+        @app.callback(Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
+                      Input(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
+                      prevent_initial_call=True)
         def start_training(validation_res):
             if json.loads(validation_res)['validated']:
                 self.trainer.prepare_dataset()
                 self.trainer.train()
-
+                self.trainer.generate_variables()
+                return 'Training finished'
+            else:
+                return 'Error'

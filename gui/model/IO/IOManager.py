@@ -97,6 +97,12 @@ class Paths:
         'running': 'shapley_values_running.npy',
     }
 
+    variables = {
+        'qnt': 'quantitative_vars.pkl',
+        'qlt': 'qualitative_vars.pkl',
+        'qlt_trc': 'qualitative_trace_vars.pkl',
+    }
+
     def __init__(self, ex_name, main_path=os.path.join(os.getcwd(), 'experiments')):
         self.ex_name = ex_name  # TODO: VALIDATE NAME AS IT GOES ON A FILE PATH
         self.main_path = os.path.join(main_path, ex_name)
