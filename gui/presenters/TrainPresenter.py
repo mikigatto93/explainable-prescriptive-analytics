@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import dash
 
@@ -7,6 +8,7 @@ from app import app
 from dash_extensions.enrich import Input, Output, State
 
 from gui.model.Experiment import Experiment
+from gui.model.TimeLogger import TimeLogger
 from gui.model.TrainDataSource import TrainDataSource
 from gui.model.Trainer import Trainer
 from gui.presenters.Presenter import Presenter
@@ -20,8 +22,8 @@ class TrainPresenter(Presenter):
         super().__init__(views)
         self.data_source = None
         self.file_path = None
-        self.experiment_info = None
         self.trainer = None
+        self.progress_logger = TimeLogger()
 
     def register_callbacks(self):
         @app.callback(Output(self.views['train'].IDs.LOAD_FILE_AREA, 'children'),
@@ -47,6 +49,7 @@ class TrainPresenter(Presenter):
             if n_clicks > 0:
                 try:
                     self.data_source = TrainDataSource(self.file_path)
+
                 except Exception as e:
                     print(e)
                     return False
@@ -87,22 +90,40 @@ class TrainPresenter(Presenter):
         def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, act_to_opt, resource, out_thrs, n_clicks):
             if n_clicks > 0:
                 # TODO: validate data
-                self.experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
-                print(self.experiment_info)
-                self.trainer = Trainer(self.experiment_info, self.data_source)
-                return json.dumps({'validated': True}, indent=2)
+                experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
+                print(experiment_info)
+                self.trainer = Trainer(experiment_info, self.data_source)
+                return json.dumps(experiment_info.to_dict())
             else:
                 # TODO: invalida data
                 raise dash.exceptions.PreventUpdate
 
-        @app.callback(Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
-                      Input(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
-                      prevent_initial_call=True)
-        def start_training(validation_res):
-            if json.loads(validation_res)['validated']:
+        @app.callback(
+            output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
+                    Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals')],
+            inputs=Input(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
+            background=True,
+            prevent_initial_call=True
+        )
+        def train_model(ex_store_data):
+            if ex_store_data is not None and json.loads(ex_store_data):
                 self.trainer.prepare_dataset()
-                self.trainer.train()
+                self.trainer.train(self.progress_logger)
                 self.trainer.generate_variables()
-                return 'Training finished'
+                return ['Training finished', 0]  # stops the interval
+            elif ex_store_data is None:
+                raise dash.exceptions.PreventUpdate
             else:
-                return 'Error'
+                return ['Error', 0]  # stops the interval
+
+        @app.callback(Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'children'),
+                      Input(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'n_intervals'),
+                      prevent_initial_call=True)
+        def update_training_progress(n_intervals):
+            if n_intervals > 0:
+                t = self.progress_logger.get_from_stack()
+                if t:
+                    return t
+                else:
+                    raise dash.exceptions.PreventUpdate
+

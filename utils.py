@@ -48,6 +48,8 @@ def import_vars(paths: gui_io.Paths = None):
     return dfTrain.iloc[:, :-1].reset_index(drop=True), dfTest.iloc[:, :-1].reset_index(drop=True), \
            dfTrain.iloc[:, -1].reset_index(drop=True), dfTest.iloc[:, -1].reset_index(drop=True)
 
+
+
 # %% Def import predictor function
 def import_predictor(experiment_name=str, pred_column=str):
     if pred_column == 'independent_activity':

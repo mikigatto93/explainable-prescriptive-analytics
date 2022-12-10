@@ -125,12 +125,18 @@ def write_scores(y_test, y_pred, target_column_name, pred_attributes=None, paths
         days = round(to_days(mae), 3)
         print('Prediction MAE is:', days)
         scores = {'MAE': days}
-        write(scores, folders['results']['scores'])
+        if paths:
+            gui_io.write(scores, paths.folders['results']['scores'])
+        else:
+            write(scores, folders['results']['scores'])
     elif pred_attributes is None:
         res = round(mae, 3)
         print('Prediction MAE is:', res)
         res = {'MAE': res}
-        write(res, folders['results']['scores'])
+        if paths:
+            gui_io.write(res, paths.folders['results']['scores'])
+        else:
+            write(res, folders['results']['scores'])
     else:
         f1 = f1_score(y_test, y_pred)
         accuracy = accuracy_score(y_test, y_pred)

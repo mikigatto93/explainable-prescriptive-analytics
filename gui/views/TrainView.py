@@ -6,6 +6,7 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    PROGRESS_LOG_INTERVAL = 'logging_prpg_interval',
     LOAD_TRAIN_FILE_BTN = 'load_train_btn',
     LOAD_FILE_AREA = 'load_file_div_train',
     LOAD_MODEL_BTN = 'load_model_btn',
@@ -21,6 +22,7 @@ class _IDs(StrEnum):
     KPI_RADIO_ITEMS = 'kpi_radio_item',
     RESOURCE_NAME_DROPDOWN = 're_name_dropdown',
     TEMP_TRAINING_OUTPUT = 'temp_out_train',
+    SHOW_PROCESS_TRAINING_OUTPUT = 'show_proc_train_out',
 
 
 class TrainView(View):
@@ -61,5 +63,7 @@ class TrainView(View):
                            tooltip={"placement": "bottom", "always_visible": True}),
                 html.Button('Train', id=self.IDs.START_TRAINING_BTN, n_clicks=0)
             ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS),
-            html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT)
+            html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
+            html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT),
+            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL, n_intervals=0, interval=1000)
         ])

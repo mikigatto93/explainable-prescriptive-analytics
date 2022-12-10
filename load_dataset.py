@@ -1368,5 +1368,5 @@ def prepare_dataset_for_gui(df, ex_info: Experiment, paths: gui_io.Paths, pred_c
         #                                                   history, df_completed_cases, case_id_name, grid, shap)
 
         return (TrainInfo(model_type, mean_events, column_type, df_completed_cases,
-                          history, target_column,target_column_name, pred_column, pred_attributes, event_level),
+                          history, target_column,target_column_name, pred_attributes, event_level),
                 df)

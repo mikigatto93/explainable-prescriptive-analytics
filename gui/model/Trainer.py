@@ -18,14 +18,6 @@ class Trainer:
     def prepare_dataset(self):
         self.data_source.convert_datetime_to_seconds(self.ex_info.timestamp)
 
-        if self.ex_info.kpi == 'Total time':
-            pred_column = 'remaining_time'
-        elif self.ex_info.kpi == 'Minimize activity occurrence':
-            pred_column = 'independent_activity'
-        else:
-            # TODO: ERROR
-            return
-
         use_remaining_for_num_targets = None
         custom_attribute_column_name = None
         end_date_name = None
@@ -40,27 +32,29 @@ class Trainer:
         # TODO: SEE IF THIS CAN BE REFACTORED
 
         self.train_info, prep_df = prepare_dataset_for_gui(self.data_source.data, self.ex_info,
-                                                           self.paths, pred_column, mode)
+                                                           self.paths, self.ex_info.pred_column, mode)
 
         generate_train_and_test_sets(
             prep_df, self.train_info.target_column, self.train_info.target_column_name, self.train_info.event_level,
             self.train_info.column_type, override, self.ex_info.id, self.train_info.df_completed_cases,
             self.ex_info.activity, self.paths)
 
-    def train(self):
+    def train(self, progress_logger):
         fit_model(self.train_info.column_type, self.train_info.history, self.ex_info.id,
-                  activity_name=self.ex_info.activity, experiment_name=self.ex_info.ex_name, paths=self.paths)
+                  activity_name=self.ex_info.activity, experiment_name=self.ex_info.ex_name, paths=self.paths,
+                  progress_logger=progress_logger)
 
         y_pred = predict(self.train_info.column_type, self.train_info.target_column_name,
                          activity_name=self.ex_info.activity, paths=self.paths)
 
         mode = 'train'
         write_results(y_pred, self.ex_info.activity, self.train_info.target_column_name,
-                      self.train_info.pred_attributes, self.train_info.pred_column, mode, self.train_info.column_type,
+                      self.train_info.pred_attributes, self.ex_info.pred_column, mode, self.train_info.column_type,
                       self.ex_info.ex_name, self.ex_info.id, self.paths)
 
     def generate_variables(self):
         X_train, X_test, y_train, y_test = import_vars(self.paths)
+
         quantitative_vars, \
         qualitative_trace_vars, \
         qualitative_vars = variable_type_analysis(X_train, self.ex_info.id, self.ex_info.activity)
@@ -68,3 +62,5 @@ class Trainer:
         write(quantitative_vars, self.paths.folders['variables']['qnt'])
         write(qualitative_vars, self.paths.folders['variables']['qlt'])
         write(qualitative_trace_vars, self.paths.folders['variables']['qlt_trc'])
+
+        return quantitative_vars, qualitative_vars, qualitative_trace_vars

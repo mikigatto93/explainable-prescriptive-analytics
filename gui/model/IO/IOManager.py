@@ -75,7 +75,8 @@ class Paths:
         'validation_model_5_events_info': 'model_5_events_info.json',
         'validation_model_6_events_info': 'model_6_events_info.json',
         'validation_model_7_events_info': 'model_7_events_info.json',
-        'validation_model_8_events_info': 'model_8_events_info.json'
+        'validation_model_8_events_info': 'model_8_events_info.json',
+        'train_progress': 'train_progress.txt'
     }
 
     results = {
@@ -103,12 +104,19 @@ class Paths:
         'qlt_trc': 'qualitative_trace_vars.pkl',
     }
 
+    recommendations = {
+        'rec_dict': 'rec_dict.pkl',
+        'real_dict': 'real_dict.pkl'
+    }
+
     def __init__(self, ex_name, main_path=os.path.join(os.getcwd(), 'experiments')):
         self.ex_name = ex_name  # TODO: VALIDATE NAME AS IT GOES ON A FILE PATH
         self.main_path = os.path.join(main_path, ex_name)
         self.folders = {
             'model': self.path_maker('model', Paths.model),
             'results': self.path_maker('results', Paths.results),
+            'variables': self.path_maker('variables', Paths.variables),
+            'recommendations': self.path_maker('recommendations', Paths.recommendations),
             'shap': self.path_maker('shap', Paths.shap),
             'plots': {},
         }

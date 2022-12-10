@@ -1,28 +1,27 @@
+import tqdm
+
 import hash_maps
-from gui.model.Experiment import Experiment
+import next_act
+import utils
+from gui.model.Experiment import Experiment, build_experiment_from_dict
 from gui.model.RunDataSource import RunDataSource
+from gui.model.IO.IOManager import Paths, read, write
 from load_dataset import prepare_dataset_for_gui
 from utils import import_vars
 
 
 class Recommender:
     def __init__(self, experiment_info: Experiment, data_source: RunDataSource):
+        self.prep_df = None
         self.ex_info = experiment_info
         self.data_source = data_source
-        # self.paths = paths
+        self.traces_hash = None
+        self.paths = Paths(self.ex_info.ex_name)
 
     def prepare_dataset(self):
         self.data_source.convert_datetime_to_seconds(self.ex_info.timestamp)
 
         self.data_source.remove_unnamed_columns()
-
-        if self.ex_info.kpi == 'Total time':
-            pred_column = 'remaining_time'
-        elif self.ex_info.kpi == 'Minimize activity occurrence':
-            pred_column = 'independent_activity'
-        else:
-            # TODO: ERROR
-            return
 
         use_remaining_for_num_targets = None
         custom_attribute_column_name = None
@@ -39,41 +38,79 @@ class Recommender:
 
         print('Creating hash-map of possible next activities')
         X_train, _, _, _ = import_vars(self.paths)
-        X_train = X_train.iloc[:, 1:]
-        traces_hash = hash_maps.fill_hashmap(X_train=X_train, case_id_name=self.ex_info.id,
-                                             activity_name=self.ex_info.activity,
-                                             thrs=self.ex_info.out_thrs)
+        # print(X_train)
+        # print('_____')
+        # print(X_train.iloc[:, 1:])
+        # TODO: VEDERE SE LASCIARE O NO ILOC PERCHè TOGLIE LA PRIMA COLONNA CON L'ID E DOPO DA ERRORE CHE NON LA TROVA
+        self.traces_hash = hash_maps.fill_hashmap(X_train=X_train, case_id_name=self.ex_info.id,
+                                                  activity_name=self.ex_info.activity, thrs=self.ex_info.out_thrs)
         print('Hash-map created')
 
-        train_info, prep_df = prepare_dataset_for_gui(self.data_source.data, self.ex_info,
-                                                           self.paths, pred_column, mode)
+        train_info, self.prep_df = prepare_dataset_for_gui(self.data_source.data, self.ex_info,
+                                                           self.paths, self.ex_info.pred_column, mode)
+
+    def generate_recommendations(self):
+        idx_list = self.prep_df[self.ex_info.id].unique()
+        results = list()
+        rec_dict = dict()
+        real_dict = dict()
+
+        model = read(self.paths['model']['model'])
+        quantitative_vars = read(self.paths['variables']['qnt'])
+        qualitative_vars = read(self.paths['variables']['qlt'])
+
+        print('start')
+        for trace_idx in tqdm.tqdm(idx_list):
+            print(trace_idx)
+            trace = self.prep_df[self.prep_df[self.ex_info.id] == trace_idx].reset_index(drop=True)
+            trace = trace.reset_index(drop=True)  # trace.iloc[:, :-1].reset_index(drop=True)
+            trace.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
+            # trace = trace[list(model.feature_names_)]
+            try:
+                # take activity list
+                acts = list(self.prep_df[self.prep_df[self.ex_info.id] == trace_idx].reset_index(drop=True)[
+                                self.ex_info.activity])
+
+                # Remove the last (it has been added because of the evaluation)
+                # trace = trace.iloc[:-1].reset_index(drop=True)
+            except:
+                import ipdb;
+                ipdb.set_trace()
+
+            try:
+                next_activities, actual_prediciton = next_act.next_act_kpis(trace, self.traces_hash, model,
+                                                                            self.ex_info.pred_column,
+                                                                            self.ex_info.id, self.ex_info.activity,
+                                                                            quantitative_vars, qualitative_vars,
+                                                                            encoding='aggr-hist')
+                next_activities['kpi_rel'] = next_activities['kpi_rel'].abs()
+            except:
+                print('Next activity not found in transition system')
+                continue
+
+            try:
+                rec_act = \
+                    next_activities[next_activities['kpi_rel'] == min(next_activities['kpi_rel'])]['Next_act'].values[
+                        0]
+                other_traces = [
+                    next_activities[next_activities['kpi_rel'] != min(next_activities['kpi_rel'])]['Next_act'].values]
+            except:
+                try:
+                    if len(next_activities) == 1:
+                        print('No other traces to analyze')
+                except:
+                    print(trace_idx, 'check it')
+
+            rec_dict[trace_idx] = {i: j for i, j in zip(next_activities['Next_act'], next_activities['kpi_rel'])}
+            real_dict[trace_idx] = {acts[-1]: actual_prediciton}
+        rec_dict = {str(A): N for (A, N) in [x for x in rec_dict.items()]}
+        real_dict = {str(A): N for (A, N) in [x for x in real_dict.items()]}
+        write(rec_dict, self.paths['recommendations']['rec_dict'])
+        write(real_dict, self.paths['recommendations']['real_dict'])
+        print('Prediction generation completed')
 
 
 
 
-        # df_rec = load_dataset.preprocess_df(df=df_rec, case_id_name=case_id_name, activity_column_name=activity_name,
-        #                 start_date_name=start_date_name, date_format=date_format, end_date_name=end_date_name,
-        #                 pred_column=pred_column, mode="train", experiment_name=experiment_name, override=override,
-        #                 pred_attributes=pred_attributes, costs=costs, working_times=working_time,
-        #                 resource_column_name=resource_column_name, role_column_name=role_column_name,
-        #                 use_remaining_for_num_targets=use_remaining_for_num_targets,
-        #                 predict_activities=predict_activities, lost_activities=lost_activities,
-        #                 retained_activities=retained_activities,
-        #                 custom_attribute_column_name=custom_attribute_column_name, shap=shap)
-        # df_rec.to_csv('gui_backup/dfrun_preprocessed.csv')
-        # print('Running Data Imported')
-        # print(4*'\n')
-        # print('Starting generating recommendations')
-        #
-        # pickle.dump(traces_hash, open('gui_backup/transition_system.pkl', 'wb'))
-        #
-        # idx_list = df_rec[case_id_name].unique()
-        # results = list()
-        # rec_dict = dict()
-        # real_dict = dict()
-        # if not os.path.exists('explanations'):
-        #     os.mkdir('explanations')
-        # if not os.path.exists(f'explanations/{experiment_name}'):
-        #     os.mkdir(f'explanations/{experiment_name}')
-        # if not os.path.exists(f'recommendations/{experiment_name}'):
-        #     os.mkdir(f'recommendations/{experiment_name}')
+
+

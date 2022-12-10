@@ -125,7 +125,7 @@ def trace_as_vec():
 
 def frequency_table(X_train, case_id_name=str, activity_name=str, thrs=.2):
     freq_dict = dict()
-
+    print(X_train.columns)
     idx_list = X_train[case_id_name].unique()
 
     for trace_idx in idx_list:

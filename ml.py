@@ -1,3 +1,4 @@
+import sys
 from statistics import median
 
 import numpy as np
@@ -300,7 +301,7 @@ def generate_train_and_test_sets(df, target_column, target_column_name, event_le
 
 
 def fit_model(column_type, history, case_id_name, activity_name, experiment_name, oversample=False,
-              paths: gui_io.Paths = None):
+              paths: gui_io.Paths=None, progress_logger=None):
     if paths:
         info = gui_io.read(paths.folders['model']['data_info'])
     else:
@@ -365,7 +366,7 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             params["loss_function"] = "MAE"
             train_data = Pool(X_train, y_train, cat_features=categorical_features)
             model = CatBoostRegressor(**params)
-            model.fit(train_data)
+            model.fit(train_data, log_cout=progress_logger if progress_logger else sys.stdout)
         else:
             params["loss_function"] = "Logloss"
             params["eval_metric"] = "F1"
