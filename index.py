@@ -5,6 +5,7 @@ from gui.model.RunDataSource import RunDataSource
 from gui.presenters.Router import Router
 from gui.presenters.RunPresenter import RunPresenter
 from gui.presenters.TrainPresenter import TrainPresenter
+from gui.presenters.ExplainPresenter import ExplainPresenter
 from gui.views.BaseView import BaseView
 from gui.views.ExplainView import ExplainView
 from gui.views.RunView import RunView
@@ -33,19 +34,27 @@ run_pres = RunPresenter({
     'run': run_view,
 })
 
+explain_pres = ExplainPresenter({
+    'base': base_view,
+    'explain': explain_view,
+})
+
 app.layout = base_view.get_layout()
 
 router.register_callbacks()
 train_pres.register_callbacks()
 run_pres.register_callbacks()
+explain_pres.register_callbacks()
 
-if __name__ == '__main__':
-    r = Recommender(build_experiment_from_dict({"ex_name": "hj", "kpi": "Total time", "id": "SR_Number",
-                                                "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
-                                                "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
-                                                "pred_column": "remaining_time"}),
-                    RunDataSource('F:/datasets/stage-datasets/VINST_run.csv'))
-    r.prepare_dataset()
 
-# if __name__ == "__main__":
-#     app.run_server(debug=True)
+# if __name__ == '__main__':
+#     r = Recommender(build_experiment_from_dict({"ex_name": "test_3", "kpi": "Total time", "id": "SR_Number",
+#                                                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
+#                                                 "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
+#                                                 "pred_column": "remaining_time"}),
+#                     RunDataSource('F:/datasets/stage-datasets/VINST_run.csv'))
+#     r.prepare_dataset()
+#     r.generate_recommendations()
+
+if __name__ == "__main__":
+    app.run_server(debug=True)

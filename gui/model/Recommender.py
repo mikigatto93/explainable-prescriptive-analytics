@@ -55,9 +55,9 @@ class Recommender:
         rec_dict = dict()
         real_dict = dict()
 
-        model = read(self.paths['model']['model'])
-        quantitative_vars = read(self.paths['variables']['qnt'])
-        qualitative_vars = read(self.paths['variables']['qlt'])
+        model = read(self.paths.folders['model']['model'])
+        quantitative_vars = read(self.paths.folders['variables']['qnt'])
+        qualitative_vars = read(self.paths.folders['variables']['qlt'])
 
         print('start')
         for trace_idx in tqdm.tqdm(idx_list):
@@ -105,8 +105,8 @@ class Recommender:
             real_dict[trace_idx] = {acts[-1]: actual_prediciton}
         rec_dict = {str(A): N for (A, N) in [x for x in rec_dict.items()]}
         real_dict = {str(A): N for (A, N) in [x for x in real_dict.items()]}
-        write(rec_dict, self.paths['recommendations']['rec_dict'])
-        write(real_dict, self.paths['recommendations']['real_dict'])
+        write(rec_dict, self.paths.folders['recommendations']['rec_dict'])
+        write(real_dict, self.paths.folders['recommendations']['real_dict'])
         print('Prediction generation completed')
 
 

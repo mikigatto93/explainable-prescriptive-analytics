@@ -1,6 +1,5 @@
 import json
 import os
-from abc import ABC
 
 import dash
 
@@ -16,7 +15,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 
-class RunPresenter(Presenter, ABC):
+class RunPresenter(Presenter):
     def __init__(self, views):
         super().__init__(views)
         self.data_source = None

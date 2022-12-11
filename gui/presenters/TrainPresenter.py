@@ -87,7 +87,7 @@ class TrainPresenter(Presenter):
                        State(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')],
                       Input(self.views['train'].IDs.START_TRAINING_BTN, 'n_clicks'),
                       prevent_initial_call=True)
-        def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, act_to_opt, resource, out_thrs, n_clicks):
+        def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs, n_clicks):
             if n_clicks > 0:
                 # TODO: validate data
                 experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)

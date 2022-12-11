@@ -634,7 +634,7 @@ def create_expl_fig(n_clicks):
         # fig.update_style(width='60%')
         return dcc.Graph(figure=fig)
 
-    else :
+    else:
         return None
 
 
