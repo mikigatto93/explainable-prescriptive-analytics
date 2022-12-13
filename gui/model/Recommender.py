@@ -48,6 +48,7 @@ class Recommender:
 
         train_info, self.prep_df = prepare_dataset_for_gui(self.data_source.data, self.ex_info,
                                                            self.paths, self.ex_info.pred_column, mode)
+        write(self.prep_df, self.paths.folders['recommendations']['df_run'])
 
     def generate_recommendations(self):
         idx_list = self.prep_df[self.ex_info.id].unique()

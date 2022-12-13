@@ -48,7 +48,7 @@ explain_pres.register_callbacks()
 
 
 # if __name__ == '__main__':
-#     r = Recommender(build_experiment_from_dict({"ex_name": "test_3", "kpi": "Total time", "id": "SR_Number",
+#     r = Recommender(build_experiment_from_dict({"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
 #                                                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
 #                                                 "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
 #                                                 "pred_column": "remaining_time"}),

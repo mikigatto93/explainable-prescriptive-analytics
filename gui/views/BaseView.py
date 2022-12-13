@@ -12,6 +12,7 @@ class _IDs(StrEnum):
     PAGE_CONTAINER = 'page_container',
     LOCATION_URL = 'location_url',
     EXPERIMENT_DATA_STORE = 'ex_data_store',
+    TRACE_ID_TO_EXPLAIN_STORE = 'trace_id_to_explain_store',
 
 
 class BaseView(View):
@@ -36,7 +37,8 @@ class BaseView(View):
                     ),
                     className='left_col'),
                 dcc.Location(id=self.IDs.LOCATION_URL, refresh=False),
-                dcc.Store(id=self.IDs.EXPERIMENT_DATA_STORE, data=None)
+                dcc.Store(id=self.IDs.EXPERIMENT_DATA_STORE, data=None),
+                dcc.Store(id=self.IDs.TRACE_ID_TO_EXPLAIN_STORE, data=None)
             ],
             className='container'
         )

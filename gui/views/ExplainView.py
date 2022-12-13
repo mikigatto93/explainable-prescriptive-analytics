@@ -6,6 +6,7 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    VISUALIZE_EXPL_BTN = 'visualize_explan_btn',
     GO_DOWN_PRED_GRAPH = 'go_down_btn_pred_graph',
     GO_UP_PRED_GRAPH = 'go_up_btn_preed_graph',
     VISUALIZE_EXPLANATION_GRAPH = 'visualize_explan_graph',
@@ -47,6 +48,8 @@ class ExplainView(View):
             html.Span('Select the activity to explain'),
             dcc.Dropdown(id=self.IDs.ACT_TO_EXPLAIN_DROPDOWN),
             html.Span('Select how mant explanations to visualize'),
-            dcc.Slider(id=self.IDs.EXPLANATION_QUANTITY_SLIDER, max=10, min=0, step=1, marks=None),
+            dcc.Slider(id=self.IDs.EXPLANATION_QUANTITY_SLIDER, max=10, min=0, step=1, marks=None,
+                       tooltip={"placement": "bottom", "always_visible": True}),
+            html.Button('Visualize explanations', self.IDs.VISUALIZE_EXPL_BTN, n_clicks=0),
             dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH)
         ])

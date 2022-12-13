@@ -8,8 +8,8 @@ import gui.model.IO.read_functions as rf
 # GENERIC I/O FUNCTIONS
 
 def create_missing_folders(path):
-    if not os.path.exists(path):
-        head, _ = os.path.split(path)
+    head, _ = os.path.split(path)
+    if not os.path.exists(head):
         pathlib.Path(head).mkdir(parents=True, exist_ok=True)
 
 
@@ -106,8 +106,13 @@ class Paths:
 
     recommendations = {
         'rec_dict': 'rec_dict.pkl',
-        'real_dict': 'real_dict.pkl'
+        'real_dict': 'real_dict.pkl',
+        'df_run': 'df_run.csv'
     }
+
+    GROUNDTRUTH = '{}_expl_df_gt.csv'
+
+    EXPLANATIONS = '{}_{}_expl_df.csv'
 
     def __init__(self, ex_name, main_path=os.path.join(os.getcwd(), 'experiments')):
         self.ex_name = ex_name  # TODO: VALIDATE NAME AS IT GOES ON A FILE PATH
@@ -123,3 +128,14 @@ class Paths:
 
     def path_maker(self, parent, d):
         return {k: os.path.join(self.main_path, parent, v) for k, v in d.items()}
+
+    def get_explanation_path(self, trace_id, act):
+        path = os.path.join(self.main_path, 'explanations', Paths.EXPLANATIONS.format(trace_id, act))
+        create_missing_folders(path)
+        return path
+
+    def get_gt_explanation_path(self, trace_id):
+        path = os.path.join(self.main_path, 'explanations', Paths.GROUNDTRUTH.format(trace_id))
+        create_missing_folders(path)
+        return path
+

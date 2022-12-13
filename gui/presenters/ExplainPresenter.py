@@ -94,28 +94,43 @@ class ExplainPresenter(Presenter):
                        Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children'),
-                       Output(self.views['explain'].IDs.ACT_TO_EXPLAIN_DROPDOWN, 'options')],
+                       Output(self.views['explain'].IDs.ACT_TO_EXPLAIN_DROPDOWN, 'options'),
+                       Output(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data')],
                       Input(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'clickData'),
                       prevent_initial_call=True)
         def show_preds_text_format(click_data):
-            trace_id = click_data['points'][0]['y']
-            print(trace_id)
-            pred_info = self.explainer.get_best_n_scores_by_trace(trace_id, 3)
+            if click_data:
+                trace_id = click_data['points'][0]['y']
+                # print(trace_id)
+                pred_info = self.explainer.get_best_n_scores_by_trace(trace_id, 3)
 
-            rec_act = [t[0] for t in pred_info['rec']]
-            rec_values = [t[1] for t in pred_info['rec']]
-            # real_act = pred_info['real'][0][0]
-            real_val = pred_info['real'][0][1]
+                rec_act = [t[0] for t in pred_info['rec']]
+                rec_values = [t[1] for t in pred_info['rec']]
+                # real_act = pred_info['real'][0][0]
+                real_val = pred_info['real'][0][1]
 
-            print(pred_info)
-            print(rec_act)
-            print(rec_values)
-            print(real_val)
+                print(pred_info)
+                print(rec_act)
+                print(rec_values)
+                print(real_val)
 
-            return [
-                'Prediction for {}'.format(trace_id),
-                [html.Td(rec_act[0]), html.Td(real_val), html.Td(rec_values[0])],
-                [html.Td(rec_act[1]), html.Td('-'), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
-                [html.Td(rec_act[2]), html.Td('-'), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
-                rec_act
-            ]
+                return [
+                    'Prediction for {}'.format(trace_id),
+                    [html.Td(rec_act[0]), html.Td(real_val), html.Td(rec_values[0])],
+                    [html.Td(rec_act[1]), html.Td('-'), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
+                    [html.Td(rec_act[2]), html.Td('-'), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
+                    rec_act,
+                    trace_id
+                ]
+            else:
+                raise dash.exceptions.PreventUpdate
+
+        @app.callback([State(self.views['explain'].IDs.ACT_TO_EXPLAIN_DROPDOWN, 'value'),
+                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')],
+                      Input(self.views['explain'].IDs.VISUALIZE_EXPL_BTN, 'n_clicks'),
+                      prevent_initial_call=True)
+        def calculate_shap_for_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
+            if n_clicks > 0:
+                print(trace_id)
+                self.explainer.calculate_trace_groundtruth(trace_id, act_to_explain)
