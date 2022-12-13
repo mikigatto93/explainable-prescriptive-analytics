@@ -47,10 +47,17 @@ class Explainer:
         kpis_dict = dict(sorted(kpis_dict.items(), key=lambda item: item[1][1]))
         return kpis_dict
 
-    def get_best_n_scores_by_trace(self, trace_id, n=3):
+    def get_best_n_scores_by_trace(self, trace_id, n):
         trace_pred = self.rec_dict[trace_id]
 
-        # create list of {activity_name: value} ordered by value (ascending)
-        trace_pred_ord = [{k: v} for k, v in sorted(trace_pred.items(), key=lambda item: item[1])]
-        return trace_pred_ord[0:n]
+        # create list of tuples (activity_name, value) ordered by value (ascending)
+        trace_pred_ord = [(k, v) for k, v in sorted(trace_pred.items(), key=lambda item: item[1])]
+
+        real_pred = self.real_dict[trace_id]
+        trace_real_pred = [(k, v) for k, v in real_pred.items()]
+
+        return {
+            'rec': trace_pred_ord[0:n],
+            'real': trace_real_pred
+        }
 

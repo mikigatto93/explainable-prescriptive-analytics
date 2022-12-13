@@ -6,6 +6,8 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    GO_DOWN_PRED_GRAPH = 'go_down_btn_pred_graph',
+    GO_UP_PRED_GRAPH = 'go_up_btn_preed_graph',
     VISUALIZE_EXPLANATION_GRAPH = 'visualize_explan_graph',
     EXPLANATION_QUANTITY_SLIDER = 'explan_quantity_number',
     PREDICTION_SEARCH_GRAPH = 'pred_search_graph',
@@ -33,8 +35,12 @@ class ExplainView(View):
     def get_layout(self):
         return html.Div([
             html.H1('Explain'),
-            html.Span('Select the desired trace'),
-            dcc.Graph(id=self.IDs.PREDICTION_SEARCH_GRAPH, figure={}),
+            html.Div([
+                html.Span('Select the desired trace'),
+                dcc.Graph(id=self.IDs.PREDICTION_SEARCH_GRAPH, figure={}),
+                html.Button('∧', id=self.IDs.GO_UP_PRED_GRAPH, n_clicks=0),
+                html.Button('∨', id=self.IDs.GO_DOWN_PRED_GRAPH, n_clicks=0)
+            ]),
             html.Span('Search trace by id'),
             dcc.Input(id=self.IDs.SEARCH_TRACE_ID_INPUT),
             dbc.Table(self.create_table()),
