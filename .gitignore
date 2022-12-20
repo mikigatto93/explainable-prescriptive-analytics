@@ -3,4 +3,5 @@ __pycache__/
 catboost_info/
 experiments/
 cache/
+uploaded_datasets/
 *.tmp
