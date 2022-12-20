@@ -10,7 +10,7 @@ class Router(Presenter):
     def __init__(self, views):
         super().__init__(views)
         self.pathname_list = [view.pathname for view in sorted(self.views.values(), key=lambda x: x.order)]
-        self.pathname_list = self.pathname_list[0:]  # remove first element (BaseView, that has order=-1)
+        self.pathname_list = self.pathname_list[0:]  # remove first element BaseView, that has order=-1
 
     def register_callbacks(self):
 
@@ -70,3 +70,20 @@ class Router(Presenter):
                 go_back_disabled = True
 
             return [go_next_disabled, go_back_disabled]
+
+        @app.callback([Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
+                       Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled')],
+                      Input(self.views['base'].IDs.ARROW_CONTROLLER_STORE, 'data'),
+                      prevent_initial_call=True)
+        def disable_link_user_preference(controller_data):
+            print(controller_data)
+            return [dash.no_update, dash.no_update]
+            # if controller_data:
+            #     #print(controller_data)
+            #     if controller_data['go_next_disabled_status'] == 'no_update':
+            #         controller_data['go_next_disabled_status'] = dash.no_update
+            #     if controller_data['go_back_disabled_status'] == 'no_update':
+            #         controller_data['go_back_disabled_status'] = dash.no_update
+            #     return [controller_data['go_next_disabled_status'], controller_data['go_back_disabled_status']]
+            # else:
+            #     return [dash.no_update, dash.no_update]

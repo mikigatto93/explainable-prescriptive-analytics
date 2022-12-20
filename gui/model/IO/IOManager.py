@@ -110,9 +110,9 @@ class Paths:
         'df_run': 'df_run.csv'
     }
 
-    GROUNDTRUTH = '{}_expl_df_gt.csv'
+    GROUNDTRUTH = '{}_expl_df_gt.json'
 
-    EXPLANATIONS = '{}_{}_expl_df.csv'
+    EXPLANATIONS = '{}_{}_expl_df.json'
 
     def __init__(self, ex_name, main_path=os.path.join(os.getcwd(), 'experiments')):
         self.ex_name = ex_name  # TODO: VALIDATE NAME AS IT GOES ON A FILE PATH

@@ -5,6 +5,7 @@
 html, body {
 	margin: 0;
 	padding: 0;
+	font-family: Arial, Helvetica, sans-serif;
 }
 
 .container {
@@ -42,15 +43,32 @@ html, body {
 	font-size: 2em;
 	font-weight: bold;
 	border-radius: 50%;
-	background-color: #4CAF50;
+	background-color: #3CB371;
 	color: white;
 	text-align: center;
 	cursor: pointer;
 }
 
-.skip_page_btn:disabled {
+.skip_page_btn:disabled,
+.general_btn_layout:disabled {
 	/*border: 1px solid #999999;*/
   	background-color: #cccccc;
   	color: #666666;
 	cursor: auto;
+}
+
+.general_btn_layout {
+	padding: 0.5em;
+	font-size: 1em;
+	font-weight: bold;
+	border-radius: 5%;
+	background-color: #005A9C;
+	color: white;
+	text-align: center;
+	cursor: pointer;
+}
+
+/*CLASS FOR CODE*/
+.selected_expl_table_row {
+	background: yellow;
 }

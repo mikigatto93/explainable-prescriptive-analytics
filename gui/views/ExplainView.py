@@ -6,14 +6,16 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    RECOMMANDATION_GRAPH_PAGING_INFO = 'recomm_graph_paging_info',
+    SEARCH_TRACE_ID_INPUT_BTN = 'search_trace_id_input_btn',
+    CURRENT_TRACE_ID = 'current_trace_id_selected'
+    CURRENT_EXPECTED_KPI = 'current_expected_kpi',
     VISUALIZE_EXPL_BTN = 'visualize_explan_btn',
     GO_DOWN_PRED_GRAPH = 'go_down_btn_pred_graph',
     GO_UP_PRED_GRAPH = 'go_up_btn_preed_graph',
     VISUALIZE_EXPLANATION_GRAPH = 'visualize_explan_graph',
     EXPLANATION_QUANTITY_SLIDER = 'explan_quantity_number',
     PREDICTION_SEARCH_GRAPH = 'pred_search_graph',
-    ACT_TO_EXPLAIN_DROPDOWN = 'ex_act_dropdown',
-    PRED_TABLE_CAPTION = 'pred_table_caption',
     FIRST_ROW_PRED_TABLE = 'row1_pred_table',
     SECOND_ROW_PRED_TABLE = 'row2_pred_table',
     THIRD_ROW_PRED_TABLE = 'row3_pred_table',
@@ -26,11 +28,11 @@ class ExplainView(View):
 
     def create_table(self):
         return [
-            html.Caption('Prediction for', id=self.IDs.PRED_TABLE_CAPTION),
-            html.Thead(html.Tr([html.Th('Activity'), html.Th('Actual'), html.Th('Predicted')])),
-            html.Tbody([html.Tr(id=self.IDs.FIRST_ROW_PRED_TABLE),
-                       html.Tr(id=self.IDs.SECOND_ROW_PRED_TABLE),
-                       html.Tr(id=self.IDs.THIRD_ROW_PRED_TABLE)])
+            html.Caption('Proposed next activities:'),
+            html.Thead(html.Tr([html.Th('Activity'), html.Th('Expected KPI')])),
+            html.Tbody([html.Tr(id=self.IDs.FIRST_ROW_PRED_TABLE, n_clicks=0),
+                       html.Tr(id=self.IDs.SECOND_ROW_PRED_TABLE, n_clicks=0),
+                       html.Tr(id=self.IDs.THIRD_ROW_PRED_TABLE, n_clicks=0)])
         ]
 
     def get_layout(self):
@@ -40,14 +42,16 @@ class ExplainView(View):
                 html.Span('Select the desired trace'),
                 dcc.Graph(id=self.IDs.PREDICTION_SEARCH_GRAPH, figure={}),
                 html.Button('∧', id=self.IDs.GO_UP_PRED_GRAPH, n_clicks=0),
-                html.Button('∨', id=self.IDs.GO_DOWN_PRED_GRAPH, n_clicks=0)
+                html.Button('∨', id=self.IDs.GO_DOWN_PRED_GRAPH, n_clicks=0),
+                html.Span(id=self.IDs.RECOMMANDATION_GRAPH_PAGING_INFO)
             ]),
             html.Span('Search trace by id'),
             dcc.Input(id=self.IDs.SEARCH_TRACE_ID_INPUT),
+            html.Button('Search', id=self.IDs.SEARCH_TRACE_ID_INPUT_BTN, n_clicks=0),
+            html.P(id=self.IDs.CURRENT_TRACE_ID),
+            html.P(id=self.IDs.CURRENT_EXPECTED_KPI),
             dbc.Table(self.create_table()),
-            html.Span('Select the activity to explain'),
-            dcc.Dropdown(id=self.IDs.ACT_TO_EXPLAIN_DROPDOWN),
-            html.Span('Select how mant explanations to visualize'),
+            html.Span('Select how many explanations to visualize'),
             dcc.Slider(id=self.IDs.EXPLANATION_QUANTITY_SLIDER, max=10, min=0, step=1, marks=None,
                        tooltip={"placement": "bottom", "always_visible": True}),
             html.Button('Visualize explanations', self.IDs.VISUALIZE_EXPL_BTN, n_clicks=0),

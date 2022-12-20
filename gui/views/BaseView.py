@@ -5,6 +5,8 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    ARROW_CONTROLLER_STORE = 'arrow_controller_store',
+    ACT_TO_EXPLAIN_STORE = 'act_to_explain_store',
     GO_NEXT_LINK = 'go_next_link',
     GO_NEXT_BTN = 'go_next_btn',
     GO_BACK_LINK = 'go_back_link',
@@ -38,7 +40,9 @@ class BaseView(View):
                     className='left_col'),
                 dcc.Location(id=self.IDs.LOCATION_URL, refresh=False),
                 dcc.Store(id=self.IDs.EXPERIMENT_DATA_STORE, data=None),
-                dcc.Store(id=self.IDs.TRACE_ID_TO_EXPLAIN_STORE, data=None)
+                dcc.Store(id=self.IDs.TRACE_ID_TO_EXPLAIN_STORE, data=None),
+                dcc.Store(id=self.IDs.ACT_TO_EXPLAIN_STORE, data=None),
+                dcc.Store(id=self.IDs.ARROW_CONTROLLER_STORE, data=None),
             ],
             className='container'
         )

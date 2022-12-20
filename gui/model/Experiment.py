@@ -13,14 +13,15 @@ class Experiment:
     id: str
     timestamp: str
     activity: str
-    resource: str
-    act_to_opt: str
+    resource: Optional[str]
+    act_to_opt: Optional[str]
     out_thrs: float
     pred_column: str = ''
 
     def __post_init__(self):
         if self.kpi == 'Total time':
             self.pred_column = 'remaining_time'
+            self.act_to_opt = None
         elif self.kpi == 'Minimize activity occurrence':
             self.pred_column = 'independent_activity'
 

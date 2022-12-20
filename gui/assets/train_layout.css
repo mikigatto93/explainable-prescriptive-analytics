@@ -1,0 +1,106 @@
+/*
+	STYLE FOR TRAIN VIEW
+*/
+
+.view_container {
+	display: flex;
+	flex-direction: column;
+}
+
+.train_load_area {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+.load_train_file_cont {
+	max-width: 66%;
+	flex: 1 0 66%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding-right: 1em;
+	border-right: 1px solid #000;
+}
+
+.load_model_cont {
+	max-width: 33%;
+	flex: 1 0 33%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#load_train_btn {
+	margin-top: 0.8em;
+}
+
+/*
+#load_model_btn {
+	margin-bottom: 15%;
+}
+*/
+
+.all_controls_container {
+	margin-top: 3em;
+}
+
+.experiment_name_cont {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center
+}
+
+#experiment_name_textbox {
+	margin-left: 1em;
+}
+
+.kpi_and_columns_cont {
+	display: flex;
+	flex-direction: row;
+	margin-bottom: 1em;
+}
+
+#kpi_radio_items label {
+	display: block;
+}
+
+.kpi_radio_cont {
+	max-width: 33%;
+	flex: 1 0 33%;
+}
+
+.columns_dropdown_cont {
+	max-width: 66%;
+	flex: 1 0 66%;
+}
+
+.dropdown_select_column {
+	margin-bottom: 0.8em;
+}
+
+#start_training_btn {
+	padding-left: 1em;
+	padding-right: 1em;
+	margin: 1em 0;
+}
+
+
+.slider_cont {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	margin-top: 1em;
+}
+
+#outliers_slider {
+	flex: 1 0 90%;
+}
+
+#slider_value_textbox {
+	max-width: 4em;
+}

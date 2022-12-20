@@ -1,4 +1,5 @@
 import json
+import math
 
 import dash
 import pandas as pd
@@ -17,12 +18,15 @@ from gui.presenters.Presenter import Presenter
 class ExplainPresenter(Presenter):
     def __init__(self, views):
         super().__init__(views)
+        self.REC_PER_PAGE = 15
         self.explainer = None
         self.kpis_df = None
+        self.kpis_df_len = None
         self.pred_graph_progression = 0
 
     def __create_pred_graph(self):
-        df_slice = self.kpis_df[slice(15 * self.pred_graph_progression, 15 * (self.pred_graph_progression + 1))]
+        df_slice = self.kpis_df[slice(max(self.REC_PER_PAGE * self.pred_graph_progression, 0),
+                                      min(self.REC_PER_PAGE * (self.pred_graph_progression + 1), self.kpis_df_len))]
         fig = go.Figure()
         fig.add_trace(
             go.Bar(
@@ -44,12 +48,48 @@ class ExplainPresenter(Presenter):
             )
         )
 
-        fig.update_yaxes(tickmode='linear')
+        # fig.update_yaxes(tickmode='linear')
+
+        fig.update_layout(
+            yaxis=dict(
+                tickmode='array', tickvals=list(df_slice.index),
+                ticktext=['<span style="color:red;" id="{}">{}</span>'.format(i, i)
+                          for i in list(df_slice.index)]
+            )
+        )
+        return fig
+
+    def __create_explanation_graph(self, gt, expl, qnt):
+        gt_slice = gt[slice(0, qnt)]
+        expl_slice = expl[slice(0, qnt)]
+        fig = go.Figure()
+        fig.add_trace(
+            go.Bar(
+                name='Following recommendation',
+                y=list(expl_slice.index),
+                x=list(expl_slice.array),
+                marker_color='darkgreen',
+                orientation='h',
+            )
+        )
+
+        fig.add_trace(
+            go.Bar(
+                name='Actual Value',
+                y=list(gt_slice.index),
+                x=list(gt_slice.array),
+                marker_color='darkred',
+                orientation='h',
+            )
+        )
+
+        # fig.update_yaxes(tickmode='linear')
         return fig
 
     def register_callbacks(self):
 
-        @app.callback(Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
+        @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
+                       Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children')],
                       State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
         def show_prediction_graph(ex_info_data, url):
@@ -66,16 +106,19 @@ class ExplainPresenter(Presenter):
                     self.kpis_df = pd.DataFrame.from_dict(kpis_dict,
                                                           orient='index',
                                                           columns=['Following recommendation', 'Actual Value'])
+                    self.kpis_df_len = len(self.kpis_df.index)
                     # TODO: ORDERING FUNCTION
-                    return self.__create_pred_graph()
+                    return [self.__create_pred_graph(),
+                            '{}/{}'.format(self.pred_graph_progression, math.ceil(self.kpis_df_len/self.REC_PER_PAGE))]
 
                 else:
                     # TODO: ERROR
-                    raise dash.exceptions.PreventUpdate
+                    return [dash.no_update] * 2
             else:
-                raise dash.exceptions.PreventUpdate
+                return [dash.no_update] * 2
 
-        @app.callback(Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
+        @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
+                       Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children')],
                       [Input(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'n_clicks'),
                        Input(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'n_clicks')],
                       prevent_initial_call=True)
@@ -83,54 +126,93 @@ class ExplainPresenter(Presenter):
             button_id = dash.ctx.triggered_id
             if button_id == self.views['explain'].IDs.GO_UP_PRED_GRAPH and n_clicks_up > 0:
                 self.pred_graph_progression += 1
-                return self.__create_pred_graph()
+                return [self.__create_pred_graph(),
+                        '{}/{}'.format(self.pred_graph_progression, math.ceil(self.kpis_df_len/self.REC_PER_PAGE))]
+
             elif button_id == self.views['explain'].IDs.GO_DOWN_PRED_GRAPH and n_clicks_down > 0:
                 self.pred_graph_progression -= 1
-                return self.__create_pred_graph()
-            else:
-                raise dash.exceptions.PreventUpdate
+                return [self.__create_pred_graph(),
+                        '{}/{}'.format(self.pred_graph_progression, math.ceil(self.kpis_df_len/self.REC_PER_PAGE))]
 
-        @app.callback([Output(self.views['explain'].IDs.PRED_TABLE_CAPTION, 'children'),
+            else:
+                return [dash.no_update] * 2
+
+        @app.callback([Output(self.views['explain'].IDs.CURRENT_TRACE_ID, 'children'),
+                       Output(self.views['explain'].IDs.CURRENT_EXPECTED_KPI, 'children'),
                        Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children'),
-                       Output(self.views['explain'].IDs.ACT_TO_EXPLAIN_DROPDOWN, 'options'),
                        Output(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data')],
-                      Input(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'clickData'),
+                      State(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT, 'value'),
+                      [Input(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'clickData'),
+                       Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
                       prevent_initial_call=True)
-        def show_preds_text_format(click_data):
-            if click_data:
-                trace_id = click_data['points'][0]['y']
+        def show_preds_text_format(input_value, click_data, n_clicks):
+            graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
+            search_btn_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN
+            if (graph_clicked and click_data) or (search_btn_clicked and n_clicks > 0):
+                if graph_clicked:
+                    trace_id = click_data['points'][0]['y']
+                elif search_btn_clicked and input_value != '':
+                    trace_id = input_value
                 # print(trace_id)
                 pred_info = self.explainer.get_best_n_scores_by_trace(trace_id, 3)
 
                 rec_act = [t[0] for t in pred_info['rec']]
                 rec_values = [t[1] for t in pred_info['rec']]
-                # real_act = pred_info['real'][0][0]
+                real_act = pred_info['real'][0][0]
                 real_val = pred_info['real'][0][1]
 
-                print(pred_info)
-                print(rec_act)
-                print(rec_values)
-                print(real_val)
-
                 return [
-                    'Prediction for {}'.format(trace_id),
-                    [html.Td(rec_act[0]), html.Td(real_val), html.Td(rec_values[0])],
-                    [html.Td(rec_act[1]), html.Td('-'), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
-                    [html.Td(rec_act[2]), html.Td('-'), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
-                    rec_act,
+                    'Recommandations for {}'.format(trace_id),
+                    'Current activity: {} - expected KPI: {}'.format(real_act, real_val),
+                    [html.Td(rec_act[0]), html.Td(rec_values[0])],
+                    [html.Td(rec_act[1]), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
+                    [html.Td(rec_act[2]), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
                     trace_id
                 ]
             else:
                 raise dash.exceptions.PreventUpdate
 
-        @app.callback([State(self.views['explain'].IDs.ACT_TO_EXPLAIN_DROPDOWN, 'value'),
+        @app.callback(Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+                      [State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
                        State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
                        State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')],
                       Input(self.views['explain'].IDs.VISUALIZE_EXPL_BTN, 'n_clicks'),
                       prevent_initial_call=True)
-        def calculate_shap_for_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
+        def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
             if n_clicks > 0:
                 print(trace_id)
-                self.explainer.calculate_trace_groundtruth(trace_id, act_to_explain)
+                gt, expl = self.explainer.get_explanations(trace_id, act_to_explain)
+                return self.__create_explanation_graph(gt, expl, expl_qnt)
+            else:
+                raise dash.exceptions.PreventUpdate
+
+        @app.callback([Output(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
+                       Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'className'),
+                       Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'className'),
+                       Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'className')],
+                      [Input(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'n_clicks'),
+                       Input(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'n_clicks'),
+                       Input(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'n_clicks')],
+                      [State(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'children'),
+                       State(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'children'),
+                       State(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children')],
+                      prevent_initial_call=True)
+        def show_selected_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3):
+            CSS_CLASS_NAME = 'selected_expl_table_row'
+            btn1_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.FIRST_ROW_PRED_TABLE and n_clicks1 > 0
+            btn2_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SECOND_ROW_PRED_TABLE and n_clicks2 > 0
+            btn3_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.THIRD_ROW_PRED_TABLE and n_clicks3 > 0
+
+            if btn1_clicked:
+                act = (ch1[0]['props']['children'])
+                return [act, CSS_CLASS_NAME, '', '']
+            elif btn2_clicked:
+                act = (ch2[0]['props']['children'])
+                return [act, '', CSS_CLASS_NAME, '']
+            elif btn3_clicked:
+                act = (ch3[0]['props']['children'])
+                return [act, '', '', CSS_CLASS_NAME]
+            else:
+                return [dash.no_update] * 4

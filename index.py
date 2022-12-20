@@ -1,7 +1,10 @@
+import os
+
 from app import app
 from gui.model.Experiment import build_experiment_from_dict
 from gui.model.Recommender import Recommender
 from gui.model.RunDataSource import RunDataSource
+from gui.model.ProgressLogger.TimeLogger import TimeLogger
 from gui.presenters.Router import Router
 from gui.presenters.RunPresenter import RunPresenter
 from gui.presenters.TrainPresenter import TrainPresenter
@@ -11,6 +14,9 @@ from gui.views.ExplainView import ExplainView
 from gui.views.RunView import RunView
 from gui.views.TrainView import TrainView
 
+import dash_uploader as du
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploaded_datasets')
+du.configure_upload(app, UPLOAD_FOLDER)
 
 base_view = BaseView()
 train_view = TrainView('/', 0)
@@ -54,7 +60,8 @@ explain_pres.register_callbacks()
 #                                                 "pred_column": "remaining_time"}),
 #                     RunDataSource('F:/datasets/stage-datasets/VINST_run.csv'))
 #     r.prepare_dataset()
-#     r.generate_recommendations()
+#     r.generate_recommendations(TimeLogger())
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)

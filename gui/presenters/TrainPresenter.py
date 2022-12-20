@@ -1,20 +1,17 @@
 import json
-import os
-import time
 
 import dash
+from dash import ClientsideFunction
 
 from app import app
 from dash_extensions.enrich import Input, Output, State
 
 from gui.model.Experiment import Experiment
-from gui.model.TimeLogger import TimeLogger
+from gui.model.ProgressLogger.TrainProgLogger import TrainProgLogger
 from gui.model.TrainDataSource import TrainDataSource
 from gui.model.Trainer import Trainer
 from gui.presenters.Presenter import Presenter
-
-import tkinter as tk
-from tkinter import filedialog
+import dash_uploader as du
 
 
 class TrainPresenter(Presenter):
@@ -23,24 +20,44 @@ class TrainPresenter(Presenter):
         self.data_source = None
         self.file_path = None
         self.trainer = None
-        self.progress_logger = TimeLogger()
+        self.progress_logger = TrainProgLogger('train_progress.tmp')
 
     def register_callbacks(self):
-        @app.callback(Output(self.views['train'].IDs.LOAD_FILE_AREA, 'children'),
-                      Input(self.views['train'].IDs.LOAD_FILE_AREA, 'n_clicks'),
-                      prevent_initial_call=True)
-        def open_file(n_clicks):
-            if n_clicks > 0:
-                root = tk.Tk()
-                root.attributes("-topmost", True)
-                root.withdraw()
-                file_path = filedialog.askopenfilename(parent=root)
-                root.destroy()
-                self.file_path = file_path
-                filename = os.sep.join(os.path.normpath(file_path).split(os.sep)[-1:])
-                return filename
+        # @app.callback(Output(self.views['train'].IDs.LOAD_FILE_AREA, 'children'),
+        #               Input(self.views['train'].IDs.LOAD_FILE_AREA, 'n_clicks'),
+        #               prevent_initial_call=True)
+        # def open_file(n_clicks):
+        #     if n_clicks > 0:
+        #         root = tk.Tk()
+        #         root.attributes("-topmost", True)
+        #         root.withdraw()
+        #         file_path = filedialog.askopenfilename(parent=root)
+        #         root.destroy()
+        #         self.file_path = file_path
+        #         filename = os.sep.join(os.path.normpath(file_path).split(os.sep)[-1:])
+        #         return filename
+        #     else:
+        #         raise dash.exceptions.PreventUpdate
+
+        @app.callback(Output(self.views['base'].IDs.ARROW_CONTROLLER_STORE, 'data'),
+                      Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
+        def disable_go_next_page_at_start(url):
+            # print(url)
+            if url == self.views['train'].pathname:
+                return {'go_next_disabled_status': True,
+                        'go_back_disabled_status': 'no_update'}
             else:
                 raise dash.exceptions.PreventUpdate
+
+        @du.callback(
+            output=Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'disabled'),
+            id=self.views['train'].IDs.TRAIN_FILE_UPLOADER
+        )
+        def on_train_file_upload_complete(status):
+            print(status)
+            print('Upload train file completed')
+            self.file_path = str(status.latest_file)
+            return False
 
         @app.callback(Output(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
                       Input(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'n_clicks'),
@@ -60,13 +77,17 @@ class TrainPresenter(Presenter):
                        Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options')],
+                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
+                       Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')],
                       Input(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
                       prevent_initial_call=True)
         def populate_dropdown_options(fade):
+            DEFAULT_OUTLIER_THRS = 0.3
             if fade:
                 options_group = self.data_source.columns_list
-                return [options_group] * 5  # generate a list of 5 option_group for the dropdowns
+
+                # generate a list of 5 option_group for the dropdowns
+                return [options_group] * 5 + [DEFAULT_OUTLIER_THRS]
             else:
                 raise dash.exceptions.PreventUpdate
 
@@ -75,6 +96,37 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def show_choose_act_to_opt_dropdown(value):
             return value in ['Maximize activity occurrence', 'Minimize activity occurrence']
+
+        # @app.callback([Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
+        #               Output(self.views['train'].IDs.SLIDER_VALUE_TEXTBOX, 'value')],
+        #               [Input(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
+        #                Input(self.views['train'].IDs.SLIDER_VALUE_TEXTBOX, 'value')])
+        # def slider_value_selector(slider_val, textbox_val):
+        #     triggered_id = dash.ctx.triggered_id
+        #     if triggered_id == self.views['train'].IDs.OUTLIERS_THRS_SLIDER:
+        #         return [dash.no_update, slider_val]
+        #     elif triggered_id == self.views['train'].IDs.SLIDER_VALUE_TEXTBOX:
+        #         new_val = textbox_val if textbox_val else 0
+        #         return [float(new_val), dash.no_update]
+        #     else:
+        #         return [dash.no_update, dash.no_update]
+
+        # @app.callback(Output(self.views['train'].IDs.OUT_THRS_SLIDER_VALUE_LABEL, 'children'),
+        #               Input(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'))
+        # def slider_value_selector(slider_val):
+        #     if slider_val:
+        #         return slider_val
+        #     else:
+        #         raise dash.exceptions.PreventUpdate
+
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace='clientside',
+                function_name='slider_value_display_csc'
+            ),
+            Output(self.views['train'].IDs.OUT_THRS_SLIDER_VALUE_LABEL, 'children'),
+            Input(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')
+        )
 
         @app.callback(Output(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                       [State(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'value'),
@@ -95,7 +147,7 @@ class TrainPresenter(Presenter):
                 self.trainer = Trainer(experiment_info, self.data_source)
                 return json.dumps(experiment_info.to_dict())
             else:
-                # TODO: invalida data
+                # TODO: invalid data
                 raise dash.exceptions.PreventUpdate
 
         @app.callback(
@@ -110,7 +162,7 @@ class TrainPresenter(Presenter):
                 self.trainer.prepare_dataset()
                 self.trainer.train(self.progress_logger)
                 self.trainer.generate_variables()
-                return ['Training finished', 0]  # stops the interval
+                return ['Training completed', 0]  # stops the interval
             elif ex_store_data is None:
                 raise dash.exceptions.PreventUpdate
             else:

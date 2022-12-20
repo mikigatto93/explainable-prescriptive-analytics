@@ -50,7 +50,7 @@ class Recommender:
                                                            self.paths, self.ex_info.pred_column, mode)
         write(self.prep_df, self.paths.folders['recommendations']['df_run'])
 
-    def generate_recommendations(self):
+    def generate_recommendations(self, progress_logger):
         idx_list = self.prep_df[self.ex_info.id].unique()
         results = list()
         rec_dict = dict()
@@ -61,57 +61,54 @@ class Recommender:
         qualitative_vars = read(self.paths.folders['variables']['qlt'])
 
         print('start')
-        for trace_idx in tqdm.tqdm(idx_list):
-            print(trace_idx)
-            trace = self.prep_df[self.prep_df[self.ex_info.id] == trace_idx].reset_index(drop=True)
-            trace = trace.reset_index(drop=True)  # trace.iloc[:, :-1].reset_index(drop=True)
-            trace.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
-            # trace = trace[list(model.feature_names_)]
-            try:
-                # take activity list
-                acts = list(self.prep_df[self.prep_df[self.ex_info.id] == trace_idx].reset_index(drop=True)[
-                                self.ex_info.activity])
+        with tqdm.tqdm(idx_list, file=progress_logger) as idx_list_iter:
+            for trace_idx in idx_list_iter:
 
-                # Remove the last (it has been added because of the evaluation)
-                # trace = trace.iloc[:-1].reset_index(drop=True)
-            except:
-                import ipdb;
-                ipdb.set_trace()
-
-            try:
-                next_activities, actual_prediciton = next_act.next_act_kpis(trace, self.traces_hash, model,
-                                                                            self.ex_info.pred_column,
-                                                                            self.ex_info.id, self.ex_info.activity,
-                                                                            quantitative_vars, qualitative_vars,
-                                                                            encoding='aggr-hist')
-                next_activities['kpi_rel'] = next_activities['kpi_rel'].abs()
-            except:
-                print('Next activity not found in transition system')
-                continue
-
-            try:
-                rec_act = \
-                    next_activities[next_activities['kpi_rel'] == min(next_activities['kpi_rel'])]['Next_act'].values[
-                        0]
-                other_traces = [
-                    next_activities[next_activities['kpi_rel'] != min(next_activities['kpi_rel'])]['Next_act'].values]
-            except:
+                trace = self.prep_df[self.prep_df[self.ex_info.id] == trace_idx].reset_index(drop=True)
+                trace = trace.reset_index(drop=True)  # trace.iloc[:, :-1].reset_index(drop=True)
+                trace.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
+                # trace = trace[list(model.feature_names_)]
                 try:
-                    if len(next_activities) == 1:
-                        print('No other traces to analyze')
-                except:
-                    print(trace_idx, 'check it')
+                    # take activity list
+                    acts = list(self.prep_df[self.prep_df[self.ex_info.id] == trace_idx].reset_index(drop=True)[
+                                    self.ex_info.activity])
 
-            rec_dict[trace_idx] = {i: j for i, j in zip(next_activities['Next_act'], next_activities['kpi_rel'])}
-            real_dict[trace_idx] = {acts[-1]: actual_prediciton}
+                    # Remove the last (it has been added because of the evaluation)
+                    # trace = trace.iloc[:-1].reset_index(drop=True)
+                except:
+                    import ipdb;
+                    ipdb.set_trace()
+
+                try:
+                    next_activities, actual_prediciton = next_act.next_act_kpis(trace, self.traces_hash, model,
+                                                                                self.ex_info.pred_column,
+                                                                                self.ex_info.id, self.ex_info.activity,
+                                                                                quantitative_vars, qualitative_vars,
+                                                                                encoding='aggr-hist')
+                    next_activities['kpi_rel'] = next_activities['kpi_rel'].abs()
+                except:
+                    print('Next activity not found in transition system')
+                    continue
+
+                try:
+                    rec_act = \
+                        next_activities[next_activities['kpi_rel'] == min(next_activities['kpi_rel'])][
+                            'Next_act'].values[
+                            0]
+                    other_traces = [
+                        next_activities[next_activities['kpi_rel'] != min(next_activities['kpi_rel'])][
+                            'Next_act'].values]
+                except:
+                    try:
+                        if len(next_activities) == 1:
+                            print('No other traces to analyze')
+                    except:
+                        print(trace_idx, 'check it')
+
+                rec_dict[trace_idx] = {i: j for i, j in zip(next_activities['Next_act'], next_activities['kpi_rel'])}
+                real_dict[trace_idx] = {acts[-1]: actual_prediciton}
         rec_dict = {str(A): N for (A, N) in [x for x in rec_dict.items()]}
         real_dict = {str(A): N for (A, N) in [x for x in real_dict.items()]}
         write(rec_dict, self.paths.folders['recommendations']['rec_dict'])
         write(real_dict, self.paths.folders['recommendations']['real_dict'])
         print('Prediction generation completed')
-
-
-
-
-
-

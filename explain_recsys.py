@@ -9,39 +9,42 @@ Created on Mon Mar 14 17:29:54 2022
 import catboost
 from catboost import *
 import shap
+
 shap.initjs()
 
 import urllib3
+
 urllib3.disable_warnings()
 import pandas as pd
 
 import matplotlib.pyplot as plt
+
 plt.style.use('ggplot')
+
 
 def evaluate_shap_vals(trace, model, X_test, case_id_name):
     trace = trace.iloc[-1]
     X_test.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
     X_test = X_test[trace.index]
     df = X_test.append(trace).reset_index(drop=True)
-    df = df[[i for i in X_test.columns if i!=case_id_name]]
+    df = df[[i for i in X_test.columns if i != case_id_name]]
     # df = df[[list(model.feature_names_)]]
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(df)
     return shap_values[-1]
-   
+
 
 def plot_explanations_recs(groundtruth_explanation, explanations, idxs_chosen, last, experiment_name, trace_idx, act):
-
     # Python dictionary
     expl_df = {"Following Recommendation": [i for i in explanations[idxs_chosen].sort_values(ascending=False).values],
-                          "Actual Value": [i for i in groundtruth_explanation[idxs_chosen].sort_values(ascending=False).values]};
+               "Actual Value": [i for i in groundtruth_explanation[idxs_chosen].sort_values(ascending=False).values]};
 
     last = last[idxs_chosen]
 
     feature_names = [str(i) for i in last.index]
     feature_values = [str(i) for i in last.values]
 
-    index = [feature_names[i]+'='+feature_values[i] for i in range(len(feature_values))]
+    index = [feature_names[i] + '=' + feature_values[i] for i in range(len(feature_values))]
     # Python dictionary into a pandas DataFrame
 
     dataFrame = pd.DataFrame(data=expl_df)
