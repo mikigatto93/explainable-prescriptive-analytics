@@ -27,6 +27,10 @@ class TimeLogger(ABC):
         except FileNotFoundError:
             return None
 
+    def clear_stack(self):
+        with open(self.file_path, 'w'):
+            pass
+
     @abstractmethod
     def write(self, log_entry):
         pass

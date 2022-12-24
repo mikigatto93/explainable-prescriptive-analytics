@@ -7,6 +7,7 @@ import dash_uploader as du
 
 
 class _IDs(StrEnum):
+    PROC_TRAIN_OUT_FADE = 'proc_train_output_fade',
     OUT_THRS_SLIDER_VALUE_LABEL = 'out_thrs_slidier_value_label'
     SLIDER_VALUE_TEXTBOX = 'slider_value_textbox',
     TRAIN_FILE_UPLOADER = 'train_file_uploader',
@@ -87,7 +88,8 @@ class TrainView(View):
                 ], className='slider_cont'),
                 html.Button('Train', id=self.IDs.START_TRAINING_BTN, n_clicks=0, className='general_btn_layout')
             ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS, className='all_controls_container'),
-            html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
-            html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT),
-            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL, n_intervals=0, interval=1000)
+            dbc.Fade([html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
+                      html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT)], is_in=False, appear=False,
+                     id=self.IDs.PROC_TRAIN_OUT_FADE, className='process_display_out_cont'),
+            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL, n_intervals=0, interval=1000, max_intervals=-1)
         ], className='view_container')

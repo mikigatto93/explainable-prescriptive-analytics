@@ -3,6 +3,7 @@ import math
 
 import dash
 import pandas as pd
+from dash import ClientsideFunction
 
 from app import app
 from dash_extensions.enrich import Input, Output, State
@@ -25,8 +26,12 @@ class ExplainPresenter(Presenter):
         self.pred_graph_progression = 0
 
     def __create_pred_graph(self):
+        # print(max(self.REC_PER_PAGE * self.pred_graph_progression, 0))
+        # print('__')
+        # print(min(self.REC_PER_PAGE * (self.pred_graph_progression + 1), self.kpis_df_len))
         df_slice = self.kpis_df[slice(max(self.REC_PER_PAGE * self.pred_graph_progression, 0),
                                       min(self.REC_PER_PAGE * (self.pred_graph_progression + 1), self.kpis_df_len))]
+
         fig = go.Figure()
         fig.add_trace(
             go.Bar(
@@ -55,8 +60,21 @@ class ExplainPresenter(Presenter):
                 tickmode='array', tickvals=list(df_slice.index),
                 ticktext=['<span style="color:red;" id="{}">{}</span>'.format(i, i)
                           for i in list(df_slice.index)]
-            )
+            ),
+            title='Select the desired trace',
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            ),
+            margin=dict(
+                r=10,
+            ),
+            height=450,
         )
+
         return fig
 
     def __create_explanation_graph(self, gt, expl, qnt):
@@ -109,7 +127,8 @@ class ExplainPresenter(Presenter):
                     self.kpis_df_len = len(self.kpis_df.index)
                     # TODO: ORDERING FUNCTION
                     return [self.__create_pred_graph(),
-                            '{}/{}'.format(self.pred_graph_progression, math.ceil(self.kpis_df_len/self.REC_PER_PAGE))]
+                            '{}/{}'.format(self.pred_graph_progression,
+                                           math.ceil(self.kpis_df_len / self.REC_PER_PAGE))]
 
                 else:
                     # TODO: ERROR
@@ -118,36 +137,70 @@ class ExplainPresenter(Presenter):
                 return [dash.no_update] * 2
 
         @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
-                       Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children')],
+                       Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children'),
+                       Output(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'disabled'),
+                       Output(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'disabled')],
                       [Input(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'n_clicks'),
                        Input(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'n_clicks')],
                       prevent_initial_call=True)
         def scroll_graph(n_clicks_up, n_clicks_down):
             button_id = dash.ctx.triggered_id
+            print(self.pred_graph_progression)
             if button_id == self.views['explain'].IDs.GO_UP_PRED_GRAPH and n_clicks_up > 0:
-                self.pred_graph_progression += 1
-                return [self.__create_pred_graph(),
-                        '{}/{}'.format(self.pred_graph_progression, math.ceil(self.kpis_df_len/self.REC_PER_PAGE))]
+                max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
+                if self.pred_graph_progression == max_page:
+                    return [
+                        self.__create_pred_graph(),
+                        '{}/{}'.format(self.pred_graph_progression, max_page),
+                        True,
+                        False
+                    ]
+
+                else:
+                    self.pred_graph_progression += 1
+                    return [
+                        self.__create_pred_graph(),
+                        '{}/{}'.format(self.pred_graph_progression, max_page),
+                        False,
+                        False
+                    ]
 
             elif button_id == self.views['explain'].IDs.GO_DOWN_PRED_GRAPH and n_clicks_down > 0:
-                self.pred_graph_progression -= 1
-                return [self.__create_pred_graph(),
-                        '{}/{}'.format(self.pred_graph_progression, math.ceil(self.kpis_df_len/self.REC_PER_PAGE))]
+                if self.pred_graph_progression == 0:
+                    return [
+                        self.__create_pred_graph(),
+                        '{}/{}'.format(self.pred_graph_progression,
+                                       math.ceil(self.kpis_df_len / self.REC_PER_PAGE)),
+                        True,
+                        False
+                    ]
+                else:
+                    self.pred_graph_progression -= 1
+                    return [
+                        self.__create_pred_graph(),
+                        '{}/{}'.format(self.pred_graph_progression, math.ceil(self.kpis_df_len / self.REC_PER_PAGE)),
+                        False,
+                        False
+                    ]
 
             else:
-                return [dash.no_update] * 2
+                return [dash.no_update] * 4
 
         @app.callback([Output(self.views['explain'].IDs.CURRENT_TRACE_ID, 'children'),
+                       Output(self.views['explain'].IDs.CURRENT_ACTIVITY, 'children'),
                        Output(self.views['explain'].IDs.CURRENT_EXPECTED_KPI, 'children'),
                        Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children'),
-                       Output(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data')],
+                       Output(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
+                       Output(self.views['explain'].IDs.VISUALIZE_EXPL_FADE, 'is_in'),
+                       Output(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')],
                       State(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT, 'value'),
                       [Input(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'clickData'),
                        Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
                       prevent_initial_call=True)
         def show_preds_text_format(input_value, click_data, n_clicks):
+            DEFAULT_EXPL_QNT = 4
             graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
             search_btn_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN
             if (graph_clicked and click_data) or (search_btn_clicked and n_clicks > 0):
@@ -164,29 +217,27 @@ class ExplainPresenter(Presenter):
                 real_val = pred_info['real'][0][1]
 
                 return [
-                    'Recommandations for {}'.format(trace_id),
-                    'Current activity: {} - expected KPI: {}'.format(real_act, real_val),
+                    'Recommendations for {}'.format(trace_id),
+                    'Current activity: {}'.format(real_act),
+                    'Expected KPI: {}'.format(real_val),
                     [html.Td(rec_act[0]), html.Td(rec_values[0])],
                     [html.Td(rec_act[1]), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
                     [html.Td(rec_act[2]), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
-                    trace_id
+                    trace_id,
+                    True,
+                    DEFAULT_EXPL_QNT
                 ]
             else:
-                raise dash.exceptions.PreventUpdate
+                return [dash.no_update] * 9
 
-        @app.callback(Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
-                      [State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
-                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
-                       State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')],
-                      Input(self.views['explain'].IDs.VISUALIZE_EXPL_BTN, 'n_clicks'),
-                      prevent_initial_call=True)
-        def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
-            if n_clicks > 0:
-                print(trace_id)
-                gt, expl = self.explainer.get_explanations(trace_id, act_to_explain)
-                return self.__create_explanation_graph(gt, expl, expl_qnt)
-            else:
-                raise dash.exceptions.PreventUpdate
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace='clientside',
+                function_name='slider_value_display_csc'
+            ),
+            Output(self.views['explain'].IDs.QNT_EXPL_SLIDER_VALUE_LABEL, 'children'),
+            Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')
+        )
 
         @app.callback([Output(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
                        Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'className'),
@@ -216,3 +267,17 @@ class ExplainPresenter(Presenter):
                 return [act, '', '', CSS_CLASS_NAME]
             else:
                 return [dash.no_update] * 4
+
+        @app.callback(Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+                      [State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')],
+                      Input(self.views['explain'].IDs.VISUALIZE_EXPL_BTN, 'n_clicks'),
+                      prevent_initial_call=True)
+        def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
+            if n_clicks > 0:
+                print(trace_id)
+                gt, expl = self.explainer.get_explanations(trace_id, act_to_explain)
+                return self.__create_explanation_graph(gt, expl, expl_qnt)
+            else:
+                raise dash.exceptions.PreventUpdate

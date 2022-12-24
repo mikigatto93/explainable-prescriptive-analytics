@@ -1,0 +1,23 @@
+/*
+	STYLE FOR RUN VIEW
+*/
+
+.run_container {
+
+}
+
+.run_btns_cont {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+}
+
+#load_run_btn {
+	margin: 1em;
+}
+
+#gen_preds_btn {
+	margin: 1em;
+	height: 3em;
+}

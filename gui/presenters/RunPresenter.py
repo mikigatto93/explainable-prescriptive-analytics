@@ -49,21 +49,27 @@ class RunPresenter(Presenter):
             self.file_path = str(status.latest_file)
             return False
 
-        @app.callback(Output(self.views['run'].IDs.FADE_GENERATE_PREDS_BTN, 'is_in'),
+        @app.callback([Output(self.views['run'].IDs.FADE_GENERATE_PREDS_BTN, 'is_in'),
+                       Output(self.views['run'].IDs.PROC_RUN_OUT_FADE, 'is_in'),
+                       Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals')],
                       Input(self.views['run'].IDs.LOAD_RUN_FILE_BTN, 'n_clicks'),
                       prevent_initial_call=True)
         def show_gen_pred_button(n_clicks):
             if n_clicks > 0:
                 try:
                     self.data_source = RunDataSource(self.file_path)
+                    self.progress_logger.clear_stack()
                 except Exception as e:
                     print(e)
-                    return False
+                    return [False, False, 0]
 
-                return True
+                return [True, True, -1]  # -1 starts interval
+            else:
+                return [dash.no_update, dash.no_update, dash.no_update]
 
         @app.callback([Output(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
-                       Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals')],
+                       Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'),
+                       Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'children')],
                       State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                       Input(self.views['run'].IDs.GENERATE_PREDS_BTN, 'n_clicks'),
                       prevent_initial_call=True)
@@ -78,11 +84,16 @@ class RunPresenter(Presenter):
                                                  "pred_column": "remaining_time"})
 
                 self.recommender = Recommender(ex_info, self.data_source)
+
+                self.progress_logger.add_to_stack('Preparing dataset...')
                 self.recommender.prepare_dataset()
+
+                self.progress_logger.add_to_stack('Starting recommendations generation...')
                 self.recommender.generate_recommendations(self.progress_logger)
-                return ['Recommendations generation completed', 0]  # stops the interval
+
+                return ['Recommendations generation completed', 0, '']  # stops the interval
             else:
-                return [dash.no_update, dash.no_update]
+                return [dash.no_update, dash.no_update, dash.no_update]
 
         @app.callback(Output(self.views['run'].IDs.SHOW_PROCESS_RUNNING_OUTPUT, 'children'),
                       Input(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'n_intervals'),

@@ -1,0 +1,105 @@
+/*
+	STYLE FOR EXPLAIN
+*/
+
+/*
+#pred_search_graph {
+	width: 700px;
+	height: 600px;
+
+}*/
+
+.explain_container {
+	position: absolute;
+	top: 5em;
+	width: 60%;
+}
+
+.trace_expl_selectors_cont {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+    justify-content: center;
+}
+
+@media only screen and (max-width: 1120px) {
+	.trace_expl_selectors_cont {
+		flex-wrap: wrap;
+	}
+}
+
+#pred_search_graph {
+
+}
+
+.search_trace_graph_cont {
+	flex: 1 0 69%;
+	/*border-right: 1px solid #000;*/
+	padding-right: 5px;
+}
+
+.search_trace_by_id_cont {
+	flex: 1 0 20%;
+	margin-left: 3em;
+}
+
+.paging_controls_cont {
+	display: flex;
+	flex-direction: column;
+	flex: 1 0 6%;
+	box-sizing: border-box;
+	padding-right: 1em;
+	border-right: 1px solid #000;
+}
+
+#go_up_btn_pred_graph {
+	margin-bottom: 0;
+}
+
+#go_down_btn_pred_graph {
+	margin-top: 170px;
+}
+
+
+#recomm_graph_paging_info {
+	margin-top: 60px;
+}
+
+#search_trace_id_input {
+	width: 80%;
+}
+
+#search_trace_id_input_btn {
+	margin: 10px 0;
+}
+
+.explanation_table td,
+.explanation_table th {
+	border: 1px solid #000;
+	padding: 0.5em 1.5em;
+}
+
+.explanation_table {
+	margin: 2em 0;
+	border: 1px solid #000;
+	border-collapse: collapse;
+}
+
+.explanation_table tbody tr:hover {
+	background: #FAF884;
+}
+
+#explan_quantity_number {
+	flex: 1 0 90%;
+}
+
+#explain_qnt_slider_value_label {
+	max-width: 2em;
+}
+
+
+/* CLASS USED IN show_selected_trace_activity_to_explain callback of ExplainPresenter */
+.selected_expl_table_row {
+	background: yellow;
+}
+

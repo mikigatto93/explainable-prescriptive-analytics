@@ -128,7 +128,9 @@ class TrainPresenter(Presenter):
             Input(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')
         )
 
-        @app.callback(Output(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
+        @app.callback([Output(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
+                       Output(self.views['train'].IDs.PROC_TRAIN_OUT_FADE, 'is_in'),
+                       Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals')],
                       [State(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'value'),
                        State(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
                        State(self.views['train'].IDs.ID_DROPDOWN, 'value'),
@@ -145,28 +147,35 @@ class TrainPresenter(Presenter):
                 experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
                 print(experiment_info)
                 self.trainer = Trainer(experiment_info, self.data_source)
-                return json.dumps(experiment_info.to_dict())
+                self.progress_logger.clear_stack()
+                return [json.dumps(experiment_info.to_dict()), True, -1]  # -1 starts interval
             else:
-                # TODO: invalid data
-                raise dash.exceptions.PreventUpdate
+                return [dash.no_update, dash.no_update, dash.no_update]
 
         @app.callback(
             output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
-                    Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals')],
+                    Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals'),
+                    Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'children')],
             inputs=Input(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
             background=True,
             prevent_initial_call=True
         )
         def train_model(ex_store_data):
             if ex_store_data is not None and json.loads(ex_store_data):
+                self.progress_logger.add_to_stack('Preparing dataset...')
                 self.trainer.prepare_dataset()
+
+                self.progress_logger.add_to_stack('Starting training...')
                 self.trainer.train(self.progress_logger)
+
+                self.progress_logger.add_to_stack('Generating variables...')
                 self.trainer.generate_variables()
-                return ['Training completed', 0]  # stops the interval
+
+                return ['Training completed', 0, '']  # 0 stops the interval
             elif ex_store_data is None:
-                raise dash.exceptions.PreventUpdate
+                return [dash.no_update, dash.no_update, dash.no_update]
             else:
-                return ['Error', 0]  # stops the interval
+                return ['Error', 0, '']  # 0 stops the interval
 
         @app.callback(Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'children'),
                       Input(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'n_intervals'),

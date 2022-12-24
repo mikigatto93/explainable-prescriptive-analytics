@@ -68,7 +68,16 @@ html, body {
 	cursor: pointer;
 }
 
-/*CLASS FOR CODE*/
-.selected_expl_table_row {
-	background: yellow;
+.process_display_out_cont {
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+}
+
+.slider_cont {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	margin-top: 1em;
 }
