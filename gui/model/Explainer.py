@@ -136,7 +136,7 @@ class Explainer:
             explanations = pd.Series(explanations, index=[i for i in trace_exp.columns if i != 'y'])
             write(explanations.to_dict(), self.paths.get_explanation_path(trace_idx, act))
 
-    def __generate_explanations_dataframe(self, trace_id, value):
+    def generate_explanations_dataframe(self, trace_id, value):
         groundtruth_explanation = pd.read_json(self.paths.get_gt_explanation_path(trace_id), typ='series')
         explanations = pd.read_json(self.paths.get_explanation_path(trace_id, value), typ='series')
 
@@ -152,9 +152,6 @@ class Explainer:
         return (groundtruth_explanation.reindex(index=deltas_expls.keys()),
                 explanations.reindex(index=deltas_expls.keys()))
 
-    def get_explanations(self, trace_id, value):
-        if not (os.path.isfile(self.paths.get_gt_explanation_path(trace_id)) and
-                os.path.isfile(self.paths.get_explanation_path(trace_id, value))):
-            self.calculate_explanation(trace_id, value)
-
-        return self.__generate_explanations_dataframe(trace_id, value)
+    def check_if_explanations_exists(self, trace_id, value):
+        return (os.path.isfile(self.paths.get_gt_explanation_path(trace_id)) and
+                os.path.isfile(self.paths.get_explanation_path(trace_id, value)))

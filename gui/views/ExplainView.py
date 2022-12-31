@@ -6,6 +6,8 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    VISUALIZE_EXPLANATION_GRAPH_1 = 'visualize_explan_graph_1',
+    VISUALIZE_EXPLANATION_GRAPH_FADE = 'expl_graph_fade',
     QNT_EXPL_SLIDER_VALUE_LABEL = 'explain_qnt_slider_value_label',
     CURRENT_ACTIVITY = 'curretn_activity',
     VISUALIZE_EXPL_FADE = 'visualize_explan_fade',
@@ -51,13 +53,12 @@ class ExplainView(View):
             html.H1('Explain'),
             html.Div([
                 html.Div([
-                    dcc.Graph(id=self.IDs.PREDICTION_SEARCH_GRAPH, figure={}),
-
+                    dcc.Loading([dcc.Graph(id=self.IDs.PREDICTION_SEARCH_GRAPH, figure={})], type='circle'),
                 ], className='search_trace_graph_cont'),
 
                 html.Div([
                     html.Button('∧', id=self.IDs.GO_UP_PRED_GRAPH, n_clicks=0),
-                    html.Button('∨', id=self.IDs.GO_DOWN_PRED_GRAPH, n_clicks=0),
+                    html.Button('∨', id=self.IDs.GO_DOWN_PRED_GRAPH, n_clicks=0, disabled=True),
                     html.Span(id=self.IDs.RECOMMANDATION_GRAPH_PAGING_INFO),
                 ], className='paging_controls_cont'),
 
@@ -80,7 +81,8 @@ class ExplainView(View):
                 ], className='slider_cont'),
                 html.Button('Visualize explanations', self.IDs.VISUALIZE_EXPL_BTN, n_clicks=0,
                             className='general_btn_layout'),
-                dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH),
+                dcc.Loading([dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH)], type='circle'),
+                dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH_1),
 
             ], is_in=False, appear=False, id=self.IDs.VISUALIZE_EXPL_FADE, className='visualize_expl_cont')
         ], className='explain_container')

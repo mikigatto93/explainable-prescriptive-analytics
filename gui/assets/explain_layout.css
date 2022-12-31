@@ -85,8 +85,12 @@
 	border-collapse: collapse;
 }
 
-.explanation_table tbody tr:hover {
-	background: #FAF884;
+.explanation_table tbody tr {
+	cursor: pointer;
+}
+
+.explanation_table tr:hover {
+	background: #FAF884;s
 }
 
 #explan_quantity_number {
@@ -101,5 +105,10 @@
 /* CLASS USED IN show_selected_trace_activity_to_explain callback of ExplainPresenter */
 .selected_expl_table_row {
 	background: yellow;
+}
+
+/* To remove the hover when he item is selected*/
+tr.selected_expl_table_row:hover {
+	background: yellow;  /* same color as the selection */
 }
 
