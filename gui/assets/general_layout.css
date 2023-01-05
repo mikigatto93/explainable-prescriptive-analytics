@@ -68,6 +68,16 @@ html, body {
 	cursor: pointer;
 }
 
+.button_spinner_cont {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.spinner_img {
+	margin-right: 0.2em;
+}
+
 .process_display_out_cont {
 	display: flex;
 	justify-content: center;
@@ -80,4 +90,10 @@ html, body {
 	flex-wrap: nowrap;
 	align-items: flex-start;
 	margin-top: 1em;
+}
+
+.error_box {
+	color: #D2042D;
+	margin-bottom: 0.5em;
+	margin-top: 0.2em;
 }

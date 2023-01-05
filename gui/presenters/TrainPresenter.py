@@ -22,6 +22,23 @@ class TrainPresenter(Presenter):
         self.trainer = None
         self.progress_logger = TrainProgLogger('train_progress.tmp')
 
+    def __validate_input(self, ex_name, kpi, _id, timestamp, activity, act_to_opt):
+        error_data = {}
+        if ex_name is None:
+            error_data[self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX] = 'Experiment name is empty'
+        if kpi is None:
+            error_data[self.views['train'].IDs.KPI_RADIO_ITEMS] = 'One KPI must be selected'
+        if _id is None:
+            error_data[self.views['train'].IDs.ID_DROPDOWN] = 'One ID column must be selected'
+        if timestamp is None:
+            error_data[self.views['train'].IDs.TIMESTAMP_DROPDOWN] = 'One TIMESTAMP column must be selected'
+        if activity is None:
+            error_data[self.views['train'].IDs.ACTIVITY_DROPDOWN] = 'One ACTIVITY column must be selected'
+        if act_to_opt is None and kpi == 'Minimize activity occurrence':
+            error_data[self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN] = \
+                'If KPI "Minimize activity occurrence" is chosen then one ACTIVITY column to minimize must be selected'
+        return error_data
+
     def register_callbacks(self):
         # @app.callback(Output(self.views['train'].IDs.LOAD_FILE_AREA, 'children'),
         #               Input(self.views['train'].IDs.LOAD_FILE_AREA, 'n_clicks'),
@@ -38,6 +55,29 @@ class TrainPresenter(Presenter):
         #         return filename
         #     else:
         #         raise dash.exceptions.PreventUpdate
+
+        @app.callback([Output(e.value, 'children') for e in self.views['train'].ERROR_IDs],
+                      Input(self.views['base'].IDs.ERRORS_MANAGER_STORE, 'data'),
+                      prevent_initial_call=True)
+        def show_error_training(error_data):
+            print(error_data)
+
+            l = [Output(e.value, 'children') for e in self.views['train'].ERROR_IDs]
+            print(l)
+            if error_data is not None:
+                output_values = []
+                for e in self.views['train'].ERROR_IDs:
+                    err_id = str(e.value)
+                    elem_id = err_id.replace('_error', '')
+                    print(elem_id)
+                    if elem_id in error_data:
+                        output_values.append(error_data[elem_id])
+                    else:
+                        output_values.append('')
+                print(output_values)
+                return output_values
+            else:
+                raise dash.exceptions.PreventUpdate
 
         @app.callback(Output(self.views['base'].IDs.ARROW_CONTROLLER_STORE, 'data'),
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
@@ -130,7 +170,8 @@ class TrainPresenter(Presenter):
 
         @app.callback([Output(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                        Output(self.views['train'].IDs.PROC_TRAIN_OUT_FADE, 'is_in'),
-                       Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals')],
+                       Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals'),
+                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE, 'data')],
                       [State(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'value'),
                        State(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
                        State(self.views['train'].IDs.ID_DROPDOWN, 'value'),
@@ -143,14 +184,17 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs, n_clicks):
             if n_clicks > 0:
-                # TODO: validate data
-                experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
-                print(experiment_info)
-                self.trainer = Trainer(experiment_info, self.data_source)
-                self.progress_logger.clear_stack()
-                return [json.dumps(experiment_info.to_dict()), True, -1]  # -1 starts interval
+                error_data = self.__validate_input(ex_name, kpi, _id, timestamp, activity, act_to_opt)
+                if not error_data:
+                    experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
+                    print(experiment_info)
+                    self.trainer = Trainer(experiment_info, self.data_source)
+                    self.progress_logger.clear_stack()
+                    return [json.dumps(experiment_info.to_dict()), True, -1, error_data]  # -1 starts interval
+                else:
+                    return [dash.no_update] * 3 + [error_data]
             else:
-                return [dash.no_update, dash.no_update, dash.no_update]
+                return [dash.no_update] * 4
 
         @app.callback(
             output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
@@ -158,7 +202,11 @@ class TrainPresenter(Presenter):
                     Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'children')],
             inputs=Input(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
             background=True,
-            prevent_initial_call=True
+            prevent_initial_call=True,
+            running=[
+                (Output(self.views['train'].IDs.TRAIN_SPINNER, 'style'),
+                 {'display': 'inline'}, {'display': 'none'})
+            ]
         )
         def train_model(ex_store_data):
             if ex_store_data is not None and json.loads(ex_store_data):
@@ -175,7 +223,7 @@ class TrainPresenter(Presenter):
             elif ex_store_data is None:
                 return [dash.no_update, dash.no_update, dash.no_update]
             else:
-                return ['Error', 0, '']  # 0 stops the interval
+                return ['An error occurred during training', 0, '']  # 0 stops the interval
 
         @app.callback(Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'children'),
                       Input(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'n_intervals'),
@@ -187,4 +235,5 @@ class TrainPresenter(Presenter):
                     return t
                 else:
                     raise dash.exceptions.PreventUpdate
+
 

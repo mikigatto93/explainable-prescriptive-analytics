@@ -5,6 +5,8 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    ERRORS_MANAGER_STORE = 'errors_manager_store',
+    EXPLANATION_QUANTITY_STORE = 'expl_qnt_store',
     ARROW_CONTROLLER_STORE = 'arrow_controller_store',
     ACT_TO_EXPLAIN_STORE = 'act_to_explain_store',
     GO_NEXT_LINK = 'go_next_link',
@@ -43,6 +45,8 @@ class BaseView(View):
                 dcc.Store(id=self.IDs.TRACE_ID_TO_EXPLAIN_STORE, data=None),
                 dcc.Store(id=self.IDs.ACT_TO_EXPLAIN_STORE, data=None),
                 dcc.Store(id=self.IDs.ARROW_CONTROLLER_STORE, data=None),
+                dcc.Store(id=self.IDs.EXPLANATION_QUANTITY_STORE, data=None),
+                dcc.Store(id=self.IDs.ERRORS_MANAGER_STORE, data=None),
             ],
             className='container'
         )

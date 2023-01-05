@@ -1,5 +1,6 @@
 import json
 import math
+import time
 
 import dash
 import pandas as pd
@@ -20,6 +21,7 @@ class ExplainPresenter(Presenter):
     def __init__(self, views):
         super().__init__(views)
         self.REC_PER_PAGE = 15
+        self.DEFAULT_EXPL_QNT = 4
         self.explainer = None
         self.kpis_df = None
         self.kpis_df_len = None
@@ -225,77 +227,95 @@ class ExplainPresenter(Presenter):
         @app.callback([Output(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
                        Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'className'),
                        Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'className'),
-                       Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'className')],
+                       Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'className'),
+                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+                       Output(self.views['explain'].IDs.GENERATE_EXPL_BTN_FADE, 'is_in'),
+                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in')],
                       [Input(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'n_clicks'),
                        Input(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'n_clicks'),
                        Input(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'n_clicks')],
                       [State(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'children'),
                        State(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'children'),
-                       State(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children')],
+                       State(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children'),
+                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data')],
                       prevent_initial_call=True)
-        def show_selected_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3):
+        def select_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3, trace_id):
             CSS_CLASS_NAME = 'selected_expl_table_row'
-            btn1_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.FIRST_ROW_PRED_TABLE and n_clicks1 > 0
-            btn2_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SECOND_ROW_PRED_TABLE and n_clicks2 > 0
-            btn3_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.THIRD_ROW_PRED_TABLE and n_clicks3 > 0
+            row1_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.FIRST_ROW_PRED_TABLE and n_clicks1 > 0
+            row2_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SECOND_ROW_PRED_TABLE and n_clicks2 > 0
+            row3_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.THIRD_ROW_PRED_TABLE and n_clicks3 > 0
 
-            if btn1_clicked:
-                act = (ch1[0]['props']['children'])
-                return [act, CSS_CLASS_NAME, '', '']
-            elif btn2_clicked:
-                act = (ch2[0]['props']['children'])
-                return [act, '', CSS_CLASS_NAME, '']
-            elif btn3_clicked:
-                act = (ch3[0]['props']['children'])
-                return [act, '', '', CSS_CLASS_NAME]
+            if row1_clicked:
+                act_to_explain = (ch1[0]['props']['children'])
+                class_list_to_return = [act_to_explain, CSS_CLASS_NAME, '', '']
+            elif row2_clicked:
+                act_to_explain = (ch2[0]['props']['children'])
+                class_list_to_return = [act_to_explain, '', CSS_CLASS_NAME, '']
+            elif row3_clicked:
+                act_to_explain = (ch3[0]['props']['children'])
+                class_list_to_return = [act_to_explain, '', '', CSS_CLASS_NAME]
             else:
-                return [dash.no_update] * 4
+                return [dash.no_update] * 7
+
+            if self.explainer.check_if_explanations_exists(trace_id, act_to_explain):
+                print('Explanations found, visualizing shap values for '
+                      'trace: {}, activity: {}'.format(trace_id, act_to_explain))
+
+                gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+                return class_list_to_return + [self.__create_explanation_graph(gt, expl, self.DEFAULT_EXPL_QNT),
+                                               False, True]
+            else:
+                print('Not found shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
+                return class_list_to_return + [dash.no_update, True, False]
+
+        @app.callback(Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+                      [State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data')],
+                      Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
+                      prevent_initial_call=True)
+        def change_quantity_explanations(trace_id, act_to_explain, value):
+            if value:
+                gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+                if gt is not None and expl is not None:
+                    return self.__create_explanation_graph(gt, expl, int(value))
+                else:
+                    raise dash.exceptions.PreventUpdate
+            else:
+                raise dash.exceptions.PreventUpdate
 
         @app.callback(
-            output=Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+            output=[Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+                    Output(self.views['explain'].IDs.GENERATE_EXPL_BTN_FADE, 'is_in'),
+                    Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in')],
             inputs=[State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
                     State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
                     State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
-                    Input(self.views['explain'].IDs.VISUALIZE_EXPL_BTN, 'n_clicks')],
+                    Input(self.views['explain'].IDs.GENERATE_EXPL_BTN, 'n_clicks')],
             background=True,
             prevent_initial_call=True,
-            # running=[
-            #     (Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in'), False, True)
-            # ]
+            running=[
+                # (Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in'), False, True),
+                (Output(self.views['explain'].IDs.GENERATE_EXPL_SPINNER, 'style'),
+                 {'display': 'inline'}, {'display': 'none'})
+            ]
         )
         def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
-            print('1')
             if n_clicks > 0:
                 if not self.explainer.check_if_explanations_exists(trace_id, act_to_explain):
                     print('Calculating shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
-                    self.explainer.calculate_explanation(trace_id, act_to_explain)
+                    # self.explainer.calculate_explanation(trace_id, act_to_explain)
+                    trace_id = '1-739610172'
+                    act_to_explain = 'Resolved'
+                    time.sleep(5)
                     gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                    return self.__create_explanation_graph(gt, expl, expl_qnt)
+                    return [self.__create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
+                            False, True]
                 else:
                     # print('Explanations found, visualizing shap values for '
                     #       'trace: {}, activity: {}'.format(trace_id, act_to_explain))
                     #
                     # gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                    # return self.__create_explanation_graph(gt, expl, expl_qnt)
-                    raise dash.exceptions.PreventUpdate
+                    # return self.__create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT)
+                    return [dash.no_update] * 3
             else:
-                raise dash.exceptions.PreventUpdate
-
-        @app.callback([Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_1, 'figure')],
-                      [State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
-                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
-                       State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')],
-                      Input(self.views['explain'].IDs.VISUALIZE_EXPL_BTN, 'n_clicks'),
-                      prevent_initial_call=True)
-        def visualize_explanation_already_calculated_by_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
-            if n_clicks > 0:
-                if self.explainer.check_if_explanations_exists(trace_id, act_to_explain):
-                    print('Explanations found, visualizing shap values for '
-                          'trace: {}, activity: {}'.format(trace_id, act_to_explain))
-
-                    gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                    return self.__create_explanation_graph(gt, expl, expl_qnt)
-                else:
-                    raise dash.exceptions.PreventUpdate
-            else:
-                raise dash.exceptions.PreventUpdate
+                return [dash.no_update] * 3

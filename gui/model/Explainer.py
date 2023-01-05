@@ -137,8 +137,11 @@ class Explainer:
             write(explanations.to_dict(), self.paths.get_explanation_path(trace_idx, act))
 
     def generate_explanations_dataframe(self, trace_id, value):
-        groundtruth_explanation = pd.read_json(self.paths.get_gt_explanation_path(trace_id), typ='series')
-        explanations = pd.read_json(self.paths.get_explanation_path(trace_id, value), typ='series')
+        try:
+            groundtruth_explanation = pd.read_json(self.paths.get_gt_explanation_path(trace_id), typ='series')
+            explanations = pd.read_json(self.paths.get_explanation_path(trace_id, value), typ='series')
+        except Exception as e:
+            return None, None
 
         explanations.drop(
             [self.ex_info.id] + [i for i in (set(self.quantitative_vars).union(self.qualitative_vars))],

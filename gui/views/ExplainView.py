@@ -2,10 +2,15 @@ from strenum import StrEnum
 from dash_extensions.enrich import html, dcc
 import dash_bootstrap_components as dbc
 
+import plotly.graph_objects as go
+
+from app import app
 from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    GENERATE_EXPL_SPINNER = 'generate_expl_spinner',
+    GENERATE_EXPL_BTN_FADE = 'generate_expl_btn_fade',
     VISUALIZE_EXPLANATION_GRAPH_1 = 'visualize_explan_graph_1',
     VISUALIZE_EXPLANATION_GRAPH_FADE = 'expl_graph_fade',
     QNT_EXPL_SLIDER_VALUE_LABEL = 'explain_qnt_slider_value_label',
@@ -15,7 +20,7 @@ class _IDs(StrEnum):
     SEARCH_TRACE_ID_INPUT_BTN = 'search_trace_id_input_btn',
     CURRENT_TRACE_ID = 'current_trace_id_selected'
     CURRENT_EXPECTED_KPI = 'current_expected_kpi',
-    VISUALIZE_EXPL_BTN = 'visualize_explan_btn',
+    GENERATE_EXPL_BTN = 'generate_explan_btn',
     GO_DOWN_PRED_GRAPH = 'go_down_btn_pred_graph',
     GO_UP_PRED_GRAPH = 'go_up_btn_pred_graph',
     VISUALIZE_EXPLANATION_GRAPH = 'visualize_explan_graph',
@@ -25,6 +30,14 @@ class _IDs(StrEnum):
     SECOND_ROW_PRED_TABLE = 'row2_pred_table',
     THIRD_ROW_PRED_TABLE = 'row3_pred_table',
     SEARCH_TRACE_ID_INPUT = 'search_trace_id_input',
+
+
+def _get_blank_figure():
+    fig = go.Figure(go.Scatter(x=[], y=[]))
+    fig.update_layout(template=None)
+    fig.update_xaxes(showgrid=False, showticklabels=False, zeroline=False)
+    fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
+    return fig
 
 
 class ExplainView(View):
@@ -40,13 +53,6 @@ class ExplainView(View):
                         html.Tr(id=self.IDs.SECOND_ROW_PRED_TABLE, n_clicks=0),
                         html.Tr(id=self.IDs.THIRD_ROW_PRED_TABLE, n_clicks=0)])
         ]
-
-    # def get_blank_figure():
-    #     fig = go.Figure(go.Scatter(x=[], y=[]))
-    #     fig.update_layout(template=None)
-    #     fig.update_xaxes(showgrid=False, showticklabels=False, zeroline=False)
-    #     fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
-    #     return fig
 
     def get_layout(self):
         return html.Div([
@@ -74,15 +80,25 @@ class ExplainView(View):
                 html.Div(id=self.IDs.CURRENT_ACTIVITY),
                 html.Div(id=self.IDs.CURRENT_EXPECTED_KPI),
                 dbc.Table(self.create_table(), className='explanation_table'),
-                html.Span('Select how many explanations to visualize'),
-                html.Div([
-                    dcc.Slider(id=self.IDs.EXPLANATION_QUANTITY_SLIDER, max=10, min=0, step=1, marks=None),
-                    html.Span(id=self.IDs.QNT_EXPL_SLIDER_VALUE_LABEL),
-                ], className='slider_cont'),
-                html.Button('Visualize explanations', self.IDs.VISUALIZE_EXPL_BTN, n_clicks=0,
-                            className='general_btn_layout'),
-                dcc.Loading([dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH)], type='circle'),
-                dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH_1),
+
+                dbc.Fade([html.Button(
+                    html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.GENERATE_EXPL_SPINNER,
+                                       style={'display': 'inline'}, width=18, height=18, className='spinner_img'),
+                              html.Span('Generate explanations')], className='button_spinner_cont'),
+                    n_clicks=0, id=self.IDs.GENERATE_EXPL_BTN,
+                    className='general_btn_layout')], id=self.IDs.GENERATE_EXPL_BTN_FADE,
+                         is_in=False, appear=False),
+
+                dbc.Fade([
+                    html.Div('Select how many explanations to visualize'),
+                    html.Div([
+                        dcc.Slider(id=self.IDs.EXPLANATION_QUANTITY_SLIDER, max=10, min=0, step=1, marks=None),
+                        html.Span(id=self.IDs.QNT_EXPL_SLIDER_VALUE_LABEL),
+                    ], className='slider_cont'),
+                    dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH, figure={}),
+                ], is_in=False, appear=False, id=self.IDs.VISUALIZE_EXPLANATION_GRAPH_FADE),
+
+                # dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH_1, figure={}),
 
             ], is_in=False, appear=False, id=self.IDs.VISUALIZE_EXPL_FADE, className='visualize_expl_cont')
         ], className='explain_container')

@@ -1,4 +1,5 @@
 import os
+from parser import ParserError
 
 import numpy as np
 import pandas as pd
@@ -33,7 +34,12 @@ class TrainDataSource(DataSource):
 
     def convert_datetime_to_seconds(self, start_time_col, date_format='%Y-%m-%d %H:%M:%S'):
         if not np.issubdtype(self.data[start_time_col], np.number):
-            self.data[start_time_col] = pd.to_datetime(self.data[start_time_col], format=date_format)
-            self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
+            try:
+                self.data[start_time_col] = pd.to_datetime(self.data[start_time_col], format=date_format)
+                self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
+            except ParserError as pe:
+                pass
+            except ValueError as ve:
+                pass
 
 
