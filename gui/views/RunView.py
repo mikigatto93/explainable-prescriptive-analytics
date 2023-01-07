@@ -2,11 +2,13 @@ from strenum import StrEnum
 from dash_extensions.enrich import html, dcc
 import dash_bootstrap_components as dbc
 
+from app import app
 from gui.views.View import View
 import dash_uploader as du
 
 
 class _IDs(StrEnum):
+    RUN_SPINNER = 'run_spinner',
     PROC_RUN_OUT_FADE = 'proc_run_output_fade',
     PROGRESS_LOG_INTERVAL_RUN = 'interval_log_prog_run',
     SHOW_PROCESS_RUNNING_OUTPUT = 'show_proc_run_out',
@@ -30,8 +32,12 @@ class RunView(View):
                 html.Button('Load file', id=self.IDs.LOAD_RUN_FILE_BTN, n_clicks=0, disabled=True,
                             className='general_btn_layout'),
                 dbc.Fade([
-                    html.Button('Generate Predictions', id=self.IDs.GENERATE_PREDS_BTN, n_clicks=0,
-                                className='general_btn_layout')
+                    html.Button(
+                        html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.RUN_SPINNER,
+                                           style={'display': 'inline'}, width=18, height=18, className='spinner_img'),
+                                  html.Span('Generate Predictions')], className='button_spinner_cont'),
+                        n_clicks=0, id=self.IDs.GENERATE_PREDS_BTN,
+                        className='general_btn_layout'),
                 ], is_in=False, appear=False, id=self.IDs.FADE_GENERATE_PREDS_BTN),
             ], className='run_btns_cont'),
             dbc.Fade([html.Div(id=self.IDs.TEMP_RUNNING_OUTPUT),

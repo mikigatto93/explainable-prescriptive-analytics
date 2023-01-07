@@ -64,4 +64,4 @@ explain_pres.register_callbacks()
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, dev_tools_hot_reload=False)

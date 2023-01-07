@@ -29,19 +29,20 @@
 	max-width: 33%;
 	flex: 1 0 33%;
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 }
 
-#load_train_btn {
+#exp_selector_dropdown {
+	width: 15em;
+}
+
+#load_train_btn,
+#load_model_btn {
 	margin-top: 0.8em;
 }
 
-/*
-#load_model_btn {
-	margin-bottom: 15%;
-}
-*/
 
 .all_controls_container {
 	margin-top: 3em;

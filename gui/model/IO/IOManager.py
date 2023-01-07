@@ -7,6 +7,11 @@ import gui.model.IO.read_functions as rf
 
 # GENERIC I/O FUNCTIONS
 
+def get_experiment_folders_list(main_path):
+    paths = os.walk(main_path)
+    return next(paths)[1]
+
+
 def create_missing_folders(path):
     head, _ = os.path.split(path)
     if not os.path.exists(head):
@@ -55,6 +60,8 @@ def write(data, filename, writefn=None):
         wf.writer[ext](data, filename)
         return filename
 
+
+MAIN_EXPERIMENTS_PATH = os.path.join(os.getcwd(), 'experiments')
 
 class Paths:
     model = {
@@ -110,11 +117,17 @@ class Paths:
         'df_run': 'df_run.csv'
     }
 
+    archives = {
+        'train': 'train_data'  # no extension because it's added later (see shutil.make_archive)
+    }
+
     GROUNDTRUTH = '{}_expl_df_gt.json'
 
     EXPLANATIONS = '{}_{}_expl_df.json'
 
-    def __init__(self, ex_name, main_path=os.path.join(os.getcwd(), 'experiments')):
+    EXPERIMENT_DATA = 'experiment_info.json'
+
+    def __init__(self, ex_name, main_path=MAIN_EXPERIMENTS_PATH):
         self.ex_name = ex_name  # TODO: VALIDATE NAME AS IT GOES ON A FILE PATH
         self.main_path = os.path.join(main_path, ex_name)
         self.folders = {
@@ -123,7 +136,9 @@ class Paths:
             'variables': self.path_maker('variables', Paths.variables),
             'recommendations': self.path_maker('recommendations', Paths.recommendations),
             'shap': self.path_maker('shap', Paths.shap),
-            'plots': {},
+            'archives': self.path_maker('archives', Paths.archives),
+            'experiment': os.path.join(self.main_path, Paths.EXPERIMENT_DATA)
+            # 'plots': {},
         }
 
     def path_maker(self, parent, d):
@@ -138,4 +153,3 @@ class Paths:
         path = os.path.join(self.main_path, 'explanations', Paths.GROUNDTRUTH.format(trace_id))
         create_missing_folders(path)
         return path
-

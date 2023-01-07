@@ -67,21 +67,29 @@ class RunPresenter(Presenter):
             else:
                 return [dash.no_update, dash.no_update, dash.no_update]
 
-        @app.callback([Output(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
-                       Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'),
-                       Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'children')],
-                      State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
-                      Input(self.views['run'].IDs.GENERATE_PREDS_BTN, 'n_clicks'),
-                      prevent_initial_call=True)
+        @app.callback(
+            output=[Output(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
+                    Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'),
+                    Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'children')],
+            inputs=[State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
+                    Input(self.views['run'].IDs.GENERATE_PREDS_BTN, 'n_clicks')],
+            background=True,
+            prevent_initial_call=True,
+            running=[
+                (Output(self.views['train'].IDs.TRAIN_SPINNER, 'style'),
+                 {'display': 'inline'}, {'display': 'none'})
+            ]
+        )
         def generate_predictions(ex_info_data, n_clicks):
             if n_clicks > 0:
                 # print(ex_info_data)
-                # ex_info = Experiment.build_experiment_from_dict(json.loads(ex_info_data))
+                # ex_info = Experiment.build_experiment_from_dict(ex_info_data)
                 # print(ex_info)
-                ex_info = Experiment.build_experiment_from_dict({"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
-                                                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
-                                                 "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
-                                                 "pred_column": "remaining_time"})
+                ex_info = Experiment.build_experiment_from_dict(
+                    {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
+                     "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
+                     "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
+                     "pred_column": "remaining_time"})
 
                 self.recommender = Recommender(ex_info, self.data_source)
 
@@ -105,3 +113,5 @@ class RunPresenter(Presenter):
                     return t
                 else:
                     raise dash.exceptions.PreventUpdate
+            else:
+                raise dash.exceptions.PreventUpdate

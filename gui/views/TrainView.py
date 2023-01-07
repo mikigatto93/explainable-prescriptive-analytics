@@ -11,6 +11,10 @@ import dash_uploader as du
 
 
 class _IDs(StrEnum):
+    FADE_START_TRAINING_BTN = 'fade_start_train_btn',
+    EXPERIMENT_SELECTOR_DROPDOWN = 'exp_selector_dropdown',
+    DOWNLOAD_TRAIN_BTN = 'download_train_btn',
+    DOWNLOAD_TRAIN_BTN_FADE = 'download_train_btn_fade',
     TRAIN_SPINNER = 'train_spinner',
     PROC_TRAIN_OUT_FADE = 'proc_train_output_fade',
     OUT_THRS_SLIDER_VALUE_LABEL = 'out_thrs_slidier_value_label'
@@ -79,8 +83,10 @@ class TrainView(View):
                     html.Div(className='error_box', id=self.ERROR_IDs.LOAD_TRAIN_FILE_BTN),
                 ], className='load_train_file_cont'),
                 html.Div([
+                    html.Span('Select one experiment:'),
+                    dcc.Dropdown(id=self.IDs.EXPERIMENT_SELECTOR_DROPDOWN, className='dropdown_select_column'),
                     html.Button('Load model', id=self.IDs.LOAD_MODEL_BTN, n_clicks=0,
-                                className='general_btn_layout'),
+                                className='general_btn_layout', disabled=True),
                     html.Div(className='error_box', id=self.ERROR_IDs.LOAD_MODEL_BTN),
                 ], className='load_model_cont'),
             ], className='train_load_area'),
@@ -89,7 +95,7 @@ class TrainView(View):
                     html.Div([html.Span('Experiment name'),
                               dcc.Input(id=self.IDs.EXPERIMENT_NAME_TEXTBOX),
                               html.Div(className='error_box', id=self.ERROR_IDs.EXPERIMENT_NAME_TEXTBOX)
-                    ]),
+                              ]),
                 ], className='experiment_name_cont'),
 
                 html.Div([
@@ -130,17 +136,22 @@ class TrainView(View):
                     html.Span(id=self.IDs.OUT_THRS_SLIDER_VALUE_LABEL),
                     html.Div(className='error_box', id=self.ERROR_IDs.OUTLIERS_THRS_SLIDER),
                 ], className='slider_cont'),
-
-                html.Button(
-                    html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.TRAIN_SPINNER,
-                                       style={'display': 'inline'}, width=18, height=18, className='spinner_img'),
-                              html.Span('Train')], className='button_spinner_cont'),
-                    n_clicks=0, id=self.IDs.START_TRAINING_BTN,
-                    className='general_btn_layout'),
-                html.Div(className='error_box', id=self.ERROR_IDs.START_TRAINING_BTN),
+                
+                dbc.Fade([
+                    html.Button(
+                        html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.TRAIN_SPINNER,
+                                           style={'display': 'inline'}, width=18, height=18, className='spinner_img'),
+                                  html.Span('Train')], className='button_spinner_cont'),
+                        n_clicks=0, id=self.IDs.START_TRAINING_BTN,
+                        className='general_btn_layout'),
+                    html.Div(className='error_box', id=self.ERROR_IDs.START_TRAINING_BTN),
+                ], is_in=True, appear=False, id=self.IDs.FADE_START_TRAINING_BTN),
             ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS, className='all_controls_container'),
+            dbc.Fade([html.Button(['Download training files'], n_clicks=0, id=self.IDs.DOWNLOAD_TRAIN_BTN,
+                                  className='general_btn_layout')],
+                     id=self.IDs.DOWNLOAD_TRAIN_BTN_FADE, is_in=True, appear=False),
             dbc.Fade([html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
                       html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT)], is_in=False, appear=False,
                      id=self.IDs.PROC_TRAIN_OUT_FADE, className='process_display_out_cont'),
-            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL, n_intervals=0, interval=1000, max_intervals=-1)
+            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL, n_intervals=0, interval=2000),
         ], className='view_container')

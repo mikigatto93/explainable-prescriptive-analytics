@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from gui.model.Experiment import Experiment, TrainInfo
@@ -7,6 +8,8 @@ from load_dataset import prepare_dataset_for_gui
 from ml import generate_train_and_test_sets, fit_model, predict, write_results
 from utils import import_vars, variable_type_analysis
 
+import shutil
+
 
 class Trainer:
     def __init__(self, experiment_info: Experiment, data_source: TrainDataSource):
@@ -14,6 +17,9 @@ class Trainer:
         self.ex_info = experiment_info
         self.paths = Paths(self.ex_info.ex_name)
         self.data_source = data_source
+
+    def write_experiment_info(self):
+        write(self.ex_info.to_dict(), self.paths.folders['experiment'])
 
     def prepare_dataset(self):
         self.data_source.convert_datetime_to_seconds(self.ex_info.timestamp)
@@ -64,3 +70,15 @@ class Trainer:
         write(qualitative_trace_vars, self.paths.folders['variables']['qlt_trc'])
 
         return quantitative_vars, qualitative_vars, qualitative_trace_vars
+
+    def create_model_archive(self):
+        zip_file_expected_path = self.paths.folders['archives']['train'] + '.zip'
+        if not os.path.exists(zip_file_expected_path):
+            zip_file_path = shutil.make_archive(base_name=self.paths.folders['archives']['train'],
+                                                format='zip',
+                                                root_dir=os.path.split(self.paths.folders['model']['model'])[0])
+            print('ZIP archive created')
+            print(zip_file_path)
+            return zip_file_path
+        else:
+            return zip_file_expected_path
