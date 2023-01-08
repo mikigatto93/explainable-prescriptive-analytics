@@ -43,5 +43,5 @@ class RunView(View):
             dbc.Fade([html.Div(id=self.IDs.TEMP_RUNNING_OUTPUT),
                       html.Div(id=self.IDs.SHOW_PROCESS_RUNNING_OUTPUT)], is_in=False, appear=False,
                      id=self.IDs.PROC_RUN_OUT_FADE, className='process_display_out_cont'),
-            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL_RUN, n_intervals=0, interval=1000, max_intervals=-1)
+            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL_RUN, n_intervals=0, interval=1000)
         ], className='run_container')
