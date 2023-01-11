@@ -29,6 +29,11 @@ class TrainPresenter(Presenter):
         error_data = {}
         if ex_name is None:
             error_data[self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX] = 'Experiment name is empty'
+        else:
+            if not self.trainer.ex_info.validate_forbidden_ex_names():
+                error_data[self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX] = \
+                    'Experiment name cannot contain the following characters: <, >, :, ", /, \\, |, ?, *'
+
         if kpi is None:
             error_data[self.views['train'].IDs.KPI_RADIO_ITEMS] = 'One KPI must be selected'
         if _id is None:
@@ -180,17 +185,14 @@ class TrainPresenter(Presenter):
                        Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')],
                       Input(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
                       prevent_initial_call=True)
         def populate_dropdown_options(fade):
-            DEFAULT_OUTLIER_THRS = 0.3
+            DEFAULT_OUTLIER_THRS = 0.05
             if fade and self.data_source:
                 options_group = self.data_source.columns_list
-
-                # generate a list of 5 option_group for the dropdowns
-                return [options_group] * 5 + [DEFAULT_OUTLIER_THRS]
+                return [options_group] * 4 + [DEFAULT_OUTLIER_THRS]
             else:
                 raise dash.exceptions.PreventUpdate
 
@@ -200,27 +202,19 @@ class TrainPresenter(Presenter):
         def show_choose_act_to_opt_dropdown(value):
             return value in ['Maximize activity occurrence', 'Minimize activity occurrence']
 
-        # @app.callback([Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
-        #               Output(self.views['train'].IDs.SLIDER_VALUE_TEXTBOX, 'value')],
-        #               [Input(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
-        #                Input(self.views['train'].IDs.SLIDER_VALUE_TEXTBOX, 'value')])
-        # def slider_value_selector(slider_val, textbox_val):
-        #     triggered_id = dash.ctx.triggered_id
-        #     if triggered_id == self.views['train'].IDs.OUTLIERS_THRS_SLIDER:
-        #         return [dash.no_update, slider_val]
-        #     elif triggered_id == self.views['train'].IDs.SLIDER_VALUE_TEXTBOX:
-        #         new_val = textbox_val if textbox_val else 0
-        #         return [float(new_val), dash.no_update]
-        #     else:
-        #         return [dash.no_update, dash.no_update]
-
-        # @app.callback(Output(self.views['train'].IDs.OUT_THRS_SLIDER_VALUE_LABEL, 'children'),
-        #               Input(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'))
-        # def slider_value_selector(slider_val):
-        #     if slider_val:
-        #         return slider_val
-        #     else:
-        #         raise dash.exceptions.PreventUpdate
+        @app.callback([Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
+                       Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in')],
+                      [State(self.views['train'].IDs.ID_DROPDOWN, 'value'),
+                       State(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'value'),
+                       State(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'value'),
+                       State(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value')],
+                      Input(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'n_clicks'))
+        def go_snd_phase_train_option_selection(_id, timestamp, activity, resource, n_clicks):
+            if n_clicks > 0:
+                act_list = self.data_source.get_activity_list(activity)
+                return [act_list, True]
+            else:
+                return [dash.no_update, dash.no_update]
 
         app.clientside_callback(
             ClientsideFunction(

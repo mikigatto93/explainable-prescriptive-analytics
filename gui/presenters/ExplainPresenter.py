@@ -47,9 +47,9 @@ class ExplainPresenter(Presenter):
 
         fig.add_trace(
             go.Bar(
-                name='Actual Value',
+                name='Current Value',
                 y=df_slice.index,
-                x=df_slice['Actual Value'],
+                x=df_slice['Current Value'],
                 marker_color='darkred',
                 orientation='h',
             )
@@ -95,7 +95,7 @@ class ExplainPresenter(Presenter):
 
         fig.add_trace(
             go.Bar(
-                name='Actual Value',
+                name='Current Value',
                 y=list(gt_slice.index),
                 x=list(gt_slice.array),
                 marker_color='darkred',
@@ -119,15 +119,21 @@ class ExplainPresenter(Presenter):
                                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
                                 "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
                                 "pred_column": "remaining_time"}
+
                 if ex_info_data:
                     # self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
                     self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     kpis_dict = self.explainer.calculate_best_scores()
-                    self.kpis_df = pd.DataFrame.from_dict(kpis_dict,
+                    kpis_df_temp = pd.DataFrame.from_dict(kpis_dict,
                                                           orient='index',
-                                                          columns=['Following recommendation', 'Actual Value'])
+                                                          columns=['Following recommendation', 'Current Value'])
+                    # TODO: TEST THIS "ORDERING" FUNCTION
+                    mask = kpis_df_temp['Current Value'] > kpis_df_temp['Following recommendation']
+                    kpis_df1 = kpis_df_temp[mask]  # current > following
+                    kpis_df2 = kpis_df_temp[~mask]  # current <= following
+                    self.kpis_df = pd.concat([kpis_df1, kpis_df2])
                     self.kpis_df_len = len(self.kpis_df.index)
-                    # TODO: ORDERING FUNCTION
+
                     return [self.__create_pred_graph(),
                             '{}/{}'.format(self.pred_graph_progression + 1,
                                            math.ceil(self.kpis_df_len / self.REC_PER_PAGE))]
@@ -141,22 +147,25 @@ class ExplainPresenter(Presenter):
         @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
                        Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children'),
                        Output(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'disabled'),
-                       Output(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'disabled')],
+                       Output(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'disabled'),
+                       Output(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_INPUT, 'value')],
+                      State(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_INPUT, 'value'),
                       [Input(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'n_clicks'),
-                       Input(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'n_clicks')],
+                       Input(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'n_clicks'),
+                       Input(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_BTN, 'n_clicks')],
                       prevent_initial_call=True)
-        def scroll_graph(n_clicks_up, n_clicks_down):
+        def scroll_graph(page_value_sel, n_clicks_up, n_clicks_down, n_clicks_sel_page):
             button_id = dash.ctx.triggered_id
             # print(self.pred_graph_progression)
-
+            max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
             if button_id == self.views['explain'].IDs.GO_UP_PRED_GRAPH and n_clicks_up > 0:
-                max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
                 self.pred_graph_progression += 1
                 return [
                     self.__create_pred_graph(),
                     '{}/{}'.format(self.pred_graph_progression + 1, max_page),
-                    self.pred_graph_progression == max_page,
-                    False
+                    self.pred_graph_progression == (max_page - 1),
+                    False,
+                    ''
                 ]
 
             elif button_id == self.views['explain'].IDs.GO_DOWN_PRED_GRAPH and n_clicks_down > 0:
@@ -165,11 +174,27 @@ class ExplainPresenter(Presenter):
                     self.__create_pred_graph(),
                     '{}/{}'.format(self.pred_graph_progression + 1, math.ceil(self.kpis_df_len / self.REC_PER_PAGE)),
                     False,
-                    self.pred_graph_progression == 0
+                    self.pred_graph_progression == 0,
+                    ''
                 ]
 
+            elif button_id == self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_BTN and n_clicks_sel_page > 0:
+                if page_value_sel:
+                    page_value_sel = int(max(1, min(page_value_sel, max_page)))
+                    self.pred_graph_progression = page_value_sel - 1
+                    return [
+                        self.__create_pred_graph(),
+                        '{}/{}'.format(self.pred_graph_progression + 1,
+                                       math.ceil(self.kpis_df_len / self.REC_PER_PAGE)),
+                        self.pred_graph_progression == (max_page - 1),
+                        self.pred_graph_progression == 0,
+                        ''
+                    ]
+                else:
+                    return [dash.no_update] * 5
+
             else:
-                return [dash.no_update] * 4
+                return [dash.no_update] * 5
 
         @app.callback([Output(self.views['explain'].IDs.CURRENT_TRACE_ID, 'children'),
                        Output(self.views['explain'].IDs.CURRENT_ACTIVITY, 'children'),
@@ -177,15 +202,21 @@ class ExplainPresenter(Presenter):
                        Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'children'),
                        Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children'),
+                       Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'className'),
+                       Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'className'),
+                       Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'className'),
                        Output(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
                        Output(self.views['explain'].IDs.VISUALIZE_EXPL_FADE, 'is_in'),
-                       Output(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')],
+                       Output(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
+                       Output(self.views['explain'].IDs.GENERATE_EXPL_BTN_FADE, 'is_in'),
+                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in')],
                       State(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT, 'value'),
                       [Input(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'clickData'),
                        Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
                       prevent_initial_call=True)
         def show_preds_text_format(input_value, click_data, n_clicks):
             DEFAULT_EXPL_QNT = 4
+            CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
             search_btn_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN
             if (graph_clicked and click_data) or (search_btn_clicked and n_clicks > 0):
@@ -208,12 +239,17 @@ class ExplainPresenter(Presenter):
                     [html.Td(rec_act[0]), html.Td(rec_values[0])],
                     [html.Td(rec_act[1]), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
                     [html.Td(rec_act[2]), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
+                    CSS_BASE_ROW_CLASS_NAME,
+                    CSS_BASE_ROW_CLASS_NAME,
+                    CSS_BASE_ROW_CLASS_NAME,
                     trace_id,
                     True,
-                    DEFAULT_EXPL_QNT
+                    DEFAULT_EXPL_QNT,
+                    False,
+                    False
                 ]
             else:
-                return [dash.no_update] * 9
+                return [dash.no_update] * 14
 
         app.clientside_callback(
             ClientsideFunction(
@@ -240,20 +276,24 @@ class ExplainPresenter(Presenter):
                        State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data')],
                       prevent_initial_call=True)
         def select_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3, trace_id):
-            CSS_CLASS_NAME = 'selected_expl_table_row'
+            CSS_SELECTED_ROW_CLASS_NAME = 'selected_expl_table_row'
+            CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             row1_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.FIRST_ROW_PRED_TABLE and n_clicks1 > 0
             row2_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SECOND_ROW_PRED_TABLE and n_clicks2 > 0
             row3_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.THIRD_ROW_PRED_TABLE and n_clicks3 > 0
 
             if row1_clicked:
                 act_to_explain = (ch1[0]['props']['children'])
-                class_list_to_return = [act_to_explain, CSS_CLASS_NAME, '', '']
+                class_list_to_return = [act_to_explain,
+                                        CSS_SELECTED_ROW_CLASS_NAME, CSS_BASE_ROW_CLASS_NAME, CSS_BASE_ROW_CLASS_NAME]
             elif row2_clicked:
                 act_to_explain = (ch2[0]['props']['children'])
-                class_list_to_return = [act_to_explain, '', CSS_CLASS_NAME, '']
+                class_list_to_return = [act_to_explain,
+                                        CSS_BASE_ROW_CLASS_NAME, CSS_SELECTED_ROW_CLASS_NAME, CSS_BASE_ROW_CLASS_NAME]
             elif row3_clicked:
                 act_to_explain = (ch3[0]['props']['children'])
-                class_list_to_return = [act_to_explain, '', '', CSS_CLASS_NAME]
+                class_list_to_return = [act_to_explain,
+                                        CSS_BASE_ROW_CLASS_NAME, CSS_BASE_ROW_CLASS_NAME, CSS_SELECTED_ROW_CLASS_NAME]
             else:
                 return [dash.no_update] * 7
 

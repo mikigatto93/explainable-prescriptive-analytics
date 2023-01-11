@@ -27,14 +27,14 @@ class RunView(View):
     def get_layout(self):
         return html.Div([
             html.H1('Run'),
-            du.Upload(id=self.IDs.RUN_FILE_UPLOADER),
+            du.Upload(id=self.IDs.RUN_FILE_UPLOADER, filetypes=['csv', 'xes']),
             html.Div([
                 html.Button('Load file', id=self.IDs.LOAD_RUN_FILE_BTN, n_clicks=0, disabled=True,
                             className='general_btn_layout'),
                 dbc.Fade([
                     html.Button(
                         html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.RUN_SPINNER,
-                                           style={'display': 'inline'}, width=18, height=18, className='spinner_img'),
+                                           style={'display': 'none'}, width=18, height=18, className='spinner_img'),
                                   html.Span('Generate Predictions')], className='button_spinner_cont'),
                         n_clicks=0, id=self.IDs.GENERATE_PREDS_BTN,
                         className='general_btn_layout'),

@@ -25,6 +25,24 @@ class Experiment:
         elif self.kpi == 'Minimize activity occurrence':
             self.pred_column = 'independent_activity'
 
+    def validate_forbidden_ex_names(self):
+        # < (less than)
+        # > (greater than)
+        # : (colon - sometimes works, but is actually NTFS Alternate Data Streams)
+        # " (double quote)
+        # / (forward slash)
+        # \ (backslash)
+        # | (vertical bar or pipe)
+        # ? (question mark)
+        # * (asterisk)
+        # \n (not necessary, remove it for convenience)
+
+        forbidden_chars = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*", "\n"]
+        flag = True
+        for i, _ in enumerate(forbidden_chars):
+            flag = flag and (forbidden_chars[i] not in self.ex_name)
+        return flag
+
     def to_dict(self):
         return {
             'ex_name': self.ex_name,
@@ -37,6 +55,7 @@ class Experiment:
             'out_thrs': self.out_thrs,
             'pred_column': self.pred_column,
         }
+
 
 @dataclass
 class TrainInfo:

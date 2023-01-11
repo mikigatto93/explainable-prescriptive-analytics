@@ -42,4 +42,6 @@ class TrainDataSource(DataSource):
             except ValueError as ve:
                 pass
 
+    def get_activity_list(self, act_name):
+        return list(self.data[act_name].unique())
 

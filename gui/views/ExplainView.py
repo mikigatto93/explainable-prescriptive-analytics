@@ -9,6 +9,8 @@ from gui.views.View import View
 
 
 class _IDs(StrEnum):
+    SELECT_PAGE_PRED_GRAPH_BTN = 'sel_page_pred_graph_btn',
+    SELECT_PAGE_PRED_GRAPH_INPUT = 'sel_page_pred_graph_input',
     GENERATE_EXPL_SPINNER = 'generate_expl_spinner',
     GENERATE_EXPL_BTN_FADE = 'generate_expl_btn_fade',
     VISUALIZE_EXPLANATION_GRAPH_1 = 'visualize_explan_graph_1',
@@ -49,9 +51,9 @@ class ExplainView(View):
         return [
             html.Caption('Proposed next activities:'),
             html.Thead(html.Tr([html.Th('Activity'), html.Th('Expected KPI')])),
-            html.Tbody([html.Tr(id=self.IDs.FIRST_ROW_PRED_TABLE, n_clicks=0),
-                        html.Tr(id=self.IDs.SECOND_ROW_PRED_TABLE, n_clicks=0),
-                        html.Tr(id=self.IDs.THIRD_ROW_PRED_TABLE, n_clicks=0)])
+            html.Tbody([html.Tr(id=self.IDs.FIRST_ROW_PRED_TABLE, n_clicks=0, className='expl_table_selectable_row'),
+                        html.Tr(id=self.IDs.SECOND_ROW_PRED_TABLE, n_clicks=0, className='expl_table_selectable_row'),
+                        html.Tr(id=self.IDs.THIRD_ROW_PRED_TABLE, n_clicks=0, className='expl_table_selectable_row')])
         ]
 
     def get_layout(self):
@@ -65,6 +67,13 @@ class ExplainView(View):
                 html.Div([
                     html.Button('∧', id=self.IDs.GO_UP_PRED_GRAPH, n_clicks=0),
                     html.Button('∨', id=self.IDs.GO_DOWN_PRED_GRAPH, n_clicks=0, disabled=True),
+
+                    html.Div([
+                        html.Span('Seleziona pagina'),
+                        dcc.Input(id=self.IDs.SELECT_PAGE_PRED_GRAPH_INPUT, type='number'),
+                        html.Button('Vai', id=self.IDs.SELECT_PAGE_PRED_GRAPH_BTN, n_clicks=0),
+                    ], className='select_page_paging_controls_cont'),
+
                     html.Span(id=self.IDs.RECOMMANDATION_GRAPH_PAGING_INFO),
                 ], className='paging_controls_cont'),
 
@@ -97,8 +106,6 @@ class ExplainView(View):
                     ], className='slider_cont'),
                     dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH, figure={}),
                 ], is_in=False, appear=False, id=self.IDs.VISUALIZE_EXPLANATION_GRAPH_FADE),
-
-                # dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH_1, figure={}),
 
             ], is_in=False, appear=False, id=self.IDs.VISUALIZE_EXPL_FADE, className='visualize_expl_cont')
         ], className='explain_container')

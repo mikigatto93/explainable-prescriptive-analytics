@@ -4,7 +4,7 @@ from dash_extensions.enrich import html, dcc
 from gui.views.View import View
 
 
-class _IDs(StrEnum):
+class IDs(StrEnum):
     DOWNLOAD_TRAIN = 'download_train_elem',
     START_TRAINING_CONTROLLER = 'start_trainig_controller_store',
     ERRORS_MANAGER_STORE = 'errors_manager_store',
@@ -24,7 +24,7 @@ class _IDs(StrEnum):
 class BaseView(View):
     def __init__(self, pathname='', order=-1):
         super().__init__(pathname, order)
-        self.IDs = _IDs
+        self.IDs = IDs
 
     def get_layout(self):
         return html.Div(

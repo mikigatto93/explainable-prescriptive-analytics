@@ -75,7 +75,7 @@ class Router(Presenter):
                        Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled')],
                       Input(self.views['base'].IDs.ARROW_CONTROLLER_STORE, 'data'),
                       prevent_initial_call=True)
-        def disable_link_user_preference(controller_data):
+        def disable_link_arrows_custom(controller_data):
             print(controller_data)
             return [dash.no_update, dash.no_update]
             # if controller_data:

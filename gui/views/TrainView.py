@@ -11,6 +11,9 @@ import dash_uploader as du
 
 
 class _IDs(StrEnum):
+    BACK_SELECT_PHASE_TRAIN_BTN = 'back_select_phase_train_btn',
+    NEXT_SELECT_PHASE_TRAIN_BTN = 'next_select_phase_train_btn',
+    FADE_KPI_RADIO_ITEMS = 'fade_kpi_radio_items',
     FADE_START_TRAINING_BTN = 'fade_start_train_btn',
     EXPERIMENT_SELECTOR_DROPDOWN = 'exp_selector_dropdown',
     DOWNLOAD_TRAIN_BTN = 'download_train_btn',
@@ -58,18 +61,9 @@ class TrainView(View):
         super().__init__(pathname, order)
         self.IDs = _IDs
         self.ERROR_IDs = _ERROR_IDs
-        self.error_IDs = []
         # gen_id =
         # print(gen_id)
         self.upload_id = str(uuid.uuid4())
-
-    def get_err_id(self, elem_id):
-        if elem_id in self.IDs:
-            _id = '{}_error_box'.format(elem_id)
-            self.error_IDs.append(_id)
-            return _id
-        else:
-            raise KeyError('No id found')
 
     def get_layout(self):
         return html.Div([
@@ -90,6 +84,7 @@ class TrainView(View):
                     html.Div(className='error_box', id=self.ERROR_IDs.LOAD_MODEL_BTN),
                 ], className='load_model_cont'),
             ], className='train_load_area'),
+            
             dbc.Fade([
                 html.Div([
                     html.Div([html.Span('Experiment name'),
@@ -99,15 +94,6 @@ class TrainView(View):
                 ], className='experiment_name_cont'),
 
                 html.Div([
-                    html.Div([
-                        html.P('Select KPI'),
-                        dcc.RadioItems([
-                            'Total time',
-                            # 'Maximize activity occurrence',
-                            'Minimize activity occurrence'
-                        ], id=self.IDs.KPI_RADIO_ITEMS),
-                        html.Div(className='error_box', id=self.ERROR_IDs.KPI_RADIO_ITEMS),
-                    ], className='kpi_radio_cont'),
                     html.Div([
                         html.P('Select columns:'),
                         html.Span('ID'),
@@ -122,25 +108,49 @@ class TrainView(View):
                         html.Span('Resource name'),
                         dcc.Dropdown(id=self.IDs.RESOURCE_NAME_DROPDOWN, className='dropdown_select_column'),
                         html.Div(className='error_box', id=self.ERROR_IDs.RESOURCE_NAME_DROPDOWN),
-                        dbc.Fade([
-                            html.Span('Activity to optimize'),
-                            dcc.Dropdown(id=self.IDs.ACT_TO_OPTIMIZE_DROPDOWN, className='dropdown_select_column'),
-                            html.Div(className='error_box', id=self.ERROR_IDs.ACT_TO_OPTIMIZE_DROPDOWN),
-                        ], is_in=False, appear=False, id=self.IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN),
+                        html.Button('Next >>', id=self.IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 
+                                    className='general_btn_layout', n_clicks=0)
                     ], className='columns_dropdown_cont'),
+
+                    html.Div([
+                        dbc.Fade([
+                            html.P('Select KPI'),
+                            dcc.RadioItems([
+                                'Total time',
+                                # 'Maximize activity occurrence',
+                                'Minimize activity occurrence'
+                            ], id=self.IDs.KPI_RADIO_ITEMS),
+                            html.Div(className='error_box', id=self.ERROR_IDs.KPI_RADIO_ITEMS),
+
+                            dbc.Fade([
+                                html.Span('Activity to optimize'),
+                                dcc.Dropdown(id=self.IDs.ACT_TO_OPTIMIZE_DROPDOWN, className='dropdown_select_column'),
+                                html.Div(className='error_box', id=self.ERROR_IDs.ACT_TO_OPTIMIZE_DROPDOWN),
+                            ], is_in=False, appear=False, id=self.IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN),
+
+                            html.Button('<< Back', id=self.IDs.BACK_SELECT_PHASE_TRAIN_BTN,
+                                        className='general_btn_layout', n_clicks=0)
+
+                        ], is_in=False, appear=False, id=self.IDs.FADE_KPI_RADIO_ITEMS),
+
+                        
+                    ], className='kpi_radio_cont'),
+
                 ], className='kpi_and_columns_cont'),
-                html.Span('Select outliers threshold'),
+
+
+                html.Span('Select outliers threshold for transition system building'),
                 html.Div([
                     dcc.Slider(id=self.IDs.OUTLIERS_THRS_SLIDER, min=0, max=1, step=0.01, marks=None),
                     # dcc.Input(id=self.IDs.SLIDER_VALUE_TEXTBOX, maxLength=4, max=1, min=0, step=0.01),
                     html.Span(id=self.IDs.OUT_THRS_SLIDER_VALUE_LABEL),
                     html.Div(className='error_box', id=self.ERROR_IDs.OUTLIERS_THRS_SLIDER),
                 ], className='slider_cont'),
-                
+
                 dbc.Fade([
                     html.Button(
                         html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.TRAIN_SPINNER,
-                                           style={'display': 'inline'}, width=18, height=18, className='spinner_img'),
+                                           style={'display': 'none'}, width=18, height=18, className='spinner_img'),
                                   html.Span('Train')], className='button_spinner_cont'),
                         n_clicks=0, id=self.IDs.START_TRAINING_BTN,
                         className='general_btn_layout'),
@@ -149,7 +159,8 @@ class TrainView(View):
             ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS, className='all_controls_container'),
             dbc.Fade([html.Button(['Download training files'], n_clicks=0, id=self.IDs.DOWNLOAD_TRAIN_BTN,
                                   className='general_btn_layout')],
-                     id=self.IDs.DOWNLOAD_TRAIN_BTN_FADE, is_in=True, appear=False),
+                     id=self.IDs.DOWNLOAD_TRAIN_BTN_FADE, is_in=False, appear=False),
+
             dbc.Fade([html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
                       html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT)], is_in=False, appear=False,
                      id=self.IDs.PROC_TRAIN_OUT_FADE, className='process_display_out_cont'),

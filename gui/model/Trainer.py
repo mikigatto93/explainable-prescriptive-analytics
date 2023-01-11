@@ -39,7 +39,6 @@ class Trainer:
 
         self.train_info, prep_df = prepare_dataset_for_gui(self.data_source.data, self.ex_info,
                                                            self.paths, self.ex_info.pred_column, mode)
-
         generate_train_and_test_sets(
             prep_df, self.train_info.target_column, self.train_info.target_column_name, self.train_info.event_level,
             self.train_info.column_type, override, self.ex_info.id, self.train_info.df_completed_cases,

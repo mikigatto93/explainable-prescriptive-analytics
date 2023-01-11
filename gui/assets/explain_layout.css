@@ -52,17 +52,26 @@
 	border-right: 1px solid #000;
 }
 
+
+.select_page_paging_controls_cont {
+	margin: 20px 0;
+}
+
+.select_page_paging_controls_cont input {
+	width: 5em;
+}
+
 #go_up_btn_pred_graph {
 	margin-bottom: 0;
 }
 
 #go_down_btn_pred_graph {
-	margin-top: 170px;
+	margin-top: 90px;
 }
 
 
 #recomm_graph_paging_info {
-	margin-top: 60px;
+	margin-top: 40px;
 }
 
 #search_trace_id_input {
@@ -89,8 +98,8 @@
 	cursor: pointer;
 }
 
-.explanation_table tr:hover {
-	background: #FAF884;s
+.expl_table_selectable_row:hover {
+	background: #FAF884;
 }
 
 #explan_quantity_number {
@@ -108,7 +117,7 @@
 }
 
 /* To remove the hover when he item is selected*/
-tr.selected_expl_table_row:hover {
+.selected_expl_table_row:hover {
 	background: yellow;  /* same color as the selection */
 }
 

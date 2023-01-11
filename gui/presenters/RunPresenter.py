@@ -68,28 +68,27 @@ class RunPresenter(Presenter):
 
         @app.callback(
             output=[Output(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
-                    Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'),
-                    Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'style')],
+                    Output(self.views['run'].IDs.SHOW_PROCESS_RUNNING_OUTPUT, 'style')],
             inputs=[State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                     Input(self.views['run'].IDs.GENERATE_PREDS_BTN, 'n_clicks')],
             background=True,
             prevent_initial_call=True,
             running=[
-                (Output(self.views['train'].IDs.TRAIN_SPINNER, 'style'),
+                (Output(self.views['run'].IDs.RUN_SPINNER, 'style'),
                  {'display': 'inline'}, {'display': 'none'}),
-                (Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals'), -1, 0),
+                (Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'), -1, 0),
             ]
         )
         def generate_predictions(ex_info_data, n_clicks):
             if n_clicks > 0:
                 # print(ex_info_data)
-                # ex_info = Experiment.build_experiment_from_dict(ex_info_data)
-                # print(ex_info)
-                ex_info = Experiment.build_experiment_from_dict(
-                    {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
-                     "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
-                     "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
-                     "pred_column": "remaining_time"})
+                ex_info = Experiment.build_experiment_from_dict(json.loads(ex_info_data))
+                print(ex_info)
+                # ex_info = Experiment.build_experiment_from_dict(
+                #     {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
+                #      "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
+                #      "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
+                #      "pred_column": "remaining_time"})
 
                 self.recommender = Recommender(ex_info, self.data_source)
 
@@ -98,8 +97,9 @@ class RunPresenter(Presenter):
 
                 self.progress_logger.add_to_stack('Starting recommendations generation...')
                 self.recommender.generate_recommendations(self.progress_logger)
+                self.progress_logger.clear_stack()
 
-                return ['Recommendations generation completed', 0, {'display': 'none'}]  # stops the interval
+                return ['Recommendations generation completed', {'display': 'none'}]
             else:
                 return [dash.no_update, dash.no_update, dash.no_update]
 
