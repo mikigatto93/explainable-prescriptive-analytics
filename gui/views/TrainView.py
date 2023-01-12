@@ -11,7 +11,7 @@ import dash_uploader as du
 
 
 class _IDs(StrEnum):
-    BACK_SELECT_PHASE_TRAIN_BTN = 'back_select_phase_train_btn',
+    PREV_SELECT_PHASE_TRAIN_BTN = 'prev_select_phase_train_btn',
     NEXT_SELECT_PHASE_TRAIN_BTN = 'next_select_phase_train_btn',
     FADE_KPI_RADIO_ITEMS = 'fade_kpi_radio_items',
     FADE_START_TRAINING_BTN = 'fade_start_train_btn',
@@ -56,19 +56,22 @@ class _ERROR_IDs(StrEnum):
     LOAD_TRAIN_FILE_BTN = 'load_train_file_btn_error',
 
 
+def get_kpi_radio_items_options(disabled=False):
+    return [{'label': 'Total time', 'value': 'Total time', 'disabled': disabled},
+            {'label': 'Minimize activity occurrence', 'value': 'Minimize activity occurrence',
+             'disabled': disabled}]
+
+
 class TrainView(View):
     def __init__(self, pathname='', order=-1):
         super().__init__(pathname, order)
         self.IDs = _IDs
         self.ERROR_IDs = _ERROR_IDs
-        # gen_id =
-        # print(gen_id)
         self.upload_id = str(uuid.uuid4())
 
     def get_layout(self):
         return html.Div([
             html.H1('Train'),
-            # html.Div('Click to select the training file', n_clicks=0, id=self.IDs.LOAD_FILE_AREA),
             html.Div([
                 html.Div([
                     du.Upload(id=self.IDs.TRAIN_FILE_UPLOADER, upload_id=self.upload_id, filetypes=['csv', 'xes']),
@@ -84,7 +87,7 @@ class TrainView(View):
                     html.Div(className='error_box', id=self.ERROR_IDs.LOAD_MODEL_BTN),
                 ], className='load_model_cont'),
             ], className='train_load_area'),
-            
+
             dbc.Fade([
                 html.Div([
                     html.Div([html.Span('Experiment name'),
@@ -108,18 +111,14 @@ class TrainView(View):
                         html.Span('Resource name'),
                         dcc.Dropdown(id=self.IDs.RESOURCE_NAME_DROPDOWN, className='dropdown_select_column'),
                         html.Div(className='error_box', id=self.ERROR_IDs.RESOURCE_NAME_DROPDOWN),
-                        html.Button('Next >>', id=self.IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 
+                        html.Button('Next >>', id=self.IDs.NEXT_SELECT_PHASE_TRAIN_BTN,
                                     className='general_btn_layout', n_clicks=0)
                     ], className='columns_dropdown_cont'),
 
                     html.Div([
                         dbc.Fade([
                             html.P('Select KPI'),
-                            dcc.RadioItems([
-                                'Total time',
-                                # 'Maximize activity occurrence',
-                                'Minimize activity occurrence'
-                            ], id=self.IDs.KPI_RADIO_ITEMS),
+                            dcc.RadioItems(options=get_kpi_radio_items_options(), id=self.IDs.KPI_RADIO_ITEMS),
                             html.Div(className='error_box', id=self.ERROR_IDs.KPI_RADIO_ITEMS),
 
                             dbc.Fade([
@@ -128,16 +127,14 @@ class TrainView(View):
                                 html.Div(className='error_box', id=self.ERROR_IDs.ACT_TO_OPTIMIZE_DROPDOWN),
                             ], is_in=False, appear=False, id=self.IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN),
 
-                            html.Button('<< Back', id=self.IDs.BACK_SELECT_PHASE_TRAIN_BTN,
+                            html.Button('<< Previous', id=self.IDs.PREV_SELECT_PHASE_TRAIN_BTN,
                                         className='general_btn_layout', n_clicks=0)
 
                         ], is_in=False, appear=False, id=self.IDs.FADE_KPI_RADIO_ITEMS),
 
-                        
                     ], className='kpi_radio_cont'),
 
                 ], className='kpi_and_columns_cont'),
-
 
                 html.Span('Select outliers threshold for transition system building'),
                 html.Div([

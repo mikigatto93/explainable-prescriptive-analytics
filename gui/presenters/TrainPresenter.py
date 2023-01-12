@@ -15,6 +15,8 @@ from gui.model.IO import IOManager
 from gui.presenters.Presenter import Presenter
 import dash_uploader as du
 
+from gui.views import TrainView
+
 
 class TrainPresenter(Presenter):
     def __init__(self, views):
@@ -25,24 +27,27 @@ class TrainPresenter(Presenter):
         self.trainer = None
         self.progress_logger = TrainProgLogger('train_progress.tmp')
 
-    def __validate_input(self, ex_name, kpi, _id, timestamp, activity, act_to_opt):
+    def __validate_input(self, dict_values):
+        # dict_values = { ex_name, kpi, id, timestamp, activity, act_to_opt }
         error_data = {}
-        if ex_name is None:
+        if 'ex_name' in dict_values and dict_values['ex_name'] is None:
             error_data[self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX] = 'Experiment name is empty'
-        else:
-            if not self.trainer.ex_info.validate_forbidden_ex_names():
+        elif 'ex_name' in dict_values:
+            if not Experiment.validate_forbidden_ex_names(dict_values['ex_name']):
                 error_data[self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX] = \
                     'Experiment name cannot contain the following characters: <, >, :, ", /, \\, |, ?, *'
 
-        if kpi is None:
+        if 'kpi' in dict_values and dict_values['kpi'] is None:
             error_data[self.views['train'].IDs.KPI_RADIO_ITEMS] = 'One KPI must be selected'
-        if _id is None:
+        if 'id' in dict_values and dict_values['id'] is None:
             error_data[self.views['train'].IDs.ID_DROPDOWN] = 'One ID column must be selected'
-        if timestamp is None:
+        if 'timestamp' in dict_values and dict_values['timestamp'] is None:
             error_data[self.views['train'].IDs.TIMESTAMP_DROPDOWN] = 'One TIMESTAMP column must be selected'
-        if activity is None:
+        if 'activity' in dict_values and dict_values['activity'] is None:
             error_data[self.views['train'].IDs.ACTIVITY_DROPDOWN] = 'One ACTIVITY column must be selected'
-        if act_to_opt is None and kpi == 'Minimize activity occurrence':
+        if 'act_to_opt' in dict_values \
+                and dict_values['act_to_opt'] is None \
+                and dict_values['kpi'] == 'Minimize activity occurrence':
             error_data[self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN] = \
                 'If KPI "Minimize activity occurrence" is chosen then one ACTIVITY column to minimize must be selected'
         return error_data
@@ -132,10 +137,7 @@ class TrainPresenter(Presenter):
                 ex_info = build_experiment_from_dict(ex_info_data)
                 self.trainer = Trainer(ex_info, None)  # used only for generating the zip and download TODO: REFACTOR
                 print(ex_info)
-                kpi_options = [{'label': 'Total time', 'value': 'Total time', 'disabled': True},
-                               {'label': 'Minimize activity occurrence', 'value': 'Minimize activity occurrence',
-                                'disabled': True}]
-
+                kpi_options = TrainView.get_kpi_radio_items_options(True)
                 if ex_info.act_to_opt is None:
                     act_to_opt_data = dash.no_update
                     act_to_opt_options = dash.no_update
@@ -203,18 +205,52 @@ class TrainPresenter(Presenter):
             return value in ['Maximize activity occurrence', 'Minimize activity occurrence']
 
         @app.callback([Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in')],
+                       Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in'),
+                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE, 'data'),
+                       Output(self.views['train'].IDs.ID_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.KPI_RADIO_ITEMS, 'options'),
+                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled')],
                       [State(self.views['train'].IDs.ID_DROPDOWN, 'value'),
                        State(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'value'),
                        State(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'value'),
                        State(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value')],
-                      Input(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'n_clicks'))
-        def go_snd_phase_train_option_selection(_id, timestamp, activity, resource, n_clicks):
+                      Input(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'n_clicks'),
+                      prevent_initial_call=True)
+        def go_2nd_phase_train_option_selection(_id, timestamp, activity, resource, n_clicks):
             if n_clicks > 0:
-                act_list = self.data_source.get_activity_list(activity)
-                return [act_list, True]
+                error_data = self.__validate_input({'id': _id,
+                                                    'timestamp': timestamp,
+                                                    'activity': activity})
+                if not error_data:
+                    act_list = self.data_source.get_activity_list(activity)
+                    return [act_list, True, error_data] + [True] * 4 + \
+                           [TrainView.get_kpi_radio_items_options(False), False, True, False]
+                else:
+                    return [[], False, error_data] + [False] * 4 + \
+                           [TrainView.get_kpi_radio_items_options(True), True, False, False]
             else:
-                return [dash.no_update, dash.no_update]
+                return [dash.no_update] * 11
+
+        @app.callback([Output(self.views['train'].IDs.ID_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.KPI_RADIO_ITEMS, 'options'),
+                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled')],
+                      Input(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'n_clicks'),
+                      prevent_initial_call=True)
+        def return_1st_phase_train_option_selection(n_clicks):
+            if n_clicks > 0:
+                return [False] * 4 + [TrainView.get_kpi_radio_items_options(True), True, False, True]
+            else:
+                return [dash.no_update] * 8
 
         app.clientside_callback(
             ClientsideFunction(
@@ -242,7 +278,12 @@ class TrainPresenter(Presenter):
         def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs,
                                        n_clicks):
             if n_clicks > 0:
-                error_data = self.__validate_input(ex_name, kpi, _id, timestamp, activity, act_to_opt)
+                error_data = self.__validate_input({'ex_name': ex_name,
+                                                    'kpi': kpi,
+                                                    'id': _id,
+                                                    'timestamp': timestamp,
+                                                    'activity': activity,
+                                                    'act_to_opt': act_to_opt})
                 if not error_data:
                     experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
                     print(experiment_info)
@@ -251,9 +292,9 @@ class TrainPresenter(Presenter):
                     self.progress_logger.clear_stack()
                     return [True, json.dumps(experiment_info.to_dict()), True, error_data]
                 else:
-                    return [False, dash.no_update, dash.no_update, error_data]
+                    return [dash.no_update, dash.no_update, dash.no_update, error_data]
             else:
-                return [False] + [dash.no_update] * 3
+                return [dash.no_update] * 4
 
         @app.callback(
             output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
@@ -290,7 +331,7 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def download_train_files(n_clicks):
             if n_clicks > 0:
-                # TODO: MAYBE THIS CAN BE MOVED INSIDE THE TRAINNIG PROCESS
+                # TODO: MAYBE THIS CAN BE MOVED INSIDE THE TRAINIG PROCESS
                 self.zip_file_path = self.trainer.create_model_archive()
 
                 return dash.dcc.send_file(self.zip_file_path)
