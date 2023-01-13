@@ -414,12 +414,13 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             model.fit(train_data)
 
         if paths:
-            gui_io.write(model,paths.folders['model']['model'])
+            gui_io.write(model, paths.folders['model']['model'])
             gui_io.write(info, paths.folders['model']['data_info'])
+            print('model saved')
         else:
             write(model, folders['model']['model'])
             write(info, folders['model']['data_info'])
-        print('Saved model')
+            print('model saved')
 
 
 def predict(column_type, target_column_name, activity_name, paths: gui_io.Paths = None):

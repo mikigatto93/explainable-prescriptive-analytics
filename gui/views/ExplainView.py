@@ -69,9 +69,9 @@ class ExplainView(View):
                     html.Button('∨', id=self.IDs.GO_DOWN_PRED_GRAPH, n_clicks=0, disabled=True),
 
                     html.Div([
-                        html.Span('Seleziona pagina'),
+                        html.Span('Select page'),
                         dcc.Input(id=self.IDs.SELECT_PAGE_PRED_GRAPH_INPUT, type='number'),
-                        html.Button('Vai', id=self.IDs.SELECT_PAGE_PRED_GRAPH_BTN, n_clicks=0),
+                        html.Button('Go', id=self.IDs.SELECT_PAGE_PRED_GRAPH_BTN, n_clicks=0),
                     ], className='select_page_paging_controls_cont'),
 
                     html.Span(id=self.IDs.RECOMMANDATION_GRAPH_PAGING_INFO),

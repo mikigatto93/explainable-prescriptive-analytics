@@ -115,14 +115,14 @@ class ExplainPresenter(Presenter):
         def show_prediction_graph(ex_info_data, url):
             if url == self.views['explain'].pathname:
 
-                ex_info_data = {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
-                                "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
-                                "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
-                                "pred_column": "remaining_time"}
+                # ex_info_data = {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
+                #                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
+                #                 "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
+                #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
-                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     kpis_dict = self.explainer.calculate_best_scores()
                     kpis_df_temp = pd.DataFrame.from_dict(kpis_dict,
                                                           orient='index',
@@ -343,10 +343,10 @@ class ExplainPresenter(Presenter):
             if n_clicks > 0:
                 if not self.explainer.check_if_explanations_exists(trace_id, act_to_explain):
                     print('Calculating shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
-                    # self.explainer.calculate_explanation(trace_id, act_to_explain)
-                    trace_id = '1-739610172'
-                    act_to_explain = 'Resolved'
-                    time.sleep(5)
+                    self.explainer.calculate_explanation(trace_id, act_to_explain)
+                    # trace_id = '1-739610172'
+                    # act_to_explain = 'Resolved'
+                    # time.sleep(5)
                     gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
                     return [self.__create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
                             False, True]

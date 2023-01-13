@@ -58,21 +58,17 @@ class TrainPresenter(Presenter):
                       Input(self.views['base'].IDs.ERRORS_MANAGER_STORE, 'data'),
                       prevent_initial_call=True)
         def show_error_training(error_data):
-            print(error_data)
-
-            l = [Output(e.value, 'children') for e in self.views['train'].ERROR_IDs]
-            print(l)
+            # l = [Output(e.value, 'children') for e in self.views['train'].ERROR_IDs]
+            # print(l)
             if error_data is not None:
                 output_values = []
                 for e in self.views['train'].ERROR_IDs:
                     err_id = str(e.value)
                     elem_id = err_id.replace('_error', '')
-                    print(elem_id)
                     if elem_id in error_data:
                         output_values.append(error_data[elem_id])
                     else:
                         output_values.append('')
-                print(output_values)
                 return output_values
             else:
                 raise dash.exceptions.PreventUpdate
@@ -125,9 +121,14 @@ class TrainPresenter(Presenter):
                        Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
                        Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'disabled'),
                        Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'disabled'),
+                       # FADEs
                        Output(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
                        Output(self.views['train'].IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN, 'is_in'),
-                       Output(self.views['train'].IDs.FADE_START_TRAINING_BTN, 'is_in')],
+                       Output(self.views['train'].IDs.FADE_START_TRAINING_BTN, 'is_in'),
+                       Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in'),
+                       # btns
+                       Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled')],
                       State(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value'),
                       Input(self.views['train'].IDs.LOAD_MODEL_BTN, 'n_clicks'))
         def load_trained_model_data(ex_name_val, n_clicks):
@@ -156,9 +157,9 @@ class TrainPresenter(Presenter):
                         ex_info.activity, ex_info.resource, act_to_opt_data, ex_info.out_thrs] + \
                        [kpi_options, [ex_info.id], [ex_info.timestamp], [ex_info.activity], resource_dropdown_options,
                         act_to_opt_options, True, True, True, True, True, True, True, True, False,
-                        show_act_to_opt_dropdown]
+                        show_act_to_opt_dropdown, True, True, True]
             else:
-                return [dash.no_update] * 25
+                return [dash.no_update] * 28
 
         @du.callback(
             output=Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'disabled'),
@@ -170,7 +171,8 @@ class TrainPresenter(Presenter):
             self.file_path = str(status.latest_file)
             return False
 
-        @app.callback(Output(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
+        @app.callback([Output(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
+                       Output(self.views['base'].IDs.XES_COLUMNS_DATA_STORE, 'data')],
                       Input(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'n_clicks'),
                       prevent_initial_call=True)
         def show_all_controls(n_clicks):
@@ -179,24 +181,54 @@ class TrainPresenter(Presenter):
                     self.data_source = TrainDataSource(self.file_path)
                 except Exception as e:
                     print(e)
-                    return False
+                    return [False, dash.no_update]
 
-                return True
+                if not self.data_source.is_xes:
+                    xes_cols_data = dash.no_update
+                else:
+                    xes_cols_data = self.data_source.xes_columns_names
+
+                return [True, xes_cols_data]
+            else:
+                return [dash.no_update, dash.no_update]
 
         @app.callback([Output(self.views['train'].IDs.ID_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')],
+                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
+                       # values
+                       Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
+                       Output(self.views['train'].IDs.ID_DROPDOWN, 'value'),
+                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'value'),
+                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'value'),
+                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value'),
+                       # disable
+                       Output(self.views['train'].IDs.ID_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+
+                       Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in')],
+                      State(self.views['base'].IDs.XES_COLUMNS_DATA_STORE, 'data'),
                       Input(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
                       prevent_initial_call=True)
-        def populate_dropdown_options(fade):
-            DEFAULT_OUTLIER_THRS = 0.05
+        def populate_dropdown_options(xes_cols_data, fade):
+            DEFAULT_OUTLIER_THRS = 0.02
             if fade and self.data_source:
                 options_group = self.data_source.columns_list
-                return [options_group] * 4 + [DEFAULT_OUTLIER_THRS]
+                if xes_cols_data:
+                    return [options_group] * 4 + [self.data_source.get_activity_list(xes_cols_data['activity']),
+                                                  DEFAULT_OUTLIER_THRS] + [xes_cols_data['id'],
+                                                                           xes_cols_data['timestamp'],
+                                                                           xes_cols_data['activity'],
+                                                                           xes_cols_data['resource'], ] + [True] * 7
+                else:
+                    return [options_group] * 4 + [dash.no_update, DEFAULT_OUTLIER_THRS] + [dash.no_update] * 11
             else:
-                raise dash.exceptions.PreventUpdate
+                return [dash.no_update] * 17
 
         @app.callback(Output(self.views['train'].IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN, 'is_in'),
                       Input(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
@@ -310,6 +342,7 @@ class TrainPresenter(Presenter):
             ]
         )
         def train_model(start_cont_store):
+            print(start_cont_store)
             if start_cont_store:
                 self.progress_logger.clear_stack()
                 self.progress_logger.add_to_stack('Preparing dataset...')
