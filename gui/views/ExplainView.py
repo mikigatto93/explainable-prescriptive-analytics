@@ -101,7 +101,8 @@ class ExplainView(View):
                 dbc.Fade([
                     html.Div('Select how many explanations to visualize'),
                     html.Div([
-                        dcc.Slider(id=self.IDs.EXPLANATION_QUANTITY_SLIDER, max=10, min=0, step=1, marks=None),
+                        dcc.Slider(id=self.IDs.EXPLANATION_QUANTITY_SLIDER, max=10, min=0, step=1, marks=None,
+                                   updatemode='drag'),
                         html.Span(id=self.IDs.QNT_EXPL_SLIDER_VALUE_LABEL),
                     ], className='slider_cont'),
                     dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH, figure={}),

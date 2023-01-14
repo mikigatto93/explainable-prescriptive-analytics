@@ -98,7 +98,7 @@ class TrainView(View):
 
                 html.Div([
                     html.Div([
-                        html.P('Select columns:'),
+                        html.P('Select columns'),
                         html.Span('ID'),
                         dcc.Dropdown(id=self.IDs.ID_DROPDOWN, className='dropdown_select_column'),
                         html.Div(className='error_box', id=self.ERROR_IDs.ID_DROPDOWN),
@@ -138,7 +138,8 @@ class TrainView(View):
 
                 html.Span('Select outliers threshold for transition system building'),
                 html.Div([
-                    dcc.Slider(id=self.IDs.OUTLIERS_THRS_SLIDER, min=0, max=1, step=0.01, marks=None),
+                    dcc.Slider(id=self.IDs.OUTLIERS_THRS_SLIDER, min=0, max=1, step=0.01, marks=None,
+                               updatemode='drag'),
                     # dcc.Input(id=self.IDs.SLIDER_VALUE_TEXTBOX, maxLength=4, max=1, min=0, step=0.01),
                     html.Span(id=self.IDs.OUT_THRS_SLIDER_VALUE_LABEL),
                     html.Div(className='error_box', id=self.ERROR_IDs.OUTLIERS_THRS_SLIDER),

@@ -126,6 +126,7 @@ class TrainPresenter(Presenter):
                        Output(self.views['train'].IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN, 'is_in'),
                        Output(self.views['train'].IDs.FADE_START_TRAINING_BTN, 'is_in'),
                        Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in'),
+                       Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'),
                        # btns
                        Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
                        Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled')],
@@ -157,9 +158,9 @@ class TrainPresenter(Presenter):
                         ex_info.activity, ex_info.resource, act_to_opt_data, ex_info.out_thrs] + \
                        [kpi_options, [ex_info.id], [ex_info.timestamp], [ex_info.activity], resource_dropdown_options,
                         act_to_opt_options, True, True, True, True, True, True, True, True, False,
-                        show_act_to_opt_dropdown, True, True, True]
+                        show_act_to_opt_dropdown, True, True, True, True]
             else:
-                return [dash.no_update] * 28
+                return [dash.no_update] * 29
 
         @du.callback(
             output=Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'disabled'),
@@ -287,7 +288,7 @@ class TrainPresenter(Presenter):
         app.clientside_callback(
             ClientsideFunction(
                 namespace='clientside',
-                function_name='slider_value_display_csc'
+                function_name='slider_value_display_csc_percent'
             ),
             Output(self.views['train'].IDs.OUT_THRS_SLIDER_VALUE_LABEL, 'children'),
             Input(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')
@@ -342,7 +343,7 @@ class TrainPresenter(Presenter):
             ]
         )
         def train_model(start_cont_store):
-            print(start_cont_store)
+            # print(start_cont_store)
             if start_cont_store:
                 self.progress_logger.clear_stack()
                 self.progress_logger.add_to_stack('Preparing dataset...')
@@ -353,8 +354,12 @@ class TrainPresenter(Presenter):
 
                 self.progress_logger.add_to_stack('Generating variables...')
                 self.trainer.generate_variables()
-                # self.zip_file_path = self.trainer.create_model_archive()
+
+                self.progress_logger.add_to_stack('Generating archives...')
+                self.zip_file_path = self.trainer.create_model_archive()
+
                 self.progress_logger.clear_stack()
+
                 return ['Training completed', {'display': 'none'}]
             else:
                 raise dash.exceptions.PreventUpdate
@@ -364,9 +369,6 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def download_train_files(n_clicks):
             if n_clicks > 0:
-                # TODO: MAYBE THIS CAN BE MOVED INSIDE THE TRAINIG PROCESS
-                self.zip_file_path = self.trainer.create_model_archive()
-
                 return dash.dcc.send_file(self.zip_file_path)
             else:
                 raise dash.exceptions.PreventUpdate

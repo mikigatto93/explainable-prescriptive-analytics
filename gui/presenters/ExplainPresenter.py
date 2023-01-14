@@ -115,14 +115,24 @@ class ExplainPresenter(Presenter):
         def show_prediction_graph(ex_info_data, url):
             if url == self.views['explain'].pathname:
 
+                ex_info_data = {'ex_name': 'bac_test_1', 'kpi': 'Total time', 'id': 'REQUEST_ID',
+                                'timestamp': 'START_DATE',
+                                'activity': 'ACTIVITY', 'resource': None, 'act_to_opt': None, 'out_thrs': 0.02,
+                                'pred_column': 'remaining_time'}
+
+                # ex_info_data = {'ex_name': 'vist_test_1', 'kpi': 'Total time', 'id': 'SR_Number',
+                #                 'timestamp': 'Change_Date+Time', 'activity': 'ACTIVITY', 'resource': None,
+                #                 'act_to_opt': None, 'out_thrs': 0.02, 'pred_column': 'remaining_time'}
+
                 # ex_info_data = {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
                 #                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
                 #                 "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
                 #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
-                    self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+
+                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     kpis_dict = self.explainer.calculate_best_scores()
                     kpis_df_temp = pd.DataFrame.from_dict(kpis_dict,
                                                           orient='index',
@@ -133,6 +143,8 @@ class ExplainPresenter(Presenter):
                     kpis_df2 = kpis_df_temp[~mask]  # current <= following
                     self.kpis_df = pd.concat([kpis_df1, kpis_df2])
                     self.kpis_df_len = len(self.kpis_df.index)
+
+                    print('Good traces / Total traces ratio: {}'.format(len(kpis_df1.index) / self.kpis_df_len))
 
                     return [self.__create_pred_graph(),
                             '{}/{}'.format(self.pred_graph_progression + 1,
@@ -157,9 +169,9 @@ class ExplainPresenter(Presenter):
         def scroll_graph(page_value_sel, n_clicks_up, n_clicks_down, n_clicks_sel_page):
             button_id = dash.ctx.triggered_id
             # print(self.pred_graph_progression)
-            max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
             if button_id == self.views['explain'].IDs.GO_UP_PRED_GRAPH and n_clicks_up > 0:
                 self.pred_graph_progression += 1
+                max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
                 return [
                     self.__create_pred_graph(),
                     '{}/{}'.format(self.pred_graph_progression + 1, max_page),
@@ -180,6 +192,7 @@ class ExplainPresenter(Presenter):
 
             elif button_id == self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_BTN and n_clicks_sel_page > 0:
                 if page_value_sel:
+                    max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
                     page_value_sel = int(max(1, min(page_value_sel, max_page)))
                     self.pred_graph_progression = page_value_sel - 1
                     return [

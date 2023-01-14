@@ -1,14 +1,15 @@
 import os
+import tarfile
 from typing import Optional
 
 from gui.model.Experiment import Experiment, TrainInfo
-from gui.model.IO.IOManager import Paths, write
+from gui.model.IO.IOManager import Paths, write, create_missing_folders
 from gui.model.TrainDataSource import TrainDataSource
 from load_dataset import prepare_dataset_for_gui
 from ml import generate_train_and_test_sets, fit_model, predict, write_results
 from utils import import_vars, variable_type_analysis
 
-import shutil
+import zipfile
 
 
 class Trainer:
@@ -71,13 +72,18 @@ class Trainer:
         return quantitative_vars, qualitative_vars, qualitative_trace_vars
 
     def create_model_archive(self):
-        zip_file_expected_path = self.paths.folders['archives']['train'] + '.zip'
-        if not os.path.exists(zip_file_expected_path):
-            zip_file_path = shutil.make_archive(base_name=self.paths.folders['archives']['train'],
-                                                format='zip',
-                                                root_dir=os.path.split(self.paths.folders['model']['model'])[0])
-            print('ZIP archive created')
-            print(zip_file_path)
-            return zip_file_path
-        else:
-            return zip_file_expected_path
+        create_missing_folders(self.paths.folders['archives']['train'])
+        if not os.path.isfile(self.paths.folders['archives']['train']):
+            # TODO: TEST OTHER COMPRESSION METHODS
+            with tarfile.open(self.paths.folders['archives']['train'], 'w:xz') as tar_f:
+
+                files = [self.paths.folders['model']['model'], self.paths.folders['model']['dfTrain'],
+                         self.paths.folders['model']['dfTest'], self.paths.folders['model']['dfValid'],
+                         self.paths.folders['model']['dfTrain_without_valid'], self.paths.folders['model']['params'],
+                         self.paths.folders['model']['data_info'], self.paths.folders['experiment']]
+                for f in files:
+                    tar_f.add(f, arcname=os.path.basename(f))
+
+            print('Archive created')
+
+        return self.paths.folders['archives']['train']

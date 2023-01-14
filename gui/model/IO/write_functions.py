@@ -2,6 +2,7 @@ import json
 
 import joblib
 import numpy as np
+import pandas as pd
 
 
 def write_json(data, path):
@@ -11,7 +12,7 @@ def write_json(data, path):
 
 def write_pickle(data, path):
     with open(path, 'wb') as f:
-        joblib.dump(data, f)
+        pd.to_pickle(data, f)
 
 
 def write_numpy(data, path):

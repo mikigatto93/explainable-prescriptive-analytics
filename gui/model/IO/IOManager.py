@@ -118,7 +118,7 @@ class Paths:
     }
 
     archives = {
-        'train': 'train_data'  # no extension because it's added later (see shutil.make_archive)
+        'train': 'train_data.tar.xz'
     }
 
     GROUNDTRUTH = '{}_expl_df_gt.json'

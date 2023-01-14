@@ -1,6 +1,5 @@
 import json
 
-import joblib
 import pandas as pd
 import numpy as np
 
@@ -12,7 +11,7 @@ def read_json(path, **kwargs):
 
 def read_pickle(path, **kwargs):
     with open(path, 'rb') as f:
-        return joblib.load(f)
+        return pd.read_pickle(f)
 
 
 def read_numpy(path, **kwargs):
