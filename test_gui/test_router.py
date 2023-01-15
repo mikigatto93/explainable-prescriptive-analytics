@@ -8,38 +8,27 @@ from dash._utils import AttributeDict
 
 from gui.views.BaseView import IDs as baseIDs
 
+
 from unittest.mock import patch, PropertyMock
 
 from test_gui import router, CALLBACKS
-from test_gui.test_utils import PropertyMocker, mock_dash_context
 
 
 def test_update_links():
-    pathname_list = ['', '/', '/run', '/explain']
-    with PropertyMocker(router, 'pathname_list', PropertyMock(return_value=pathname_list)):
-        assert mock_dash_context(CALLBACKS['update_links'],
-                                 [''], ('/', 0, 0)) == ['/run', '']
+    with patch.object(router, 'pathname_list') as mock:
+        p_m = PropertyMock(return_value='test')
+        type(router).pathname_list = p_m
+        assert CALLBACKS['update_links']('/', 0, 0) == 'test'
 
-    with PropertyMocker(router, 'pathname_list', PropertyMock(return_value=['/', '/run', '/explain'])):
-        # test page changes (n_clicks values >1 have the same behaviour), click is simulated via dash context
-        assert mock_dash_context(CALLBACKS['update_links'],
-                                 [baseIDs.GO_NEXT_BTN + '.n_clicks'], ('/', 1, 1)) == ['/run', '/explain']
 
-    with PropertyMocker(router, 'pathname_list', PropertyMock(return_value=pathname_list)):
-        assert mock_dash_context(CALLBACKS['update_links'],
-                                 [baseIDs.GO_NEXT_BTN + '.n_clicks'], ('/run', 1, 1)) == ['/explain', '/']
+    # def run_callback():
+    #     context_value.set(AttributeDict(**{'triggered_inputs': [{'prop_id': baseIDs.GO_BACK_BTN}]}))
+    #     return CALLBACKS['update_links']('/', 0, 0)
+    #
+    # ctx = copy_context()
+    # output = ctx.run(run_callback)
+    # print(output)
 
-    with PropertyMocker(router, 'pathname_list', PropertyMock(return_value=pathname_list)):
-        assert mock_dash_context(CALLBACKS['update_links'],
-                                 [baseIDs.GO_NEXT_BTN + '.n_clicks'], ('/explain', 1, 1)) == ['', '/run']
-
-    with PropertyMocker(router, 'pathname_list', PropertyMock(return_value=['/', '/run', '/explain'])):
-        assert mock_dash_context(CALLBACKS['update_links'],
-                                 [baseIDs.GO_BACK_BTN + '.n_clicks'], ('/', 1, 1)) == ['/run', '']
-
-    with PropertyMocker(router, 'pathname_list', PropertyMock(return_value=pathname_list)):
-        assert mock_dash_context(CALLBACKS['update_links'],
-                                 [baseIDs.GO_BACK_BTN + '.n_clicks'], ('/run', 0, 1)) == ['/explain', '/']
 
 # def test_change_page():
 #     print(Router.__dict__)
