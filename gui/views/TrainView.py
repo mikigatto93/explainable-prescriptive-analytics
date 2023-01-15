@@ -163,4 +163,4 @@ class TrainView(View):
                       html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT)], is_in=False, appear=False,
                      id=self.IDs.PROC_TRAIN_OUT_FADE, className='process_display_out_cont'),
             dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL, n_intervals=0, interval=1000),
-        ], className='view_container')
+        ], className='train_container')

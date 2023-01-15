@@ -3,7 +3,9 @@
 */
 
 .run_container {
-
+	position: absolute;
+	top: 5em;
+	width: 60%;
 }
 
 .run_btns_cont {

@@ -115,10 +115,10 @@ class ExplainPresenter(Presenter):
         def show_prediction_graph(ex_info_data, url):
             if url == self.views['explain'].pathname:
 
-                ex_info_data = {'ex_name': 'bac_test_1', 'kpi': 'Total time', 'id': 'REQUEST_ID',
-                                'timestamp': 'START_DATE',
-                                'activity': 'ACTIVITY', 'resource': None, 'act_to_opt': None, 'out_thrs': 0.02,
-                                'pred_column': 'remaining_time'}
+                # ex_info_data = {'ex_name': 'bac_test_1', 'kpi': 'Total time', 'id': 'REQUEST_ID',
+                #                 'timestamp': 'START_DATE',
+                #                 'activity': 'ACTIVITY', 'resource': None, 'act_to_opt': None, 'out_thrs': 0.02,
+                #                 'pred_column': 'remaining_time'}
 
                 # ex_info_data = {'ex_name': 'vist_test_1', 'kpi': 'Total time', 'id': 'SR_Number',
                 #                 'timestamp': 'Change_Date+Time', 'activity': 'ACTIVITY', 'resource': None,
@@ -130,9 +130,8 @@ class ExplainPresenter(Presenter):
                 #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
-
-                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     kpis_dict = self.explainer.calculate_best_scores()
                     kpis_df_temp = pd.DataFrame.from_dict(kpis_dict,
                                                           orient='index',

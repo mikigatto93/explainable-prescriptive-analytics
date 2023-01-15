@@ -1,9 +1,9 @@
 import os
-from parser import ParserError
 
 import numpy as np
 import pandas as pd
 import pm4py
+from pandas.errors import ParserError
 from pm4py.objects.conversion.log import converter as log_converter
 
 from gui.model.DataSource import DataSource

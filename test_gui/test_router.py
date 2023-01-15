@@ -1,19 +1,11 @@
-import pytest
-from index import startup_gui
-from unittest.mock import patch, PropertyMock, MagicMock
-
-from contextvars import copy_context
-from dash._callback_context import context_value
-from dash._utils import AttributeDict
-
 from gui.views.BaseView import IDs as baseIDs
-
 
 from unittest.mock import patch, PropertyMock
 
 from test_gui import router, CALLBACKS
 
 from test_gui.test_utils import PropertyMocker, mock_dash_context
+
 
 def test_update_links():
     pathname_list = ['', '/', '/run', '/explain']
