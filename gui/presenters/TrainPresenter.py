@@ -55,7 +55,7 @@ class TrainPresenter(Presenter):
     def register_callbacks(self):
 
         @app.callback([Output(e.value, 'children') for e in self.views['train'].ERROR_IDs],
-                      Input(self.views['base'].IDs.ERRORS_MANAGER_STORE, 'data'),
+                      Input(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data'),
                       prevent_initial_call=True)
         def show_error_training(error_data):
             # l = [Output(e.value, 'children') for e in self.views['train'].ERROR_IDs]
@@ -239,7 +239,7 @@ class TrainPresenter(Presenter):
 
         @app.callback([Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
                        Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in'),
-                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE, 'data'),
+                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data'),
                        Output(self.views['train'].IDs.ID_DROPDOWN, 'disabled'),
                        Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'disabled'),
                        Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'disabled'),
@@ -297,7 +297,7 @@ class TrainPresenter(Presenter):
         @app.callback([Output(self.views['base'].IDs.START_TRAINING_CONTROLLER, 'data'),
                        Output(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                        Output(self.views['train'].IDs.PROC_TRAIN_OUT_FADE, 'is_in'),
-                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE, 'data')],
+                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data')],
                       [State(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'value'),
                        State(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
                        State(self.views['train'].IDs.ID_DROPDOWN, 'value'),

@@ -8,7 +8,7 @@ from app import app
 from gui.views.View import View
 
 
-class _IDs(StrEnum):
+class IDs(StrEnum):
     SELECT_PAGE_PRED_GRAPH_BTN = 'sel_page_pred_graph_btn',
     SELECT_PAGE_PRED_GRAPH_INPUT = 'sel_page_pred_graph_input',
     GENERATE_EXPL_SPINNER = 'generate_expl_spinner',
@@ -34,6 +34,9 @@ class _IDs(StrEnum):
     SEARCH_TRACE_ID_INPUT = 'search_trace_id_input',
 
 
+class _ERROR_IDs(StrEnum):
+    SEARCH_TRACE_ID_INPUT = 'search_trace_id_input_error'
+
 def _get_blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
     fig.update_layout(template=None)
@@ -45,7 +48,8 @@ def _get_blank_figure():
 class ExplainView(View):
     def __init__(self, pathname='', order=-1):
         super().__init__(pathname, order)
-        self.IDs = _IDs
+        self.IDs = IDs
+        self.ERROR_IDs = _ERROR_IDs
 
     def create_table(self):
         return [
@@ -80,7 +84,8 @@ class ExplainView(View):
                 html.Div([
                     html.Span('Search trace by id'),
                     dcc.Input(id=self.IDs.SEARCH_TRACE_ID_INPUT),
-                    html.Button('Search', id=self.IDs.SEARCH_TRACE_ID_INPUT_BTN, n_clicks=0)
+                    html.Button('Search', id=self.IDs.SEARCH_TRACE_ID_INPUT_BTN, n_clicks=0),
+                    html.Div(className='error_box', id=self.ERROR_IDs.SEARCH_TRACE_ID_INPUT),
                 ], className='search_trace_by_id_cont')
             ], className='trace_expl_selectors_cont'),
 

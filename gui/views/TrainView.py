@@ -10,7 +10,7 @@ from gui.views.View import View
 import dash_uploader as du
 
 
-class _IDs(StrEnum):
+class IDs(StrEnum):
     PREV_SELECT_PHASE_TRAIN_BTN = 'prev_select_phase_train_btn',
     NEXT_SELECT_PHASE_TRAIN_BTN = 'next_select_phase_train_btn',
     FADE_KPI_RADIO_ITEMS = 'fade_kpi_radio_items',
@@ -65,7 +65,7 @@ def get_kpi_radio_items_options(disabled=False):
 class TrainView(View):
     def __init__(self, pathname='', order=-1):
         super().__init__(pathname, order)
-        self.IDs = _IDs
+        self.IDs = IDs
         self.ERROR_IDs = _ERROR_IDs
         self.upload_id = str(uuid.uuid4())
 

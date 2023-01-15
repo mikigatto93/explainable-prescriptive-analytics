@@ -102,11 +102,28 @@ class ExplainPresenter(Presenter):
                 orientation='h',
             )
         )
-
-        # fig.update_yaxes(tickmode='linear')
         return fig
 
     def register_callbacks(self):
+
+        @app.callback([Output(e.value, 'children') for e in self.views['explain'].ERROR_IDs],
+                      Input(self.views['base'].IDs.ERRORS_MANAGER_STORE_EXPLAIN, 'data'),
+                      prevent_initial_call=True)
+        def show_error_explain(error_data):
+            # l = [Output(e.value, 'children') for e in self.views['train'].ERROR_IDs]
+            # print(l)
+            if error_data is not None:
+                output_values = []
+                for e in self.views['explain'].ERROR_IDs:
+                    err_id = str(e.value)
+                    elem_id = err_id.replace('_error', '')
+                    if elem_id in error_data:
+                        output_values.append(error_data[elem_id])
+                    else:
+                        output_values.append('')
+                return output_values
+            else:
+                raise dash.exceptions.PreventUpdate
 
         @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
                        Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children')],
@@ -221,7 +238,8 @@ class ExplainPresenter(Presenter):
                        Output(self.views['explain'].IDs.VISUALIZE_EXPL_FADE, 'is_in'),
                        Output(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
                        Output(self.views['explain'].IDs.GENERATE_EXPL_BTN_FADE, 'is_in'),
-                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in')],
+                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in'),
+                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_EXPLAIN, 'data')],
                       State(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT, 'value'),
                       [Input(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'clickData'),
                        Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
@@ -231,37 +249,46 @@ class ExplainPresenter(Presenter):
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
             search_btn_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN
+            error_data = {}
+
             if (graph_clicked and click_data) or (search_btn_clicked and n_clicks > 0):
                 if graph_clicked:
                     trace_id = click_data['points'][0]['y']
                 elif search_btn_clicked and input_value != '':
-                    trace_id = input_value
-                # print(trace_id)
-                pred_info = self.explainer.get_best_n_scores_by_trace(trace_id, 3)
+                    if self.explainer.check_if_trace_is_valid(input_value):
+                        trace_id = input_value
+                    else:
+                        error_data[self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT] = \
+                            'The trace selected does not exists'
+                if not error_data:
+                    pred_info = self.explainer.get_best_n_scores_by_trace(trace_id, 3)
 
-                rec_act = [t[0] for t in pred_info['rec']]
-                rec_values = [t[1] for t in pred_info['rec']]
-                real_act = pred_info['real'][0][0]
-                real_val = pred_info['real'][0][1]
+                    rec_act = [t[0] for t in pred_info['rec']]
+                    rec_values = [t[1] for t in pred_info['rec']]
+                    real_act = pred_info['real'][0][0]
+                    real_val = pred_info['real'][0][1]
 
-                return [
-                    'Recommendations for {}'.format(trace_id),
-                    'Current activity: {}'.format(real_act),
-                    'Expected KPI: {}'.format(real_val),
-                    [html.Td(rec_act[0]), html.Td(rec_values[0])],
-                    [html.Td(rec_act[1]), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
-                    [html.Td(rec_act[2]), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
-                    CSS_BASE_ROW_CLASS_NAME,
-                    CSS_BASE_ROW_CLASS_NAME,
-                    CSS_BASE_ROW_CLASS_NAME,
-                    trace_id,
-                    True,
-                    DEFAULT_EXPL_QNT,
-                    False,
-                    False
-                ]
+                    return [
+                        'Recommendations for {}'.format(trace_id),
+                        'Current activity: {}'.format(real_act),
+                        'Expected KPI: {}'.format(real_val),
+                        [html.Td(rec_act[0]), html.Td(rec_values[0])],
+                        [html.Td(rec_act[1]), html.Td(rec_values[1])] if len(rec_act) > 1 else [],
+                        [html.Td(rec_act[2]), html.Td(rec_values[2])] if len(rec_act) > 2 else [],
+                        CSS_BASE_ROW_CLASS_NAME,
+                        CSS_BASE_ROW_CLASS_NAME,
+                        CSS_BASE_ROW_CLASS_NAME,
+                        trace_id,
+                        True,
+                        DEFAULT_EXPL_QNT,
+                        False,
+                        False,
+                        error_data
+                    ]
+                else:
+                    return [dash.no_update] * 14 + [error_data]
             else:
-                return [dash.no_update] * 14
+                return [dash.no_update] * 15
 
         app.clientside_callback(
             ClientsideFunction(

@@ -26,8 +26,6 @@ class TrainDataSource(DataSource):
                 self.is_xes = False
 
             elif file_extension == '.xes':
-                # pm4py.convert_to_dataframe(pm4py.read_xes(io.BytesIO(decoded))).to_csv(path_or_buf=(filename[:-4] +
-                # '.csv'),index=None)
                 log = pm4py.read_xes(path)
                 dataframe = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
 

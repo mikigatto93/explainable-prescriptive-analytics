@@ -158,3 +158,6 @@ class Explainer:
     def check_if_explanations_exists(self, trace_id, value):
         return (os.path.isfile(self.paths.get_gt_explanation_path(trace_id)) and
                 os.path.isfile(self.paths.get_explanation_path(trace_id, value)))
+
+    def check_if_trace_is_valid(self, trace_id):
+        return trace_id in self.rec_dict
