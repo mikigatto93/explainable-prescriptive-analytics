@@ -31,14 +31,14 @@ class Router(Presenter):
                     if next_page == len(self.pathname_list):
                         next_page = -1
 
-            if button_id == 'go_next_btn' and n_clicks_btn1 > 0:
+            if button_id == self.views['base'].IDs.GO_NEXT_BTN and n_clicks_btn1 > 0:
                 go_back = self.pathname_list[prev_page]
                 if next_page == -1:
                     go_next = ''
                 else:
                     go_next = self.pathname_list[next_page]
                 return [go_next, go_back]
-            elif button_id == 'go_back_btn' and n_clicks_btn2 > 0:
+            elif button_id == self.views['base'].IDs.GO_BACK_BTN and n_clicks_btn2 > 0:
                 go_next = self.pathname_list[next_page]
                 if prev_page == -1:
                     go_back = ''
