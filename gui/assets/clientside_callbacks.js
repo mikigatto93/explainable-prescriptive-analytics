@@ -7,6 +7,11 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
         slider_value_display_csc: function(value) {
         	return value;
-        }
+        },
+
+        set_client_id: function(value) {
+        	console.log("Set client id: " + CLIENT_ID);
+        	return CLIENT_ID;
+        },
     }
 });

@@ -21,11 +21,11 @@ from gui.views import TrainView
 class TrainPresenter(Presenter):
     def __init__(self, views):
         super().__init__(views)
-        self.zip_file_path = None
-        self.data_source = None
-        self.file_path = None
-        self.trainer = None
-        self.progress_logger = TrainProgLogger('train_progress.tmp')
+        self.zip_files_paths = []
+        self.data_sources = []
+        self.files_to_train_paths = []
+        self.trainers = []
+        self.progress_loggers = []
 
     def __validate_input(self, dict_values):
         # dict_values = { ex_name, kpi, id, timestamp, activity, act_to_opt }
@@ -58,8 +58,6 @@ class TrainPresenter(Presenter):
                       Input(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data'),
                       prevent_initial_call=True)
         def show_error_training(error_data):
-            # l = [Output(e.value, 'children') for e in self.views['train'].ERROR_IDs]
-            # print(l)
             if error_data is not None:
                 output_values = []
                 for e in self.views['train'].ERROR_IDs:
@@ -76,7 +74,6 @@ class TrainPresenter(Presenter):
         @app.callback(Output(self.views['base'].IDs.ARROW_CONTROLLER_STORE, 'data'),
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
         def disable_go_next_page_at_start(url):
-            # print(url)
             if url == self.views['train'].pathname:
                 return {'go_next_disabled_status': True,
                         'go_back_disabled_status': 'no_update'}
@@ -138,6 +135,7 @@ class TrainPresenter(Presenter):
                 ex_info_data = IOManager.read(os.path.join(IOManager.MAIN_EXPERIMENTS_PATH, experiment_data_path))
                 ex_info = build_experiment_from_dict(ex_info_data)
                 self.trainer = Trainer(ex_info, None)  # used only for generating the zip and download TODO: REFACTOR
+                self.trainer.create_model_archive()
                 print(ex_info)
                 kpi_options = TrainView.get_kpi_radio_items_options(True)
                 if ex_info.act_to_opt is None:
@@ -369,7 +367,10 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def download_train_files(n_clicks):
             if n_clicks > 0:
-                return dash.dcc.send_file(self.zip_file_path)
+                if self.zip_file_path:
+                    return dash.dcc.send_file(self.zip_file_path)
+                else:
+                    raise dash.exceptions.PreventUpdate
             else:
                 raise dash.exceptions.PreventUpdate
 

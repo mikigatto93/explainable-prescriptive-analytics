@@ -1,7 +1,8 @@
 import os
 
-from app import app
-
+from app import app, socketio
+from flask import request
+from flask_socketio import SocketIO, emit
 
 from gui.model.Recommender import Recommender
 from gui.model.RunDataSource import RunDataSource
@@ -29,6 +30,8 @@ def startup_gui():
     run_view = RunView('/run', 1)
     explain_view = ExplainView('/explain', 2)
 
+    app.layout = base_view.get_layout()
+
     router = Router({
         'base': base_view,
         'train': train_view,
@@ -51,40 +54,24 @@ def startup_gui():
         'explain': explain_view,
     })
 
-    app.layout = base_view.get_layout()
-
     router.register_callbacks()
     train_pres.register_callbacks()
     run_pres.register_callbacks()
     explain_pres.register_callbacks()
 
 
+@socketio.on('connect')
+def connect(auth):
+    print('connected: {}'.format(request.sid))
+    emit('socket:id', request.sid)
+
+@socketio.on('disconnect')
+def disconnect():
+    print('disconnected: {}'.format(request.sid))
+
+
 if __name__ == "__main__":
     startup_gui()
+    socketio.run(app.server, port=8050, debug=True, host='0.0.0.0')
 
-    # import gui
-    # from gui.model.Experiment import build_experiment_from_dict, Experiment
-    # from gui.model.Trainer import Trainer
-    # from gui.model.ProgressLogger.TrainProgLogger import TrainProgLogger
-    # ex_info = gui.model.Experiment.build_experiment_from_dict(
-    #     {"ex_name": "test_xes_manuale", "kpi": "Total time", "id": "case:concept:name",
-    #      "timestamp": "time:timestamp", "activity": "concept:name",
-    #      "resource": None, "act_to_opt": None, "out_thrs": 0.03,
-    #      "pred_column": "remaining_time"})
-    #
-    # data_source = TrainDataSource('F:/datasets/stage-datasets/Hospital_log.xes/Hospital_log.xes')
-    #
-    # print(ex_info)
-    # trainer = Trainer(ex_info, data_source)
-    # #self.progress_logger.clear_stack()
-    # #self.progress_logger.add_to_stack('Preparing dataset...')
-    #
-    # trainer.prepare_dataset()
-    #
-    # # self.progress_logger.add_to_stack('Starting training...')
-    # trainer.train(TrainProgLogger('train_progress_manual.tmp'))
-    #
-    # # self.progress_logger.add_to_stack('Generating variables...')
-    # trainer.generate_variables()
-
-    app.run_server(debug=True, dev_tools_hot_reload=False)
+    # app.run_server(debug=True, dev_tools_hot_reload=False, port=8050, host='0.0.0.0')

@@ -14,30 +14,14 @@ import dash_uploader as du
 
 
 class RunPresenter(Presenter):
-    def __init__(self, views):
+    def __init__(self, views, prog_logger_file_name='run_progress.tmp'):
         super().__init__(views)
         self.data_source = None
         self.file_path = None
         self.recommender = None
-        self.progress_logger = RunProgLogger('run_progress.tmp')
+        self.progress_logger = RunProgLogger(prog_logger_file_name)
 
     def register_callbacks(self):
-
-        # @app.callback(Output(self.views['run'].IDs.LOAD_FILE_AREA, 'children'),
-        #               Input(self.views['run'].IDs.LOAD_FILE_AREA, 'n_clicks'),
-        #               prevent_initial_call=True)
-        # def open_file(n_clicks):
-        #     if n_clicks > 0:
-        #         root = tk.Tk()
-        #         root.attributes("-topmost", True)
-        #         root.withdraw()
-        #         file_path = filedialog.askopenfilename(parent=root)
-        #         root.destroy()
-        #         self.file_path = file_path
-        #         filename = os.sep.join(os.path.normpath(file_path).split(os.sep)[-1:])
-        #         return filename
-        #     else:
-        #         raise dash.exceptions.PreventUpdate
 
         @du.callback(
             output=Output(self.views['run'].IDs.LOAD_RUN_FILE_BTN, 'disabled'),
@@ -46,8 +30,11 @@ class RunPresenter(Presenter):
         def on_train_file_upload_complete(status):
             print(status)
             print('Upload run log file completed')
-            self.file_path = str(status.latest_file)
-            return False
+            if status.is_completed:
+                self.file_path = str(status.latest_file)
+                return False
+            else:
+                return True
 
         @app.callback([Output(self.views['run'].IDs.FADE_GENERATE_PREDS_BTN, 'is_in'),
                        Output(self.views['run'].IDs.PROC_RUN_OUT_FADE, 'is_in')],

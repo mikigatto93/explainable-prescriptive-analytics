@@ -5,6 +5,7 @@ from gui.views.View import View
 
 
 class IDs(StrEnum):
+    USER_ID = 'user_id',
     ERRORS_MANAGER_STORE_EXPLAIN = 'errors_manager_store_explain',
     ERRORS_MANAGER_STORE_RUN = 'errors_manager_store_run',
     XES_COLUMNS_DATA_STORE = 'xes_cols_store',
@@ -55,7 +56,9 @@ class BaseView(View):
                 dcc.Store(id=self.IDs.ERRORS_MANAGER_STORE_RUN, data=None),
                 dcc.Store(id=self.IDs.ERRORS_MANAGER_STORE_EXPLAIN, data=None),
                 dcc.Store(id=self.IDs.START_TRAINING_CONTROLLER),
-                dcc.Store(id=IDs.XES_COLUMNS_DATA_STORE, data=None),
+                dcc.Store(id=self.IDs.XES_COLUMNS_DATA_STORE, data=None),
+                dcc.Store(id=self.IDs.USER_ID),
+                # html.Div([user_id]),
                 dcc.Download(id=self.IDs.DOWNLOAD_TRAIN),
             ],
             className='container'

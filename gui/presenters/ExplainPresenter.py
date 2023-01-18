@@ -137,9 +137,9 @@ class ExplainPresenter(Presenter):
                 #                 'activity': 'ACTIVITY', 'resource': None, 'act_to_opt': None, 'out_thrs': 0.02,
                 #                 'pred_column': 'remaining_time'}
 
-                # ex_info_data = {'ex_name': 'vist_test_1', 'kpi': 'Total time', 'id': 'SR_Number',
-                #                 'timestamp': 'Change_Date+Time', 'activity': 'ACTIVITY', 'resource': None,
-                #                 'act_to_opt': None, 'out_thrs': 0.02, 'pred_column': 'remaining_time'}
+                ex_info_data = {'ex_name': 'vist_test_1', 'kpi': 'Total time', 'id': 'SR_Number',
+                                'timestamp': 'Change_Date+Time', 'activity': 'ACTIVITY', 'resource': None,
+                                'act_to_opt': None, 'out_thrs': 0.02, 'pred_column': 'remaining_time'}
 
                 # ex_info_data = {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
                 #                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
@@ -147,8 +147,8 @@ class ExplainPresenter(Presenter):
                 #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
-                    self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     kpis_dict = self.explainer.calculate_best_scores()
                     kpis_df_temp = pd.DataFrame.from_dict(kpis_dict,
                                                           orient='index',
@@ -160,7 +160,7 @@ class ExplainPresenter(Presenter):
                     self.kpis_df = pd.concat([kpis_df1, kpis_df2])
                     self.kpis_df_len = len(self.kpis_df.index)
 
-                    print('Good traces / Total traces ratio: {}'.format(len(kpis_df1.index) / self.kpis_df_len))
+                    # print('Good traces / Total traces ratio: {}'.format(len(kpis_df1.index) / self.kpis_df_len))
 
                     return [self.__create_pred_graph(),
                             '{}/{}'.format(self.pred_graph_progression + 1,

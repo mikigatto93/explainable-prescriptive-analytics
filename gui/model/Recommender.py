@@ -36,7 +36,7 @@ class Recommender:
         mode = 'train'
         # TODO: SEE IF THIS CAN BE REFACTORED
 
-        print('Creating hash-map of possible next activities')
+        #print('Creating hash-map of possible next activities')
         X_train, _, _, _ = import_vars(self.paths)
         # print(X_train)
         # print('_____')
@@ -44,7 +44,7 @@ class Recommender:
         # TODO: VEDERE SE LASCIARE O NO ILOC PERCHè TOGLIE LA PRIMA COLONNA CON L'ID E DOPO DA ERRORE CHE NON LA TROVA
         self.traces_hash = hash_maps.fill_hashmap(X_train=X_train, case_id_name=self.ex_info.id,
                                                   activity_name=self.ex_info.activity, thrs=self.ex_info.out_thrs)
-        print('Hash-map created')
+        # print('Hash-map created')
 
         train_info, self.prep_df = prepare_dataset_for_gui(self.data_source.data, self.ex_info,
                                                            self.paths, self.ex_info.pred_column, mode)
@@ -87,7 +87,7 @@ class Recommender:
                                                                                 encoding='aggr-hist')
                     next_activities['kpi_rel'] = next_activities['kpi_rel'].abs()
                 except:
-                    print('Next activity not found in transition system')
+                    # print('Next activity not found in transition system')
                     continue
 
                 try:
@@ -111,4 +111,4 @@ class Recommender:
         real_dict = {str(A): N for (A, N) in [x for x in real_dict.items()]}
         write(rec_dict, self.paths.folders['recommendations']['rec_dict'])
         write(real_dict, self.paths.folders['recommendations']['real_dict'])
-        print('Prediction generation completed')
+        # print('Prediction generation completed')

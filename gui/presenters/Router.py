@@ -1,4 +1,5 @@
 import dash
+from dash import ClientsideFunction
 
 from app import app
 from dash_extensions.enrich import Input, Output, State
@@ -13,6 +14,15 @@ class Router(Presenter):
         self.pathname_list = self.pathname_list[0:]  # remove first element BaseView, that has order=-1
 
     def register_callbacks(self):
+
+        app.clientside_callback(
+            ClientsideFunction(
+                namespace='clientside',
+                function_name='set_client_id'
+            ),
+            Output(self.views['base'].IDs.USER_ID, 'data'),
+            Input(self.views['base'].IDs.LOCATION_URL, 'pathname')
+        )
 
         @app.callback([Output(self.views['base'].IDs.GO_NEXT_LINK, 'href'),
                        Output(self.views['base'].IDs.GO_BACK_LINK, 'href')],
@@ -66,7 +76,8 @@ class Router(Presenter):
             go_back_disabled = False
             if go_next_href == '':
                 go_next_disabled = True
-            elif go_back_href == '':
+
+            if go_back_href == '':
                 go_back_disabled = True
 
             return [go_next_disabled, go_back_disabled]

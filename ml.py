@@ -266,9 +266,10 @@ def generate_train_and_test_sets(df, target_column, target_column_name, event_le
             dfTest = df[~df[case_id_name].isin(train_cases)]
     df_completed_cases = df_completed_cases.loc[df_completed_cases['CASE ID'].isin(dfTest[case_id_name].unique()), :]
     if paths:
-        df_completed_cases.to_csv(paths.folders['results']['completed'], index=False)
+        gui_io.write(df_completed_cases, paths.folders['results']['completed'])
     else:
-        df_completed_cases.to_csv(folders['results']['completed'], index=False)
+        write(df_completed_cases, paths.folders['results']['completed'])
+        # df_completed_cases.to_csv(folders['results']['completed'], index=False)
 
     # TODO: investigate reducing number of 0 examples. Investigate reducing 1 and using fraud detection algo
     # Investigate 3 models in parallel trained on balanced datasets
@@ -399,7 +400,7 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             train_data = Pool(X_train_without_valid, y_train_without_valid, cat_features=categorical_features)
             eval_pool = Pool(X_valid, y_valid, cat_features=categorical_features)
             model = CatBoostClassifier(**params)
-            model.fit(train_data)
+            model.fit(train_data, log_cout=progress_logger if progress_logger else sys.stdout)
 
             fnrs = [0.10, 0.20, 0.30, 0.40, 0.50]
             decision_thresholds = []
@@ -411,7 +412,7 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             train_data = Pool(X_train, y_train, cat_features=categorical_features)
             model = CatBoostClassifier(**params)
             print('Re training on all train set...')
-            model.fit(train_data)
+            model.fit(train_data, log_cout=progress_logger if progress_logger else sys.stdout)
 
         if paths:
             gui_io.write(model, paths.folders['model']['model'])

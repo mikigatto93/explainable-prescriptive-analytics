@@ -535,14 +535,14 @@ def prepare_dataset(df, case_id_name, activity_column_name, start_date_name, dat
                     working_times=None, resource_column_name=None, role_column_name=None,
                     use_remaining_for_num_targets=False, predict_activities=None, lost_activities=None,
                     retained_activities=None, custom_attribute_column_name=None, grid=False, shap=False):
-
     activity_name = activity_column_name
     mean_reference_target = None
     # If there are not a folder for contain indexes, create it
     if not os.path.exists('indexes'):
         os.mkdir('indexes')
 
-    if not (os.path.exists(f'indexes/test_idx_{case_id_name}.pkl') and os.path.exists(f'indexes/train_idx_{case_id_name}.pkl')):
+    if not (os.path.exists(f'indexes/test_idx_{case_id_name}.pkl') and os.path.exists(
+            f'indexes/train_idx_{case_id_name}.pkl')):
         get_split_indexes(df, case_id_name, start_date_name, train_size=.65)
     else:
         print('reading indexes')
@@ -680,7 +680,7 @@ def prepare_dataset(df, case_id_name, activity_column_name, start_date_name, dat
                                 'index']
                         last_observed_activity_indexes = \
                             df.loc[(df[case_id_name].isin(case_ids)) & (
-                                        df[activity_column_name] == pred_attributes)].groupby(
+                                    df[activity_column_name] == pred_attributes)].groupby(
                                 case_id_name).agg('last')['index']
                         df_indexes = pd.concat([start_case_indexes.reset_index(drop=True),
                                                 last_observed_activity_indexes.reset_index(drop=True).rename(
@@ -866,19 +866,21 @@ def prepare_dataset(df, case_id_name, activity_column_name, start_date_name, dat
             df.to_csv(folders['results']['running'], index=False)
             print("Generated predictions for running cases along with explanations")
 
-def preprocess_df(df, case_id_name, activity_column_name, start_date_name, date_format,
-                    end_date_name, pred_column, experiment_name, mode='train', override=False,
-                    pred_attributes=None, costs=None, working_times=None, resource_column_name=None,
-                    role_column_name=None, use_remaining_for_num_targets=False, predict_activities=None,
-                    lost_activities=None, retained_activities=None, custom_attribute_column_name=None, grid=False, shap=False):
 
+def preprocess_df(df, case_id_name, activity_column_name, start_date_name, date_format,
+                  end_date_name, pred_column, experiment_name, mode='train', override=False,
+                  pred_attributes=None, costs=None, working_times=None, resource_column_name=None,
+                  role_column_name=None, use_remaining_for_num_targets=False, predict_activities=None,
+                  lost_activities=None, retained_activities=None, custom_attribute_column_name=None, grid=False,
+                  shap=False):
     activity_name = activity_column_name
     mean_reference_target = None
-    #If there are not a folder for contain indexes, create it
+    # If there are not a folder for contain indexes, create it
     if not os.path.exists('indexes'):
         os.mkdir('indexes')
 
-    if not (os.path.exists(f'indexes/test_idx_{case_id_name}.pkl') and os.path.exists(f'indexes/train_idx_{case_id_name}.pkl')):
+    if not (os.path.exists(f'indexes/test_idx_{case_id_name}.pkl') and os.path.exists(
+            f'indexes/train_idx_{case_id_name}.pkl')):
         get_split_indexes(df, case_id_name, start_date_name, train_size=.65)
     else:
         print('reading indexes')
@@ -1016,7 +1018,7 @@ def preprocess_df(df, case_id_name, activity_column_name, start_date_name, date_
                                 'index']
                         last_observed_activity_indexes = \
                             df.loc[(df[case_id_name].isin(case_ids)) & (
-                                        df[activity_column_name] == pred_attributes)].groupby(
+                                    df[activity_column_name] == pred_attributes)].groupby(
                                 case_id_name).agg('last')['index']
                         df_indexes = pd.concat([start_case_indexes.reset_index(drop=True),
                                                 last_observed_activity_indexes.reset_index(drop=True).rename(
@@ -1122,12 +1124,12 @@ def preprocess_df(df, case_id_name, activity_column_name, start_date_name, date_
 
         return df
 
+
 def prepare_dataset_for_gui(df, ex_info: Experiment, paths: gui_io.Paths, pred_column, mode,
                             date_format='%Y-%m-%d %H:%M:%S', end_date_name=None, pred_attributes=None,
                             costs=None, working_times=None, role_column_name=None,
                             use_remaining_for_num_targets=False, retained_activities=None,
                             custom_attribute_column_name=None, grid=False):
-
     case_id_name = ex_info.id
     activity_column_name = ex_info.activity
     start_date_name = ex_info.timestamp
@@ -1368,5 +1370,5 @@ def prepare_dataset_for_gui(df, ex_info: Experiment, paths: gui_io.Paths, pred_c
         #                                                   history, df_completed_cases, case_id_name, grid, shap)
 
         return (TrainInfo(model_type, mean_events, column_type, df_completed_cases,
-                          history, target_column,target_column_name, pred_attributes, event_level),
+                          history, target_column, target_column_name, pred_attributes, event_level),
                 df)
