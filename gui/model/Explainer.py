@@ -3,26 +3,23 @@ import os.path
 import pandas as pd
 
 import explain_recsys
-from gui.model.Experiment import Experiment
+from gui.model.Experiment import Experiment, build_experiment_from_dict
 from gui.model.IO.IOManager import Paths, read, write
 import gui.model.IO.IOManager as gui_io
 
 
 class Explainer:
     def __init__(self, experiment_info: Experiment):
-        self.real_dict = None
-        self.rec_dict = None
         self.ex_info = experiment_info
         self.paths = Paths(self.ex_info.ex_name)
         self.df_run = pd.read_csv(self.paths.folders['recommendations']['df_run'])
         self.quantitative_vars = read(self.paths.folders['variables']['qnt'])
         self.qualitative_vars = read(self.paths.folders['variables']['qlt'])
         self.model = read(self.paths.folders['model']['model'])
-
-    def calculate_best_scores(self):
-        # Read the dictionaries with the scores
         self.rec_dict = gui_io.read(self.paths.folders['recommendations']['rec_dict'])
         self.real_dict = gui_io.read(self.paths.folders['recommendations']['real_dict'])
+
+    def calculate_best_scores(self):
         pred_column = self.ex_info.pred_column
         if pred_column in ['Minimize the activity occurrence', 'independent_activity']:
             res_val = 1
@@ -161,3 +158,22 @@ class Explainer:
 
     def check_if_trace_is_valid(self, trace_id):
         return trace_id in self.rec_dict
+
+    def to_dict(self):
+        # def __init__(self, experiment_info: Experiment):
+        #     self.real_dict = None
+        #     self.rec_dict = None
+        #     self.ex_info = experiment_info
+        #     self.paths = Paths(self.ex_info.ex_name)
+        #     self.df_run = pd.read_csv(self.paths.folders['recommendations']['df_run'])
+        #     self.quantitative_vars = read(self.paths.folders['variables']['qnt'])
+        #     self.qualitative_vars = read(self.paths.folders['variables']['qlt'])
+        #     self.model = read(self.paths.folders['model']['model'])
+
+        return {
+            'ex_info': self.ex_info.to_dict(),
+        }
+
+
+def build_Explainer_from_dict(dict_obj):
+    return Explainer(build_experiment_from_dict(dict_obj['ex_info']))

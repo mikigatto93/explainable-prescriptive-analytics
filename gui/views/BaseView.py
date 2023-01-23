@@ -5,6 +5,8 @@ from gui.views.View import View
 
 
 class IDs(StrEnum):
+    RUN_FILE_PATH_STORE = 'run_file_path_store',
+    TRAIN_FILE_PATH_STORE = 'train_file_path_store',
     USER_ID = 'user_id',
     ERRORS_MANAGER_STORE_EXPLAIN = 'errors_manager_store_explain',
     ERRORS_MANAGER_STORE_RUN = 'errors_manager_store_run',
@@ -57,6 +59,8 @@ class BaseView(View):
                 dcc.Store(id=self.IDs.ERRORS_MANAGER_STORE_EXPLAIN, data=None),
                 dcc.Store(id=self.IDs.START_TRAINING_CONTROLLER),
                 dcc.Store(id=self.IDs.XES_COLUMNS_DATA_STORE, data=None),
+                dcc.Store(id=self.IDs.TRAIN_FILE_PATH_STORE, data=None),
+                dcc.Store(id=self.IDs.RUN_FILE_PATH_STORE, data=None),
                 dcc.Store(id=self.IDs.USER_ID),
                 # html.Div([user_id]),
                 dcc.Download(id=self.IDs.DOWNLOAD_TRAIN),

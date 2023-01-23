@@ -23,41 +23,39 @@ import dash_uploader as du
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploaded_datasets')
 du.configure_upload(app, UPLOAD_FOLDER)
 
+base_view = BaseView()
+train_view = TrainView('/', 0)
+run_view = RunView('/run', 1)
+explain_view = ExplainView('/explain', 2)
 
-def startup_gui():
-    base_view = BaseView()
-    train_view = TrainView('/', 0)
-    run_view = RunView('/run', 1)
-    explain_view = ExplainView('/explain', 2)
+app.layout = base_view.get_layout()
 
-    app.layout = base_view.get_layout()
+router = Router({
+    'base': base_view,
+    'train': train_view,
+    'run': run_view,
+    'explain': explain_view
+})
 
-    router = Router({
-        'base': base_view,
-        'train': train_view,
-        'run': run_view,
-        'explain': explain_view
-    })
+train_pres = TrainPresenter({
+    'base': base_view,
+    'train': train_view,
+})
 
-    train_pres = TrainPresenter({
-        'base': base_view,
-        'train': train_view,
-    })
+run_pres = RunPresenter({
+    'base': base_view,
+    'run': run_view,
+})
 
-    run_pres = RunPresenter({
-        'base': base_view,
-        'run': run_view,
-    })
+explain_pres = ExplainPresenter({
+    'base': base_view,
+    'explain': explain_view,
+})
 
-    explain_pres = ExplainPresenter({
-        'base': base_view,
-        'explain': explain_view,
-    })
-
-    router.register_callbacks()
-    train_pres.register_callbacks()
-    run_pres.register_callbacks()
-    explain_pres.register_callbacks()
+router.register_callbacks()
+train_pres.register_callbacks()
+run_pres.register_callbacks()
+explain_pres.register_callbacks()
 
 
 @socketio.on('connect')
@@ -65,13 +63,15 @@ def connect(auth):
     print('connected: {}'.format(request.sid))
     emit('socket:id', request.sid)
 
+
 @socketio.on('disconnect')
 def disconnect():
     print('disconnected: {}'.format(request.sid))
+    train_pres.clear_user_data(request.sid)
+    run_pres.clear_user_data(request.sid)
+    explain_pres.clear_user_data(request.sid)
 
 
 if __name__ == "__main__":
-    startup_gui()
-    socketio.run(app.server, port=8050, debug=True, host='0.0.0.0')
-
+    socketio.run(app.server, port=8050, host='0.0.0.0', debug=False)
     # app.run_server(debug=True, dev_tools_hot_reload=False, port=8050, host='0.0.0.0')

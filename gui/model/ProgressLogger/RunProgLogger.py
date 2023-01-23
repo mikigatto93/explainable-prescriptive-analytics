@@ -15,3 +15,7 @@ class RunProgLogger(TimeLogger):
             #                                                                 int(remaining[0]), int(remaining[1])))
         except Exception as e:
             pass
+
+
+def build_RunProgLogger_from_dict(dict_obj):
+    return RunProgLogger(dict_obj['file_name'])

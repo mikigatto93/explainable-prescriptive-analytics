@@ -4,4 +4,7 @@ catboost_info/
 experiments/
 cache/
 uploaded_datasets/
-*.tmp
+long_callback_cache/
+gui_data/
+datasets_for_gui/
+*.prog

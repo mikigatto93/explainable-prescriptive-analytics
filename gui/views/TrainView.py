@@ -11,6 +11,8 @@ import dash_uploader as du
 
 
 class IDs(StrEnum):
+    LOAD_TRAIN_FILE_BTN_FADE = 'load_train_file_btn_fade',
+    LOAD_TRAIN_SPINNER = 'load_train_spinner',
     PREV_SELECT_PHASE_TRAIN_BTN = 'prev_select_phase_train_btn',
     NEXT_SELECT_PHASE_TRAIN_BTN = 'next_select_phase_train_btn',
     FADE_KPI_RADIO_ITEMS = 'fade_kpi_radio_items',
@@ -23,7 +25,7 @@ class IDs(StrEnum):
     OUT_THRS_SLIDER_VALUE_LABEL = 'out_thrs_slidier_value_label'
     SLIDER_VALUE_TEXTBOX = 'slider_value_textbox',
     TRAIN_FILE_UPLOADER = 'train_file_uploader',
-    PROGRESS_LOG_INTERVAL = 'logging_prpg_interval',
+    PROGRESS_LOG_INTERVAL_TRAIN = 'logging_prog_interval_train',
     LOAD_TRAIN_FILE_BTN = 'load_train_btn',
     LOAD_FILE_AREA = 'load_file_div_train',
     LOAD_MODEL_BTN = 'load_model_btn',
@@ -67,17 +69,23 @@ class TrainView(View):
         super().__init__(pathname, order)
         self.IDs = IDs
         self.ERROR_IDs = _ERROR_IDs
-        self.upload_id = str(uuid.uuid4())
+        # self.upload_id = str(uuid.uuid4())
 
     def get_layout(self):
         return html.Div([
             html.H1('Train'),
             html.Div([
                 html.Div([
-                    du.Upload(id=self.IDs.TRAIN_FILE_UPLOADER, upload_id=self.upload_id, filetypes=['csv', 'xes']),
-                    html.Button('Load file', id=self.IDs.LOAD_TRAIN_FILE_BTN, n_clicks=0, disabled=True,
-                                className='general_btn_layout'),
-                    html.Div(className='error_box', id=self.ERROR_IDs.LOAD_TRAIN_FILE_BTN),
+                    du.Upload(id=self.IDs.TRAIN_FILE_UPLOADER, filetypes=['csv', 'xes'], max_file_size=2048,),
+                    dbc.Fade([
+                        html.Button(
+                            html.Div(
+                                [html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.LOAD_TRAIN_SPINNER,
+                                          style={'display': 'none'}, width=18, height=18, className='spinner_img'),
+                                 html.Span('Load file')], className='button_spinner_cont'),
+                            n_clicks=0, id=self.IDs.LOAD_TRAIN_FILE_BTN, className='general_btn_layout'),
+                        html.Div(className='error_box', id=self.ERROR_IDs.LOAD_TRAIN_FILE_BTN)
+                    ], is_in=False, appear=False, id=self.IDs.LOAD_TRAIN_FILE_BTN_FADE)
                 ], className='load_train_file_cont'),
                 html.Div([
                     html.Span('Select one experiment:'),
@@ -162,5 +170,5 @@ class TrainView(View):
             dbc.Fade([html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
                       html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT)], is_in=False, appear=False,
                      id=self.IDs.PROC_TRAIN_OUT_FADE, className='process_display_out_cont'),
-            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL, n_intervals=0, interval=1000),
+            dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL_TRAIN, n_intervals=0, interval=3000, max_intervals=-1),
         ], className='train_container')

@@ -1,8 +1,10 @@
 import json
 import math
+import os
 import time
 
 import dash
+import diskcache
 import pandas as pd
 from dash import ClientsideFunction
 
@@ -13,7 +15,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 from gui.model import Experiment
-from gui.model.Explainer import Explainer
+import gui.model.DiskDict as diskdict
+from gui.model.Explainer import Explainer, build_Explainer_from_dict
 from gui.presenters.Presenter import Presenter
 
 
@@ -22,17 +25,37 @@ class ExplainPresenter(Presenter):
         super().__init__(views)
         self.REC_PER_PAGE = 15
         self.DEFAULT_EXPL_QNT = 4
-        self.explainer = None
-        self.kpis_df = None
-        self.kpis_df_len = None
-        self.pred_graph_progression = 0
+        self.explainers = diskdict.DiskDict(os.path.join(os.getcwd(), 'gui_data', 'explain'), 'explainers')
+        self.kpis_dfs = diskdict.DiskDict(os.path.join(os.getcwd(), 'gui_data', 'explain'), 'kpis_dfs')
+        self.kpis_dfs_lengths = diskdict.DiskDict(os.path.join(os.getcwd(), 'gui_data', 'explain'), 'kpis_dfs_lengths')
+        self.pred_graph_progression_data = diskdict.DiskDict(os.path.join(os.getcwd(), 'gui_data', 'explain'),
+                                                             'pred_graph_progression_data')
 
-    def __create_pred_graph(self):
-        # print(max(self.REC_PER_PAGE * self.pred_graph_progression, 0))
-        # print('__')
-        # print(min(self.REC_PER_PAGE * (self.pred_graph_progression + 1), self.kpis_df_len))
-        df_slice = self.kpis_df[slice(max(self.REC_PER_PAGE * self.pred_graph_progression, 0),
-                                      min(self.REC_PER_PAGE * (self.pred_graph_progression + 1), self.kpis_df_len))]
+    def clear_user_data(self, user_id):
+        if self.explainers.exists(user_id):
+            self.explainers.delete(user_id)
+            print('deleted explainer')
+
+        if self.kpis_dfs_lengths.exists(user_id):
+            self.kpis_dfs_lengths.delete(user_id)
+            print('deleted kpi_df length')
+
+        if self.pred_graph_progression_data.exists(user_id):
+            self.pred_graph_progression_data.delete(user_id)
+            print('deleted pred_graph_progression data')
+
+        if self.kpis_dfs.exists(user_id):
+            os.remove(self.kpis_dfs[user_id])
+            self.kpis_dfs.delete(user_id)
+            print('deleted kpis df')
+
+    def __create_pred_graph(self, user_id):
+        pred_graph_progression_data = self.pred_graph_progression_data[user_id]
+        kpis_df = pd.read_parquet(self.kpis_dfs[user_id])
+        df_slice = kpis_df[
+            slice(max(self.REC_PER_PAGE * pred_graph_progression_data, 0),
+                  min(self.REC_PER_PAGE * (pred_graph_progression_data + 1),
+                      self.kpis_dfs_lengths[user_id]))]
 
         fig = go.Figure()
         fig.add_trace(
@@ -127,19 +150,20 @@ class ExplainPresenter(Presenter):
 
         @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
                        Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children')],
-                      State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
+                      [State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
-        def show_prediction_graph(ex_info_data, url):
+        def show_prediction_graph(ex_info_data, user_id, url):
             if url == self.views['explain'].pathname:
 
-                # ex_info_data = {'ex_name': 'bac_test_1', 'kpi': 'Total time', 'id': 'REQUEST_ID',
-                #                 'timestamp': 'START_DATE',
-                #                 'activity': 'ACTIVITY', 'resource': None, 'act_to_opt': None, 'out_thrs': 0.02,
-                #                 'pred_column': 'remaining_time'}
+                ex_info_data = {'ex_name': 'bac_test_1', 'kpi': 'Total time', 'id': 'REQUEST_ID',
+                                'timestamp': 'START_DATE',
+                                'activity': 'ACTIVITY', 'resource': None, 'act_to_opt': None, 'out_thrs': 0.02,
+                                'pred_column': 'remaining_time'}
 
-                ex_info_data = {'ex_name': 'vist_test_1', 'kpi': 'Total time', 'id': 'SR_Number',
-                                'timestamp': 'Change_Date+Time', 'activity': 'ACTIVITY', 'resource': None,
-                                'act_to_opt': None, 'out_thrs': 0.02, 'pred_column': 'remaining_time'}
+                # ex_info_data = {'ex_name': 'vist_test_1', 'kpi': 'Total time', 'id': 'SR_Number',
+                #                 'timestamp': 'Change_Date+Time', 'activity': 'ACTIVITY', 'resource': None,
+                #                 'act_to_opt': None, 'out_thrs': 0.02, 'pred_column': 'remaining_time'}
 
                 # ex_info_data = {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
                 #                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
@@ -147,24 +171,74 @@ class ExplainPresenter(Presenter):
                 #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
-                    # self.explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    self.explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
-                    kpis_dict = self.explainer.calculate_best_scores()
+                    # explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    print(user_id)
+                    self.explainers[user_id] = explainer.to_dict()
+
+                    kpis_dict = explainer.calculate_best_scores()
                     kpis_df_temp = pd.DataFrame.from_dict(kpis_dict,
                                                           orient='index',
                                                           columns=['Following recommendation', 'Current Value'])
-                    # TODO: TEST THIS "ORDERING" FUNCTION
-                    mask = kpis_df_temp['Current Value'] > kpis_df_temp['Following recommendation']
-                    kpis_df1 = kpis_df_temp[mask]  # current > following
-                    kpis_df2 = kpis_df_temp[~mask]  # current <= following
-                    self.kpis_df = pd.concat([kpis_df1, kpis_df2])
-                    self.kpis_df_len = len(self.kpis_df.index)
+                    kpi_df_length = len(kpis_df_temp.index)
+                    self.kpis_dfs_lengths[user_id] = kpi_df_length
+
+                    kpi_df_path = diskdict.get_df_path('kpi_df', user_id, ext='pqt')
+                    kpis_df_temp.to_parquet(kpi_df_path)
+                    self.kpis_dfs[user_id] = kpi_df_path
+
+                    # print(kpis_dict)
+                    # print(kpis_df_temp)
+                    # print('----------------------------')
+                    #
+                    # import datetime
+                    # t1 = datetime.datetime.now()
+                    # kpis_df_temp.to_parquet(os.path.join(os.getcwd(), 'test.prq'))
+                    # t2 = datetime.datetime.now()
+                    # print('parq w: {}'.format(t2-t1))
+                    #
+                    # t1 = datetime.datetime.now()
+                    # kpis_df_temp.reset_index(inplace=True)
+                    # kpis_df_temp.to_feather(os.path.join(os.getcwd(), 'test.ftr'))
+                    # t2 = datetime.datetime.now()
+                    # print('feath w: {}'.format(t2 - t1))
+                    #
+                    # t1 = datetime.datetime.now()
+                    # df = pd.read_parquet(os.path.join(os.getcwd(), 'test.prq'))
+                    # t2 = datetime.datetime.now()
+                    # print('parq r: {}'.format(t2-t1))
+                    # print('-------------------------')
+                    # print(df)
+                    # print('#################################')
+                    #
+                    # t1 = datetime.datetime.now()
+                    # #kpis_df_temp.reset_index(inplace=True)
+                    # df = pd.read_feather(os.path.join(os.getcwd(), 'test.ftr'))
+                    # t2 = datetime.datetime.now()
+                    # print('feath r: {}'.format(t2 - t1))
+                    # print('-------------------------')
+                    # print(df)
+
+                    # # TODO: TEST THIS "ORDERING" FUNCTION
+                    # mask = kpis_df_temp['Current Value'] > kpis_df_temp['Following recommendation']
+                    # kpis_df1 = kpis_df_temp[mask]  # current > following
+                    # kpis_df2 = kpis_df_temp[~mask]  # current <= following
+                    #
+                    # new_df = pd.concat([kpis_df1, kpis_df2])
+                    # self.kpis_dfs[user_id] = {'df': new_df,
+                    #                           'length': len(new_df.index)}
+
+                    # self.kpis_dfs[user_id] = {'df': kpis_df_temp,
+                    #                           'length': len(kpis_df_temp.index)}
+
+                    # self.kpis_df_len = len(self.kpis_df.index)
 
                     # print('Good traces / Total traces ratio: {}'.format(len(kpis_df1.index) / self.kpis_df_len))
 
-                    return [self.__create_pred_graph(),
-                            '{}/{}'.format(self.pred_graph_progression + 1,
-                                           math.ceil(self.kpis_df_len / self.REC_PER_PAGE))]
+                    self.pred_graph_progression_data[user_id] = 0
+
+                    return [self.__create_pred_graph(user_id),
+                            '{}/{}'.format(1, math.ceil(kpi_df_length / self.REC_PER_PAGE))]
 
                 else:
                     # TODO: ERROR
@@ -177,46 +251,52 @@ class ExplainPresenter(Presenter):
                        Output(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'disabled'),
                        Output(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'disabled'),
                        Output(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_INPUT, 'value')],
-                      State(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_INPUT, 'value'),
+                      [State(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_INPUT, 'value'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       [Input(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'n_clicks'),
                        Input(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'n_clicks'),
                        Input(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_BTN, 'n_clicks')],
                       prevent_initial_call=True)
-        def scroll_graph(page_value_sel, n_clicks_up, n_clicks_down, n_clicks_sel_page):
+        def scroll_graph(page_value_sel, user_id, n_clicks_up, n_clicks_down, n_clicks_sel_page):
             button_id = dash.ctx.triggered_id
             # print(self.pred_graph_progression)
             if button_id == self.views['explain'].IDs.GO_UP_PRED_GRAPH and n_clicks_up > 0:
-                self.pred_graph_progression += 1
-                max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
+                new_pred_graph_progression_data = self.pred_graph_progression_data[user_id]
+                new_pred_graph_progression_data += 1
+                self.pred_graph_progression_data[user_id] = new_pred_graph_progression_data
+                max_page = math.ceil(self.kpis_dfs_lengths[user_id] / self.REC_PER_PAGE)
                 return [
-                    self.__create_pred_graph(),
-                    '{}/{}'.format(self.pred_graph_progression + 1, max_page),
-                    self.pred_graph_progression == (max_page - 1),
+                    self.__create_pred_graph(user_id),
+                    '{}/{}'.format(new_pred_graph_progression_data + 1, max_page),
+                    new_pred_graph_progression_data == (max_page - 1),
                     False,
                     ''
                 ]
 
             elif button_id == self.views['explain'].IDs.GO_DOWN_PRED_GRAPH and n_clicks_down > 0:
-                self.pred_graph_progression -= 1
+                new_pred_graph_progression_data = self.pred_graph_progression_data[user_id]
+                new_pred_graph_progression_data -= 1
+                self.pred_graph_progression_data[user_id] = new_pred_graph_progression_data
                 return [
-                    self.__create_pred_graph(),
-                    '{}/{}'.format(self.pred_graph_progression + 1, math.ceil(self.kpis_df_len / self.REC_PER_PAGE)),
+                    self.__create_pred_graph(user_id),
+                    '{}/{}'.format(new_pred_graph_progression_data + 1,
+                                   math.ceil(self.kpis_dfs_lengths[user_id] / self.REC_PER_PAGE)),
                     False,
-                    self.pred_graph_progression == 0,
+                    new_pred_graph_progression_data == 0,
                     ''
                 ]
 
             elif button_id == self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_BTN and n_clicks_sel_page > 0:
                 if page_value_sel:
-                    max_page = math.ceil(self.kpis_df_len / self.REC_PER_PAGE)
+                    max_page = math.ceil(self.kpis_dfs_lengths[user_id] / self.REC_PER_PAGE)
                     page_value_sel = int(max(1, min(page_value_sel, max_page)))
-                    self.pred_graph_progression = page_value_sel - 1
+                    self.pred_graph_progression_data[user_id] = page_value_sel - 1
                     return [
-                        self.__create_pred_graph(),
-                        '{}/{}'.format(self.pred_graph_progression + 1,
-                                       math.ceil(self.kpis_df_len / self.REC_PER_PAGE)),
-                        self.pred_graph_progression == (max_page - 1),
-                        self.pred_graph_progression == 0,
+                        self.__create_pred_graph(user_id),
+                        '{}/{}'.format(page_value_sel,
+                                       math.ceil(self.kpis_dfs_lengths[user_id] / self.REC_PER_PAGE)),
+                        (page_value_sel - 1) == (max_page - 1),
+                        (page_value_sel - 1) == 0,
                         ''
                     ]
                 else:
@@ -240,11 +320,12 @@ class ExplainPresenter(Presenter):
                        Output(self.views['explain'].IDs.GENERATE_EXPL_BTN_FADE, 'is_in'),
                        Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in'),
                        Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_EXPLAIN, 'data')],
-                      State(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT, 'value'),
+                      [State(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT, 'value'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       [Input(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'clickData'),
                        Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
                       prevent_initial_call=True)
-        def show_preds_text_format(input_value, click_data, n_clicks):
+        def show_preds_text_format(input_value, user_id, click_data, n_clicks):
             DEFAULT_EXPL_QNT = 4
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
@@ -252,16 +333,17 @@ class ExplainPresenter(Presenter):
             error_data = {}
 
             if (graph_clicked and click_data) or (search_btn_clicked and n_clicks > 0):
+                explainer = build_Explainer_from_dict(self.explainers[user_id])
                 if graph_clicked:
                     trace_id = click_data['points'][0]['y']
                 elif search_btn_clicked and input_value != '':
-                    if self.explainer.check_if_trace_is_valid(input_value):
+                    if explainer.check_if_trace_is_valid(input_value):
                         trace_id = input_value
                     else:
                         error_data[self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT] = \
                             'The trace selected does not exists'
                 if not error_data:
-                    pred_info = self.explainer.get_best_n_scores_by_trace(trace_id, 3)
+                    pred_info = explainer.get_best_n_scores_by_trace(trace_id, 3)
 
                     rec_act = [t[0] for t in pred_info['rec']]
                     rec_values = [t[1] for t in pred_info['rec']]
@@ -312,9 +394,10 @@ class ExplainPresenter(Presenter):
                       [State(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'children'),
                        State(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'children'),
                        State(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'children'),
-                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data')],
+                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       prevent_initial_call=True)
-        def select_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3, trace_id):
+        def select_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3, trace_id, user_id):
             CSS_SELECTED_ROW_CLASS_NAME = 'selected_expl_table_row'
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             row1_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.FIRST_ROW_PRED_TABLE and n_clicks1 > 0
@@ -335,12 +418,12 @@ class ExplainPresenter(Presenter):
                                         CSS_BASE_ROW_CLASS_NAME, CSS_BASE_ROW_CLASS_NAME, CSS_SELECTED_ROW_CLASS_NAME]
             else:
                 return [dash.no_update] * 7
-
-            if self.explainer.check_if_explanations_exists(trace_id, act_to_explain):
+            explainer = build_Explainer_from_dict(self.explainers[user_id])
+            if explainer.check_if_explanations_exists(trace_id, act_to_explain):
                 print('Explanations found, visualizing shap values for '
                       'trace: {}, activity: {}'.format(trace_id, act_to_explain))
 
-                gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+                gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
                 return class_list_to_return + [self.__create_explanation_graph(gt, expl, self.DEFAULT_EXPL_QNT),
                                                False, True]
             else:
@@ -349,12 +432,15 @@ class ExplainPresenter(Presenter):
 
         @app.callback(Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
                       [State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
-                       State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data')],
+                       State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
                       prevent_initial_call=True)
-        def change_quantity_explanations(trace_id, act_to_explain, value):
+        def change_quantity_explanations(trace_id, act_to_explain, user_id, value):
             if value:
-                gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+                gt, expl = build_Explainer_from_dict(
+                    self.explainers[user_id]
+                ).generate_explanations_dataframe(trace_id, act_to_explain)
                 if gt is not None and expl is not None:
                     return self.__create_explanation_graph(gt, expl, int(value))
                 else:
@@ -369,6 +455,7 @@ class ExplainPresenter(Presenter):
             inputs=[State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
                     State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
                     State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
+                    State(self.views['base'].IDs.USER_ID, 'data'),
                     Input(self.views['explain'].IDs.GENERATE_EXPL_BTN, 'n_clicks')],
             background=True,
             prevent_initial_call=True,
@@ -378,15 +465,16 @@ class ExplainPresenter(Presenter):
                  {'display': 'inline'}, {'display': 'none'})
             ]
         )
-        def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, n_clicks):
+        def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, user_id, n_clicks):
             if n_clicks > 0:
-                if not self.explainer.check_if_explanations_exists(trace_id, act_to_explain):
+                explainer = build_Explainer_from_dict(self.explainers[user_id])
+                if not explainer.check_if_explanations_exists(trace_id, act_to_explain):
                     print('Calculating shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
-                    self.explainer.calculate_explanation(trace_id, act_to_explain)
+                    explainer.calculate_explanation(trace_id, act_to_explain)
                     # trace_id = '1-739610172'
                     # act_to_explain = 'Resolved'
                     # time.sleep(5)
-                    gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+                    gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
                     return [self.__create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
                             False, True]
                 else:

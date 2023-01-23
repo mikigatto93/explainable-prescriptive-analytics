@@ -23,3 +23,5 @@ shap==0.40.0
 StrEnum==0.4.8
 tqdm==4.64.1
 urllib3==1.26.12
+
+pytest~=7.2.0

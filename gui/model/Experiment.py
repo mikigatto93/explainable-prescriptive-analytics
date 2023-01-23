@@ -5,6 +5,8 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+from gui.model import DiskDict
+
 
 @dataclass
 class Experiment:
@@ -69,6 +71,35 @@ class TrainInfo:
     target_column_name: str
     pred_attributes: typing.Any
     event_level: int
+
+    def to_dict(self, key):
+        self.df_completed_cases.to_csv(DiskDict.get_df_path('df_completed_cases', key))
+        self.target_column.to_csv(DiskDict.get_df_path('target_column', key))
+        return {
+            'model_type': self.model_type,
+            'mean_events': self.mean_events,
+            'column_type': self.column_type,
+            'df_completed_cases': DiskDict.get_df_path('df_completed_cases', key),
+            'history': self.history,
+            'target_column': DiskDict.get_df_path('target_column', key),
+            'target_column_name': self.target_column_name,
+            'pred_attributes': self.pred_attributes,
+            'event_level': self.event_level,
+        }
+
+
+def build_TrainInfo_from_dict(dict_obj):
+    return TrainInfo(
+        model_type=dict_obj['model_type'],
+        mean_events=dict_obj['mean_events'],
+        column_type=dict_obj['event_level'],
+        df_completed_cases=pd.read_csv(dict_obj['df_completed_cases']),
+        history=dict_obj['history'],
+        target_column=pd.read_csv(dict_obj['target_column']),
+        target_column_name=dict_obj['target_column_name'],
+        pred_attributes=dict_obj['pred_attributes'],
+        event_level=dict_obj['event_level']
+    )
 
 
 def build_experiment_from_dict(dict_obj: dict) -> Experiment:

@@ -8,6 +8,8 @@ import dash_uploader as du
 
 
 class _IDs(StrEnum):
+    LOAD_RUN_SPINNER = 'load_run_spinner',
+    LOAD_RUN_FILE_BTN_FADE = 'load_run_file_btn_fade',
     RUN_SPINNER = 'run_spinner',
     PROC_RUN_OUT_FADE = 'proc_run_output_fade',
     PROGRESS_LOG_INTERVAL_RUN = 'interval_log_prog_run',
@@ -29,8 +31,17 @@ class RunView(View):
             html.H1('Run'),
             du.Upload(id=self.IDs.RUN_FILE_UPLOADER, filetypes=['csv', 'xes']),
             html.Div([
-                html.Button('Load file', id=self.IDs.LOAD_RUN_FILE_BTN, n_clicks=0, disabled=True,
-                            className='general_btn_layout'),
+
+                dbc.Fade(
+                    [
+                        html.Button(
+                            html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.LOAD_RUN_SPINNER,
+                                               style={'display': 'none'}, width=18, height=18, className='spinner_img'),
+                                      html.Span('Load file')], className='button_spinner_cont'),
+                            n_clicks=0, id=self.IDs.LOAD_RUN_FILE_BTN, className='general_btn_layout')
+                    ],
+                    is_in=False, appear=False, id=self.IDs.LOAD_RUN_FILE_BTN_FADE),
+
                 dbc.Fade([
                     html.Button(
                         html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.RUN_SPINNER,

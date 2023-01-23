@@ -9,3 +9,7 @@ class TrainProgLogger(TimeLogger):
             rem = tokens[3].replace("remaining", "").strip()
             tot = tokens[4].strip()
             self.add_to_stack('elapsed: {}, remaining: {}'.format(rem, tot))
+
+
+def build_TrainProgLogger_from_dict(dict_obj):
+    return TrainProgLogger(dict_obj['file_name'])

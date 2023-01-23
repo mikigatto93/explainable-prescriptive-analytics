@@ -2,9 +2,9 @@ import os
 import tarfile
 from typing import Optional
 
-from gui.model.Experiment import Experiment, TrainInfo
+from gui.model.Experiment import Experiment, TrainInfo, build_experiment_from_dict
 from gui.model.IO.IOManager import Paths, write, create_missing_folders
-from gui.model.TrainDataSource import TrainDataSource
+from gui.model.TrainDataSource import TrainDataSource, build_TrainDataSource_from_dict
 from load_dataset import prepare_dataset_for_gui
 from ml import generate_train_and_test_sets, fit_model, predict, write_results
 from utils import import_vars, variable_type_analysis
@@ -87,3 +87,20 @@ class Trainer:
             print('Archive created')
 
         return self.paths.folders['archives']['train']
+
+    def to_dict(self, key, save_df_data=False):
+        return {
+            # 'train_info': self.train_info.to_dict(key),
+            'ex_info': self.ex_info.to_dict(),
+            # self.paths is build on demand
+            'data_source': self.data_source.to_dict(key, save_df_data)
+        }
+
+
+def build_Trainer_from_dict(dict_obj, load_data_source=False):
+    obj = Trainer(build_experiment_from_dict(dict_obj['ex_info']),
+                  build_TrainDataSource_from_dict(dict_obj['data_source'], load_data_source))
+    # self.paths is build on demand
+    # obj.train_info = dict_obj['train_info']
+    return obj
+

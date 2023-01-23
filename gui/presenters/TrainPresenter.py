@@ -1,5 +1,9 @@
 import json
 import os
+import shelve
+import traceback
+import uuid
+import diskcache
 
 import dash
 from dash import ClientsideFunction
@@ -7,10 +11,11 @@ from dash import ClientsideFunction
 from app import app
 from dash_extensions.enrich import Input, Output, State
 
+from gui.model.DiskDict import DiskDict
 from gui.model.Experiment import Experiment, build_experiment_from_dict
-from gui.model.ProgressLogger.TrainProgLogger import TrainProgLogger
-from gui.model.TrainDataSource import TrainDataSource
-from gui.model.Trainer import Trainer
+from gui.model.ProgressLogger.TrainProgLogger import TrainProgLogger, build_TrainProgLogger_from_dict
+from gui.model.TrainDataSource import TrainDataSource, build_TrainDataSource_from_dict
+from gui.model.Trainer import Trainer, build_Trainer_from_dict
 from gui.model.IO import IOManager
 from gui.presenters.Presenter import Presenter
 import dash_uploader as du
@@ -21,11 +26,32 @@ from gui.views import TrainView
 class TrainPresenter(Presenter):
     def __init__(self, views):
         super().__init__(views)
-        self.zip_files_paths = []
-        self.data_sources = []
-        self.files_to_train_paths = []
-        self.trainers = []
-        self.progress_loggers = []
+        self.zip_files_paths = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'zip_files_paths')
+        self.data_sources = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'data_sources')
+        # self.files_to_train_paths = {}
+        self.trainers = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'trainers')
+        self.progress_loggers = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'progress_loggers')
+
+    def clear_user_data(self, user_id):
+        if self.data_sources.exists(user_id):
+            data_source = build_TrainDataSource_from_dict(self.data_sources[user_id])
+            data_source.free()
+            data_source.free_df(user_id)
+            self.data_sources.delete(user_id)
+            print('deleted data source')
+
+        if self.trainers.exists(user_id):
+            self.trainers.delete(user_id)
+            print('deleted trainer')
+
+        if self.zip_files_paths.exists(user_id):
+            self.zip_files_paths.delete(user_id)
+            print('deleted zip file path')
+
+        if self.progress_loggers.exists(user_id):
+            build_TrainProgLogger_from_dict(self.progress_loggers[user_id]).free()  # delete file
+            self.progress_loggers.delete(user_id)
+            print('deleted prog logger')
 
     def __validate_input(self, dict_values):
         # dict_values = { ex_name, kpi, id, timestamp, activity, act_to_opt }
@@ -127,15 +153,16 @@ class TrainPresenter(Presenter):
                        # btns
                        Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
                        Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled')],
-                      State(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value'),
+                      [State(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       Input(self.views['train'].IDs.LOAD_MODEL_BTN, 'n_clicks'))
-        def load_trained_model_data(ex_name_val, n_clicks):
+        def load_trained_model_data(ex_name_val, user_id, n_clicks):
             if n_clicks > 0:
                 experiment_data_path = os.path.join(ex_name_val, IOManager.Paths.EXPERIMENT_DATA)
                 ex_info_data = IOManager.read(os.path.join(IOManager.MAIN_EXPERIMENTS_PATH, experiment_data_path))
                 ex_info = build_experiment_from_dict(ex_info_data)
-                self.trainer = Trainer(ex_info, None)  # used only for generating the zip and download TODO: REFACTOR
-                self.trainer.create_model_archive()
+                trainer = Trainer(ex_info, None)  # used only for generating archive TODO: REFACTOR
+                self.zip_files_paths[user_id] = trainer.create_model_archive()
                 print(ex_info)
                 kpi_options = TrainView.get_kpi_radio_items_options(True)
                 if ex_info.act_to_opt is None:
@@ -161,73 +188,76 @@ class TrainPresenter(Presenter):
                 return [dash.no_update] * 29
 
         @du.callback(
-            output=Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'disabled'),
+            output=[Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN_FADE, 'is_in'),
+                    Output(self.views['base'].IDs.TRAIN_FILE_PATH_STORE, 'data')],
             id=self.views['train'].IDs.TRAIN_FILE_UPLOADER
         )
         def on_train_file_upload_complete(status):
             print(status)
             print('Upload train file completed')
-            self.file_path = str(status.latest_file)
-            return False
+            if status.is_completed:
+                return [True, str(status.latest_file)]
+            else:
+                return [False, dash.no_update]
 
-        @app.callback([Output(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
-                       Output(self.views['base'].IDs.XES_COLUMNS_DATA_STORE, 'data')],
-                      Input(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'n_clicks'),
-                      prevent_initial_call=True)
-        def show_all_controls(n_clicks):
+        @app.callback(
+            output=[Output(self.views['train'].IDs.ID_DROPDOWN, 'options'),
+                    Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'options'),
+                    Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'options'),
+                    Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'options'),
+                    Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
+                    # values
+                    Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
+                    Output(self.views['train'].IDs.ID_DROPDOWN, 'value'),
+                    Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'value'),
+                    Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'value'),
+                    Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value'),
+                    # disable
+                    Output(self.views['train'].IDs.ID_DROPDOWN, 'disabled'),
+                    Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'disabled'),
+                    Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'disabled'),
+                    Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
+                    Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                    Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+
+                    Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in'),
+                    Output(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in')],
+
+            inputs=[State(self.views['base'].IDs.TRAIN_FILE_PATH_STORE, 'data'),
+                    State(self.views['base'].IDs.USER_ID, 'data'),
+                    Input(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'n_clicks')],
+            running=[
+                (Output(self.views['train'].IDs.LOAD_TRAIN_SPINNER, 'style'),
+                 {'display': 'inline'}, {'display': 'none'}),
+            ],
+            background=True,
+            prevent_initial_call=True
+        )
+        def populate_dropdown_options(train_file_path, user_id, n_clicks):
+            DEFAULT_OUTLIER_THRS = 0.02
             if n_clicks > 0:
                 try:
-                    self.data_source = TrainDataSource(self.file_path)
+                    train_data_source = TrainDataSource(train_file_path)
                 except Exception as e:
-                    print(e)
-                    return [False, dash.no_update]
+                    print(traceback.format_exc())
+                    return [dash.no_update] * 17 + [False]
 
-                if not self.data_source.is_xes:
-                    xes_cols_data = dash.no_update
+                self.data_sources[user_id] = train_data_source.to_dict(user_id)
+                options_group = train_data_source.columns_list
+
+                if train_data_source.is_xes:
+                    xes_cols_data = train_data_source.xes_columns_names
+                    return [options_group] * 4 + \
+                           [train_data_source.get_activity_list(xes_cols_data['activity']),
+                            DEFAULT_OUTLIER_THRS] + [xes_cols_data['id'],
+                                                     xes_cols_data['timestamp'],
+                                                     xes_cols_data['activity'],
+                                                     xes_cols_data['resource'], ] + [True] * 8
                 else:
-                    xes_cols_data = self.data_source.xes_columns_names
+                    return [options_group] * 4 + [dash.no_update, DEFAULT_OUTLIER_THRS] + [dash.no_update] * 11 + [True]
 
-                return [True, xes_cols_data]
             else:
-                return [dash.no_update, dash.no_update]
-
-        @app.callback([Output(self.views['train'].IDs.ID_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'options'),
-                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'options'),
-                       # values
-                       Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
-                       Output(self.views['train'].IDs.ID_DROPDOWN, 'value'),
-                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'value'),
-                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'value'),
-                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value'),
-                       # disable
-                       Output(self.views['train'].IDs.ID_DROPDOWN, 'disabled'),
-                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'disabled'),
-                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'disabled'),
-                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
-                       Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
-                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
-
-                       Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in')],
-                      State(self.views['base'].IDs.XES_COLUMNS_DATA_STORE, 'data'),
-                      Input(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in'),
-                      prevent_initial_call=True)
-        def populate_dropdown_options(xes_cols_data, fade):
-            DEFAULT_OUTLIER_THRS = 0.02
-            if fade and self.data_source:
-                options_group = self.data_source.columns_list
-                if xes_cols_data:
-                    return [options_group] * 4 + [self.data_source.get_activity_list(xes_cols_data['activity']),
-                                                  DEFAULT_OUTLIER_THRS] + [xes_cols_data['id'],
-                                                                           xes_cols_data['timestamp'],
-                                                                           xes_cols_data['activity'],
-                                                                           xes_cols_data['resource'], ] + [True] * 7
-                else:
-                    return [options_group] * 4 + [dash.no_update, DEFAULT_OUTLIER_THRS] + [dash.no_update] * 11
-            else:
-                return [dash.no_update] * 17
+                return [dash.no_update] * 17 + [False]
 
         @app.callback(Output(self.views['train'].IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN, 'is_in'),
                       Input(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
@@ -249,16 +279,19 @@ class TrainPresenter(Presenter):
                       [State(self.views['train'].IDs.ID_DROPDOWN, 'value'),
                        State(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'value'),
                        State(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'value'),
-                       State(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value')],
+                       State(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       Input(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'n_clicks'),
                       prevent_initial_call=True)
-        def go_2nd_phase_train_option_selection(_id, timestamp, activity, resource, n_clicks):
+        def go_2nd_phase_train_option_selection(_id, timestamp, activity, resource, user_id, n_clicks):
             if n_clicks > 0:
                 error_data = self.__validate_input({'id': _id,
                                                     'timestamp': timestamp,
                                                     'activity': activity})
                 if not error_data:
-                    act_list = self.data_source.get_activity_list(activity)
+                    act_list = build_TrainDataSource_from_dict(
+                        self.data_sources[user_id], load_df=True
+                    ).get_activity_list(activity)
                     return [act_list, True, error_data] + [True] * 4 + \
                            [TrainView.get_kpi_radio_items_options(False), False, True, False]
                 else:
@@ -303,10 +336,11 @@ class TrainPresenter(Presenter):
                        State(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'value'),
                        State(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'value'),
                        State(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'value'),
-                       State(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value')],
+                       State(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'value'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
                       Input(self.views['train'].IDs.START_TRAINING_BTN, 'n_clicks'),
                       prevent_initial_call=True)
-        def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs,
+        def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs, user_id,
                                        n_clicks):
             if n_clicks > 0:
                 error_data = self.__validate_input({'ex_name': ex_name,
@@ -318,9 +352,12 @@ class TrainPresenter(Presenter):
                 if not error_data:
                     experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
                     print(experiment_info)
-                    self.trainer = Trainer(experiment_info, self.data_source)
-                    self.trainer.write_experiment_info()
-                    self.progress_logger.clear_stack()
+                    trainer = Trainer(experiment_info, build_TrainDataSource_from_dict(self.data_sources[user_id]))
+                    self.trainers[user_id] = trainer.to_dict(user_id)
+                    trainer.write_experiment_info()
+
+                    self.progress_loggers[user_id] = TrainProgLogger(str(uuid.uuid4())).to_dict()
+                    # self.progress_loggers[user_id].clear_stack()
                     return [True, json.dumps(experiment_info.to_dict()), True, error_data]
                 else:
                     return [dash.no_update, dash.no_update, dash.no_update, error_data]
@@ -330,56 +367,68 @@ class TrainPresenter(Presenter):
         @app.callback(
             output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
                     Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'style')],
-            inputs=Input(self.views['base'].IDs.START_TRAINING_CONTROLLER, 'data'),
+            inputs=[Input(self.views['base'].IDs.START_TRAINING_CONTROLLER, 'data'),
+                    State(self.views['base'].IDs.USER_ID, 'data')],
             background=True,
             prevent_initial_call=True,
             running=[
                 (Output(self.views['train'].IDs.TRAIN_SPINNER, 'style'),
                  {'display': 'inline'}, {'display': 'none'}),
                 (Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'), False, True),
-                (Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'max_intervals'), -1, 0),
+                (Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL_TRAIN, 'max_intervals'), -1, 0),
             ]
         )
-        def train_model(start_cont_store):
+        def train_model(start_cont_store, user_id):
             # print(start_cont_store)
             if start_cont_store:
-                self.progress_logger.clear_stack()
-                self.progress_logger.add_to_stack('Preparing dataset...')
-                self.trainer.prepare_dataset()
 
-                self.progress_logger.add_to_stack('Starting training...')
-                self.trainer.train(self.progress_logger)
+                trainer = build_Trainer_from_dict(self.trainers[user_id], load_data_source=True)
+                progress_logger = build_TrainProgLogger_from_dict(self.progress_loggers[user_id])
 
-                self.progress_logger.add_to_stack('Generating variables...')
-                self.trainer.generate_variables()
+                progress_logger.clear_stack()
+                progress_logger.add_to_stack('Preparing dataset...')
+                trainer.prepare_dataset()
 
-                self.progress_logger.add_to_stack('Generating archives...')
-                self.zip_file_path = self.trainer.create_model_archive()
+                progress_logger.add_to_stack('Starting training...')
+                trainer.train(progress_logger)
 
-                self.progress_logger.clear_stack()
+                progress_logger.add_to_stack('Generating variables...')
+                trainer.generate_variables()
+
+                progress_logger.add_to_stack('Generating archives...')
+                self.zip_files_paths[user_id] = trainer.create_model_archive()
+
+                progress_logger.clear_stack()
 
                 return ['Training completed', {'display': 'none'}]
             else:
                 raise dash.exceptions.PreventUpdate
 
         @app.callback(Output(self.views['base'].IDs.DOWNLOAD_TRAIN, 'data'),
+                      State(self.views['base'].IDs.USER_ID, 'data'),
                       Input(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN, 'n_clicks'),
                       prevent_initial_call=True)
-        def download_train_files(n_clicks):
+        def download_train_files(user_id, n_clicks):
             if n_clicks > 0:
-                if self.zip_file_path:
-                    return dash.dcc.send_file(self.zip_file_path)
+                if self.zip_files_paths[user_id]:
+                    return dash.dcc.send_file(self.zip_files_paths[user_id])
                 else:
                     raise dash.exceptions.PreventUpdate
             else:
                 raise dash.exceptions.PreventUpdate
 
         @app.callback(Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'children'),
-                      Input(self.views['train'].IDs.PROGRESS_LOG_INTERVAL, 'n_intervals'),
+                      State(self.views['base'].IDs.USER_ID, 'data'),
+                      Input(self.views['train'].IDs.PROGRESS_LOG_INTERVAL_TRAIN, 'n_intervals'),
                       prevent_initial_call=True)
-        def update_training_progress(n_intervals):
+        def update_training_progress(user_id, n_intervals):
             if n_intervals > 0:
-                t = self.progress_logger.get_from_stack()
+                t = None
+                try:
+                    t = build_TrainProgLogger_from_dict(self.progress_loggers[user_id]).get_from_stack()
+                except:
+                    pass
+
                 if t:
                     return t
                 else:

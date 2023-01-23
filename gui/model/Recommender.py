@@ -4,7 +4,7 @@ import hash_maps
 import next_act
 import utils
 from gui.model.Experiment import Experiment, build_experiment_from_dict
-from gui.model.RunDataSource import RunDataSource
+from gui.model.RunDataSource import RunDataSource, build_RunDataSource_from_dict
 from gui.model.IO.IOManager import Paths, read, write
 from load_dataset import prepare_dataset_for_gui
 from utils import import_vars
@@ -36,7 +36,7 @@ class Recommender:
         mode = 'train'
         # TODO: SEE IF THIS CAN BE REFACTORED
 
-        #print('Creating hash-map of possible next activities')
+        # print('Creating hash-map of possible next activities')
         X_train, _, _, _ = import_vars(self.paths)
         # print(X_train)
         # print('_____')
@@ -112,3 +112,16 @@ class Recommender:
         write(rec_dict, self.paths.folders['recommendations']['rec_dict'])
         write(real_dict, self.paths.folders['recommendations']['real_dict'])
         # print('Prediction generation completed')
+
+#     def to_dict(self, key, save_df_data=False):
+#         return {
+#             'ex_info': self.ex_info.to_dict(),
+#             'data_source': self.data_source.to_dict(key, save_df_data)
+#         }
+#
+#
+# def build_Recommender_from_dict(dict_obj, load_data_source=False):
+#     obj = Recommender(build_experiment_from_dict(dict_obj['ex_info']),
+#                       build_RunDataSource_from_dict(dict_obj['data_source'], load_data_source))
+#     # self.paths is build on demand
+#     return obj

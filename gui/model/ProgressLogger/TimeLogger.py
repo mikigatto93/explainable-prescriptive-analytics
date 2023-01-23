@@ -6,9 +6,15 @@ from abc import ABC, abstractmethod
 
 
 class TimeLogger(ABC):
-    def __init__(self, filename=str(uuid.uuid4())):
-        self.file_name = filename
+    def __init__(self, filename):
+        self.file_name = '{}.prog'.format(filename)
         self.file_path = os.path.join(os.getcwd(), self.file_name)
+
+    def free(self):
+        try:
+            os.remove(self.file_path)
+        except OSError:
+            print('OSError: File to delete does not exists')
 
     def add_to_stack(self, data):
         with open(self.file_path, 'w') as pf:
@@ -30,6 +36,12 @@ class TimeLogger(ABC):
     def clear_stack(self):
         with open(self.file_path, 'w'):
             pass
+
+    def to_dict(self):
+        return {
+            'file_name': self.file_name,
+            'file_path': self.file_path,
+        }
 
     @abstractmethod
     def write(self, log_entry):
