@@ -46,7 +46,7 @@ class RunDataSource(DataSource):
 
     def to_dict(self, key, save_df_data=True):
         if save_df_data:
-            self.data.to_csv(DiskDict.get_df_path('run_df', key))
+            self.data.to_csv(DiskDict.get_df_path('run_df', key), index=False)
         return {
             'file_path': self.file_path,
             'is_xes': self.is_xes,

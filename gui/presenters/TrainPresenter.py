@@ -379,9 +379,7 @@ class TrainPresenter(Presenter):
             ]
         )
         def train_model(start_cont_store, user_id):
-            # print(start_cont_store)
             if start_cont_store:
-
                 trainer = build_Trainer_from_dict(self.trainers[user_id], load_data_source=True)
                 progress_logger = build_TrainProgLogger_from_dict(self.progress_loggers[user_id])
 

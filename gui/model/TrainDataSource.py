@@ -112,7 +112,7 @@ class TrainDataSource(DataSource):
         # self.xes_columns_names = {}
         # self.data = self.read_data(self.file_path)
         if save_df_data:
-            self.data.to_csv(DiskDict.get_df_path('train_df', key))
+            self.data.to_csv(DiskDict.get_df_path('train_df', key), index=False)
         return {
             'file_path': self.file_path,
             'is_xes': self.is_xes,
