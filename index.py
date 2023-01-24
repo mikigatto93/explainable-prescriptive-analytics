@@ -59,9 +59,8 @@ explain_pres.register_callbacks()
 
 def check_timestamps():
     while True:
-        time.sleep()
         server_now_timestamp = datetime.datetime.now(datetime.timezone.utc)
-        LIMIT = 10 * 60
+        LIMIT = 20
         for u in USERS:
             client_last_timestamp = datetime.datetime.fromisoformat(u.content)
             if (server_now_timestamp - client_last_timestamp).total_seconds() > LIMIT:
@@ -69,12 +68,15 @@ def check_timestamps():
                 run_pres.clear_user_data(u.key)
                 explain_pres.clear_user_data(u.key)
                 USERS.delete(u.key)
+        time.sleep(30)
 
 
 if __name__ == "__main__":
     import threading
+    import waitress
 
     t = threading.Thread(target=check_timestamps)
     t.start()
 
-    app.run_server(debug=False, dev_tools_hot_reload=False, port=8050, host='0.0.0.0')
+    waitress.serve(app.server, port=8050, host='0.0.0.0')
+    # app.run_server(debug=False, dev_tools_hot_reload=False, port=8050, host='0.0.0.0')

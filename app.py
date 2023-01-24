@@ -19,5 +19,4 @@ app = DashProxy(name=__name__,
                 long_callback_manager=long_callback_manager,
                 transforms=[MultiplexerTransform(), NoOutputTransform(), CycleBreakerTransform()])
 
-
 USERS = DiskDict(os.path.join(os.getcwd(), 'users'), 'user_data')

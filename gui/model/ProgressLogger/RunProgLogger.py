@@ -1,3 +1,5 @@
+import os
+
 from gui.model.ProgressLogger.TimeLogger import TimeLogger
 
 
@@ -18,4 +20,4 @@ class RunProgLogger(TimeLogger):
 
 
 def build_RunProgLogger_from_dict(dict_obj):
-    return RunProgLogger(dict_obj['file_name'])
+    return RunProgLogger(os.path.splitext(dict_obj['file_name'])[0])

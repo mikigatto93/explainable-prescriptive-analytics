@@ -15,7 +15,7 @@ class DataSource(ABC):
 
     def free(self):
         head, _ = os.path.split(self.file_path)
-        print(head)
+        # print(head)
         # try:
         shutil.rmtree(head)  # remove folder
         # except Exception as e:

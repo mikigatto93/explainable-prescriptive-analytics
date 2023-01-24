@@ -62,7 +62,6 @@ class DiskDict:
         except OSError:
             print('An error occurred during file deletion: ({})'.format(path))
 
-
     # def __getitem__(self, key):
     #     try:
     #         with open(os.path.join(self.base_path, '{}_{}.json'.format(self.name, key)), 'r') as f:
