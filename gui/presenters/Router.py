@@ -1,7 +1,9 @@
+import datetime
+
 import dash
 from dash import ClientsideFunction
 
-from app import app
+from app import app, USERS
 from dash_extensions.enrich import Input, Output, State
 
 from gui.presenters.Presenter import Presenter
@@ -15,14 +17,14 @@ class Router(Presenter):
 
     def register_callbacks(self):
 
-        app.clientside_callback(
-            ClientsideFunction(
-                namespace='clientside',
-                function_name='set_client_id'
-            ),
-            Output(self.views['base'].IDs.USER_ID, 'data'),
-            Input(self.views['base'].IDs.LOCATION_URL, 'pathname')
-        )
+        # app.clientside_callback(
+        #     ClientsideFunction(
+        #         namespace='clientside',
+        #         function_name='set_client_id'
+        #     ),
+        #     Output(self.views['base'].IDs.USER_ID, 'data'),
+        #     Input(self.views['base'].IDs.LOCATION_URL, 'pathname')
+        # )
 
         @app.callback([Output(self.views['base'].IDs.GO_NEXT_LINK, 'href'),
                        Output(self.views['base'].IDs.GO_BACK_LINK, 'href')],
@@ -98,3 +100,11 @@ class Router(Presenter):
             #     return [controller_data['go_next_disabled_status'], controller_data['go_back_disabled_status']]
             # else:
             #     return [dash.no_update, dash.no_update]
+
+        @app.callback(State(self.views['base'].IDs.USER_ID, 'data'),
+                      Input(self.views['base'].IDs.KEEP_ALIVE_INTERVAL, 'n_intervals'))
+        def send_keep_alive_signal(user_id, n_intervals):
+            if n_intervals > 0:
+                USERS[user_id] = str(datetime.datetime.now(datetime.timezone.utc))
+            else:
+                raise dash.exceptions.PreventUpdate

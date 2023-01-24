@@ -1,9 +1,9 @@
 import os
+import time
+import datetime
 
-from app import app, socketio
-from flask import request
-from flask_socketio import SocketIO, emit
-
+from app import app, USERS
+from gui.model.DiskDict import DiskDict
 from gui.model.Recommender import Recommender
 from gui.model.RunDataSource import RunDataSource
 from gui.model.ProgressLogger.TimeLogger import TimeLogger
@@ -28,7 +28,7 @@ train_view = TrainView('/', 0)
 run_view = RunView('/run', 1)
 explain_view = ExplainView('/explain', 2)
 
-app.layout = base_view.get_layout()
+app.layout = base_view.get_layout
 
 router = Router({
     'base': base_view,
@@ -57,21 +57,24 @@ train_pres.register_callbacks()
 run_pres.register_callbacks()
 explain_pres.register_callbacks()
 
-
-@socketio.on('connect')
-def connect(auth):
-    print('connected: {}'.format(request.sid))
-    emit('socket:id', request.sid)
-
-
-@socketio.on('disconnect')
-def disconnect():
-    print('disconnected: {}'.format(request.sid))
-    train_pres.clear_user_data(request.sid)
-    run_pres.clear_user_data(request.sid)
-    explain_pres.clear_user_data(request.sid)
+def check_timestamps():
+    while True:
+        time.sleep()
+        server_now_timestamp = datetime.datetime.now(datetime.timezone.utc)
+        LIMIT = 10 * 60
+        for u in USERS:
+            client_last_timestamp = datetime.datetime.fromisoformat(u.content)
+            if (server_now_timestamp - client_last_timestamp).total_seconds() > LIMIT:
+                train_pres.clear_user_data(u.key)
+                run_pres.clear_user_data(u.key)
+                explain_pres.clear_user_data(u.key)
+                USERS.delete(u.key)
 
 
 if __name__ == "__main__":
-    socketio.run(app.server, port=8050, host='0.0.0.0', debug=False)
-    # app.run_server(debug=True, dev_tools_hot_reload=False, port=8050, host='0.0.0.0')
+    import threading
+
+    t = threading.Thread(target=check_timestamps)
+    t.start()
+
+    app.run_server(debug=False, dev_tools_hot_reload=False, port=8050, host='0.0.0.0')

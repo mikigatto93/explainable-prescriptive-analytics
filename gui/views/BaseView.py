@@ -1,3 +1,5 @@
+import uuid
+
 from strenum import StrEnum
 from dash_extensions.enrich import html, dcc
 
@@ -5,6 +7,7 @@ from gui.views.View import View
 
 
 class IDs(StrEnum):
+    KEEP_ALIVE_INTERVAL = 'keep_alive_interval',
     RUN_FILE_PATH_STORE = 'run_file_path_store',
     TRAIN_FILE_PATH_STORE = 'train_file_path_store',
     USER_ID = 'user_id',
@@ -61,7 +64,8 @@ class BaseView(View):
                 dcc.Store(id=self.IDs.XES_COLUMNS_DATA_STORE, data=None),
                 dcc.Store(id=self.IDs.TRAIN_FILE_PATH_STORE, data=None),
                 dcc.Store(id=self.IDs.RUN_FILE_PATH_STORE, data=None),
-                dcc.Store(id=self.IDs.USER_ID),
+                dcc.Store(id=self.IDs.USER_ID, data=uuid.uuid4()),
+                dcc.Interval(id=self.IDs.KEEP_ALIVE_INTERVAL, interval=1000*60),
                 # html.Div([user_id]),
                 dcc.Download(id=self.IDs.DOWNLOAD_TRAIN),
             ],

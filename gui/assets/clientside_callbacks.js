@@ -9,10 +9,10 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         	return value;
         },
 
-        set_client_id: function(value) {
-        	//return 'assfnargavn4lasnoew';
-        	console.log("Set client id: " + CLIENT_ID);
-        	return CLIENT_ID;
-        },
+//        set_client_id: function(value) {
+//        	//return 'assfnargavn4lasnoew';
+//        	console.log("Set client id: " + CLIENT_ID);
+//        	return CLIENT_ID;
+//        },
     }
 });

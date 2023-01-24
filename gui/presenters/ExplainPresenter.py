@@ -45,7 +45,11 @@ class ExplainPresenter(Presenter):
             print('deleted pred_graph_progression data')
 
         if self.kpis_dfs.exists(user_id):
-            os.remove(self.kpis_dfs[user_id])
+            path = self.kpis_dfs[user_id]
+            try:
+                os.remove(path)
+            except:
+                print('An error occurred during file deletion: ({})'.format(path))
             self.kpis_dfs.delete(user_id)
             print('deleted kpis df')
 
