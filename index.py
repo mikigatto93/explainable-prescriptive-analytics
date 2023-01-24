@@ -2,7 +2,7 @@ import os
 import time
 import datetime
 
-from app import app, USERS
+from app import app, USERS, CONFIG
 from gui.model.DiskDict import DiskDict
 from gui.model.Recommender import Recommender
 from gui.model.RunDataSource import RunDataSource
@@ -57,18 +57,18 @@ train_pres.register_callbacks()
 run_pres.register_callbacks()
 explain_pres.register_callbacks()
 
+
 def check_timestamps():
     while True:
-        server_now_timestamp = datetime.datetime.now(datetime.timezone.utc)
-        LIMIT = 20
+        server_now_ts = datetime.datetime.now(datetime.timezone.utc)
         for u in USERS:
-            client_last_timestamp = datetime.datetime.fromisoformat(u.content)
-            if (server_now_timestamp - client_last_timestamp).total_seconds() > LIMIT:
+            client_last_ts = datetime.datetime.fromisoformat(u.content)
+            if (server_now_ts - client_last_ts).total_seconds() > CONFIG['MAX_KEEP_ALIVE_SEC_TIME_DIFFERENCE']:
                 train_pres.clear_user_data(u.key)
                 run_pres.clear_user_data(u.key)
                 explain_pres.clear_user_data(u.key)
                 USERS.delete(u.key)
-        time.sleep(30)
+        time.sleep(CONFIG['CLEAR_DATA_SERVER_SEC_INTERVAL'])
 
 
 if __name__ == "__main__":

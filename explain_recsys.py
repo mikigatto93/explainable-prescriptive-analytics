@@ -27,18 +27,8 @@ import datetime
 def evaluate_shap_vals(trace, model, X_test, case_id_name):
     # t1 = datetime.datetime.now()
     expl_trace = trace.iloc[-2:]
-    print('----------------')
-    print(expl_trace)
-    print('----------------')
     expl_trace = expl_trace[[i for i in expl_trace.columns if i != case_id_name]]
-    print('----------------')
-    print(expl_trace)
-    print('----------------')
     expl_trace = expl_trace[list(model.feature_names_)]
-    print(list(model.feature_names_))
-    print('----------------')
-    print(expl_trace)
-    print('----------------')
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(expl_trace.iloc[1:])
     # t2 = datetime.datetime.now()

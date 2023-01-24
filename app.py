@@ -1,4 +1,5 @@
 import os
+import json
 
 from dash.long_callback import DiskcacheLongCallbackManager
 from dash_extensions.enrich import DashProxy, MultiplexerTransform, NoOutputTransform, CycleBreakerTransform
@@ -20,3 +21,6 @@ app = DashProxy(name=__name__,
                 transforms=[MultiplexerTransform(), NoOutputTransform(), CycleBreakerTransform()])
 
 USERS = DiskDict(os.path.join(os.getcwd(), 'users'), 'user_data')
+
+with open(os.path.join(os.getcwd(), 'gui_config.json'), 'r') as config_f:
+    CONFIG = json.loads(config_f.read())
