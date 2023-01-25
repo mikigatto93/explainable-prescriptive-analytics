@@ -20,7 +20,7 @@ app = DashProxy(name=__name__,
                 long_callback_manager=long_callback_manager,
                 transforms=[MultiplexerTransform(), NoOutputTransform(), CycleBreakerTransform()])
 
-USERS = DiskDict(os.path.join(os.getcwd(), 'users'), 'user_data')
+USERS = DiskDict(os.path.join(os.getcwd(), 'users'), 'user_data', create_path_at_init=True)
 
 with open(os.path.join(os.getcwd(), 'gui_config.json'), 'r') as config_f:
     CONFIG = json.loads(config_f.read())

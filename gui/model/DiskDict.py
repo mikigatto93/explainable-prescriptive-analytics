@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import pathlib
 from dataclasses import dataclass
 
 from gui.model.IO.IOManager import create_missing_folders
@@ -22,9 +23,11 @@ class ItemInfo:
 
 
 class DiskDict:
-    def __init__(self, base_path, name):
+    def __init__(self, base_path, name, create_path_at_init=False):
         self.base_path = base_path
         self.name = name
+        if create_path_at_init and not os.path.exists(self.base_path):
+            pathlib.Path(self.base_path).mkdir(parents=True, exist_ok=True)
 
     def __getitem__(self, key):
         try:

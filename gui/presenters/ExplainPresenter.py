@@ -181,7 +181,7 @@ class ExplainPresenter(Presenter):
 
                 if ex_info_data:
                     explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    #explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    # explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     print(user_id)
                     self.explainers[user_id] = explainer.to_dict()
 
