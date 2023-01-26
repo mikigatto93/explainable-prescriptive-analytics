@@ -159,8 +159,12 @@ def write_scores(y_test, y_pred, target_column_name, pred_attributes=None, paths
             write(res, folders['results']['scores'])
         disp = ConfusionMatrixDisplay(confusion_matrix=cm,
                                       display_labels=['Will not be performed', 'Will be performed'])
-        disp.plot(cmap=plt.cm.Blues, values_format='.5g')
-        plt.savefig(f"{os.getcwd()}/experiment_files/plots/confusion_matrix_{target}.png", dpi=300, bbox_inches="tight")
+
+        # TODO: DA RIVEDERE SE TOGLIERLO O NO
+        # disp.plot(cmap=plt.cm.Blues, values_format='.5g')
+        # plt.savefig(
+        #     f"{os.getcwd()}/experiment_files/plots/confusion_matrix_{target}.png", dpi=300, bbox_inches="tight"
+        # )
 
 
 def plot_auroc_curve(df, predictions_names, target_column_names, experiment_name=None):

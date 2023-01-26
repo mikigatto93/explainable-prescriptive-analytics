@@ -26,7 +26,7 @@ class IDs(StrEnum):
     SLIDER_VALUE_TEXTBOX = 'slider_value_textbox',
     TRAIN_FILE_UPLOADER = 'train_file_uploader',
     PROGRESS_LOG_INTERVAL_TRAIN = 'logging_prog_interval_train',
-    LOAD_TRAIN_FILE_BTN = 'load_train_btn',
+    LOAD_TRAIN_FILE_BTN = 'load_train_file_btn',
     LOAD_FILE_AREA = 'load_file_div_train',
     LOAD_MODEL_BTN = 'load_model_btn',
     EXPERIMENT_NAME_TEXTBOX = 'experiment_name_textbox',
@@ -160,15 +160,23 @@ class TrainView(View):
                                   html.Span('Train')], className='button_spinner_cont'),
                         n_clicks=0, id=self.IDs.START_TRAINING_BTN,
                         className='general_btn_layout'),
-                    html.Div(className='error_box', id=self.ERROR_IDs.START_TRAINING_BTN),
-                ], is_in=True, appear=False, id=self.IDs.FADE_START_TRAINING_BTN),
+
+                    dbc.Fade([html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
+                              html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT)], is_in=False, appear=False,
+                             id=self.IDs.PROC_TRAIN_OUT_FADE, className='process_display_out_cont'),
+
+                ], is_in=True, appear=False, id=self.IDs.FADE_START_TRAINING_BTN,
+                    className='train_btn_proc_display_cont'),
+
+                html.Div(className='error_box', id=self.ERROR_IDs.START_TRAINING_BTN),
+
             ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS, className='all_controls_container'),
+
+
             dbc.Fade([html.Button(['Download training files'], n_clicks=0, id=self.IDs.DOWNLOAD_TRAIN_BTN,
                                   className='general_btn_layout')],
                      id=self.IDs.DOWNLOAD_TRAIN_BTN_FADE, is_in=False, appear=False),
 
-            dbc.Fade([html.Div(id=self.IDs.TEMP_TRAINING_OUTPUT),
-                      html.Div(id=self.IDs.SHOW_PROCESS_TRAINING_OUTPUT)], is_in=False, appear=False,
-                     id=self.IDs.PROC_TRAIN_OUT_FADE, className='process_display_out_cont'),
+
             dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL_TRAIN, n_intervals=0, interval=3000, max_intervals=-1),
         ], className='train_container')

@@ -6,6 +6,7 @@ import uuid
 import diskcache
 
 import dash
+import pandas as pd
 from dash import ClientsideFunction
 
 from app import app
@@ -85,6 +86,7 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def show_error_training(error_data):
             if error_data is not None:
+                error_data = {str(k): v for k, v in error_data.items()}
                 output_values = []
                 for e in self.views['train'].ERROR_IDs:
                     err_id = str(e.value)
@@ -201,7 +203,9 @@ class TrainPresenter(Presenter):
                 return [False, dash.no_update]
 
         @app.callback(
-            output=[Output(self.views['train'].IDs.ID_DROPDOWN, 'options'),
+            output=[Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data'),
+                    # options
+                    Output(self.views['train'].IDs.ID_DROPDOWN, 'options'),
                     Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'options'),
                     Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'options'),
                     Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'options'),
@@ -236,28 +240,31 @@ class TrainPresenter(Presenter):
         def populate_dropdown_options(train_file_path, user_id, n_clicks):
             DEFAULT_OUTLIER_THRS = 0.02
             if n_clicks > 0:
+                error_data = {}
                 try:
                     train_data_source = TrainDataSource(train_file_path)
-                except Exception as e:
+                except (pd.errors.ParserError, pd.errors.EmptyDataError, ValueError) as e:
                     print(traceback.format_exc())
-                    return [dash.no_update] * 17 + [False]
+                    error_data[self.views['train'].IDs.LOAD_TRAIN_FILE_BTN] = '{}: {}'.format(type(e).__name__, e)
+                    return [error_data] + [dash.no_update] * 17 + [False]
 
                 self.data_sources[user_id] = train_data_source.to_dict(user_id)
                 options_group = train_data_source.columns_list
 
                 if train_data_source.is_xes:
                     xes_cols_data = train_data_source.xes_columns_names
-                    return [options_group] * 4 + \
+                    return [error_data] + [options_group] * 4 + \
                            [train_data_source.get_activity_list(xes_cols_data['activity']),
                             DEFAULT_OUTLIER_THRS] + [xes_cols_data['id'],
                                                      xes_cols_data['timestamp'],
                                                      xes_cols_data['activity'],
                                                      xes_cols_data['resource'], ] + [True] * 8
                 else:
-                    return [options_group] * 4 + [dash.no_update, DEFAULT_OUTLIER_THRS] + [dash.no_update] * 11 + [True]
+                    return [error_data] + [options_group] * 4 + \
+                           [dash.no_update, DEFAULT_OUTLIER_THRS] + [dash.no_update] * 11 + [True]
 
             else:
-                return [dash.no_update] * 17 + [False]
+                return [dash.no_update] * 18 + [False]
 
         @app.callback(Output(self.views['train'].IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN, 'is_in'),
                       Input(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
@@ -357,9 +364,10 @@ class TrainPresenter(Presenter):
                     trainer.write_experiment_info()
 
                     self.progress_loggers[user_id] = TrainProgLogger(str(uuid.uuid4())).to_dict()
-                    # self.progress_loggers[user_id].clear_stack()
+                    print(error_data)
                     return [True, json.dumps(experiment_info.to_dict()), True, error_data]
                 else:
+                    print(error_data)
                     return [dash.no_update, dash.no_update, dash.no_update, error_data]
             else:
                 return [dash.no_update] * 4
@@ -385,6 +393,7 @@ class TrainPresenter(Presenter):
 
                 progress_logger.clear_stack()
                 progress_logger.add_to_stack('Preparing dataset...')
+
                 trainer.prepare_dataset()
 
                 progress_logger.add_to_stack('Starting training...')

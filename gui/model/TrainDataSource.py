@@ -4,7 +4,7 @@ import traceback
 import numpy as np
 import pandas as pd
 import pm4py
-from pandas.errors import ParserError
+from pandas.errors import ParserError, EmptyDataError
 from pm4py.objects.conversion.log import converter as log_converter
 
 from gui.model import DiskDict
@@ -23,74 +23,33 @@ class TrainDataSource(DataSource):
     def read_data(self, path, datetime=None):
         dataframe = None
         filename, file_extension = os.path.splitext(path)
-        try:
-            if file_extension == '.csv':
-                dataframe = pd.read_csv(path)
-                self.is_xes = False
+        if file_extension == '.csv':
+            dataframe = pd.read_csv(path)
+            self.is_xes = False
 
-                # import datetime
-                # t1 = datetime.datetime.now()
-                #
-                # dataframe.to_parquet('test.prq')
-                # t2 = datetime.datetime.now()
-                #
-                # t1 = datetime.datetime.now()
-                #
-                # dataframe.read_parquet('test.prq')
-                # t2 = datetime.datetime.now()
+        elif file_extension == '.xes':
+            log = pm4py.read_xes(path)
+            dataframe = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
 
-            elif file_extension == '.xes':
-                log = pm4py.read_xes(path)
-                dataframe = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
+            self.is_xes = True
+            for k, v in TrainDataSource.XES_RELEVANT_COLS_NAMES.items():
+                if v in dataframe.columns:
+                    self.xes_columns_names[k] = v
+                else:
+                    self.xes_columns_names[k] = None
 
-                self.is_xes = True
-                for k, v in TrainDataSource.XES_RELEVANT_COLS_NAMES.items():
-                    if v in dataframe.columns:
-                        self.xes_columns_names[k] = v
-                    else:
-                        self.xes_columns_names[k] = None
-
-                # start_time_col = 'time:timestamp'
-                # self.data = dataframe
-                # if not np.issubdtype(self.data[start_time_col], np.number):
-                #     try:
-                #         self.data[start_time_col] = pd.to_datetime(self.data[start_time_col],
-                #                                                    format='%Y-%m-%d %H:%M:%S',
-                #                                                    utc=True)
-                #         self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
-                #     except ParserError as pe:
-                #         raise pe
-                #     except ValueError as ve:
-                #         raise ve
-                # import datetime
-
-                # import datetime
-                # t1 = datetime.datetime.now()
-                # dataframe.to_csv('test_to_csv.csv')
-                # t2 = datetime.datetime.now()
-                # print('p w time: {}'.format(t2-t1))
-                #
-                # t3 = datetime.datetime.now()
-                # pd.read_csv('test_to_csv.csv')
-                # t4 = datetime.datetime.now()
-                # print('pkl w time: {}'.format(t4 - t3))
-                #
-                # t1 = datetime.datetime.now()
-                # dataframe.to_parquet('test1.prq')
-                # t2 = datetime.datetime.now()
-                # print('p r time: {}'.format(t2 - t1))
-                #
-                # t3 = datetime.datetime.now()
-                #
-                # t4 = datetime.datetime.now()
-                # print('pkl r time: {}'.format(t4 - t3))
-
-            elif file_extension == '.xls':
-                dataframe = pd.read_excel(path)
-                self.is_xes = False
-        except Exception as e:
-            print(traceback.format_exc())
-            raise e
+        elif file_extension == '.xls':
+            dataframe = pd.read_excel(path)
+            self.is_xes = False
+        # except ParserError as pe:
+        #     raise pe
+        # except EmptyDataError as ede:
+        #     raise ede
+        # except ValueError as ve:
+        #     raise ve
+        # except Exception as e:
+        #     print(traceback.format_exc())
+        #     raise e
         return dataframe
 
     def convert_datetime_to_seconds(self, start_time_col, date_format='%Y-%m-%d %H:%M:%S'):
