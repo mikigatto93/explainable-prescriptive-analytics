@@ -18,6 +18,7 @@ class Experiment:
     resource: Optional[str]
     act_to_opt: Optional[str]
     out_thrs: float
+    creation_timestamp: str
     pred_column: str = ''
 
     def __post_init__(self):
@@ -56,6 +57,7 @@ class Experiment:
             'resource': self.resource,
             'act_to_opt': self.act_to_opt,
             'out_thrs': self.out_thrs,
+            'creation_timestamp': str(self.creation_timestamp),
             'pred_column': self.pred_column,
         }
 
@@ -112,5 +114,6 @@ def build_experiment_from_dict(dict_obj: dict) -> Experiment:
         resource=dict_obj['resource'],
         act_to_opt=dict_obj['act_to_opt'],
         out_thrs=dict_obj['out_thrs'],
+        creation_timestamp=dict_obj['creation_timestamp'],
         pred_column=dict_obj['pred_column']
     )

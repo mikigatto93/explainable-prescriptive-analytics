@@ -7,11 +7,6 @@ import gui.model.IO.read_functions as rf
 
 # GENERIC I/O FUNCTIONS
 
-def get_experiment_folders_list(main_path):
-    paths = os.walk(main_path)
-    return next(paths)[1]
-
-
 def create_missing_folders(path):
     head, _ = os.path.split(path)
     if not os.path.exists(head):
@@ -61,7 +56,21 @@ def write(data, filename, writefn=None):
         return filename
 
 
+def get_experiment_folders_list(main_path):
+    # paths = os.walk(main_path)
+    # return next(paths)[1]
+    folders_data_list = []
+    with os.scandir(main_path) as it:
+        for entry in it:
+            if not entry.name.startswith('.') and entry.is_dir():
+                ex_info_data = read(os.path.join(entry.path, 'experiment_info.json'))
+                folders_data_list.append({'ex_name': ex_info_data['ex_name'], 'path': entry.path})
+
+    return folders_data_list
+
+
 MAIN_EXPERIMENTS_PATH = os.path.join(os.getcwd(), 'experiments')
+
 
 class Paths:
     model = {
@@ -127,9 +136,10 @@ class Paths:
 
     EXPERIMENT_DATA = 'experiment_info.json'
 
-    def __init__(self, ex_name, main_path=MAIN_EXPERIMENTS_PATH):
+    def __init__(self, ex_name, creation_timestamp='', main_path=MAIN_EXPERIMENTS_PATH):
         self.ex_name = ex_name  # TODO: VALIDATE NAME AS IT GOES ON A FILE PATH
-        self.main_path = os.path.join(main_path, ex_name)
+        self.creation_timestamp = creation_timestamp
+        self.main_path = os.path.join(main_path, '{}--{}'.format(ex_name, self.creation_timestamp))
         self.folders = {
             'model': self.path_maker('model', Paths.model),
             'results': self.path_maker('results', Paths.results),

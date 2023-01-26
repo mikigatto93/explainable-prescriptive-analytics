@@ -16,7 +16,7 @@ class Recommender:
         self.ex_info = experiment_info
         self.data_source = data_source
         self.traces_hash = None
-        self.paths = Paths(self.ex_info.ex_name)
+        self.paths = Paths(self.ex_info.ex_name, creation_timestamp=self.ex_info.creation_timestamp)
 
     def prepare_dataset(self):
         self.data_source.convert_datetime_to_seconds(self.ex_info.timestamp)

@@ -16,7 +16,7 @@ class Trainer:
     def __init__(self, experiment_info: Experiment, data_source: TrainDataSource):
         self.train_info: Optional[TrainInfo] = None
         self.ex_info = experiment_info
-        self.paths = Paths(self.ex_info.ex_name)
+        self.paths = Paths(self.ex_info.ex_name, creation_timestamp=self.ex_info.creation_timestamp)
         self.data_source = data_source
 
     def write_experiment_info(self):

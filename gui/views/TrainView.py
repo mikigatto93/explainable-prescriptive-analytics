@@ -11,6 +11,7 @@ import dash_uploader as du
 
 
 class IDs(StrEnum):
+    EXPERIMENT_SELECTOR_TIME_DISPLAYER = 'experiment_selector_time_displayer',
     LOAD_TRAIN_FILE_BTN_FADE = 'load_train_file_btn_fade',
     LOAD_TRAIN_SPINNER = 'load_train_spinner',
     PREV_SELECT_PHASE_TRAIN_BTN = 'prev_select_phase_train_btn',
@@ -76,7 +77,7 @@ class TrainView(View):
             html.H1('Train'),
             html.Div([
                 html.Div([
-                    du.Upload(id=self.IDs.TRAIN_FILE_UPLOADER, filetypes=['csv', 'xes'], max_file_size=2048,),
+                    du.Upload(id=self.IDs.TRAIN_FILE_UPLOADER, filetypes=['csv', 'xes'], max_file_size=2048, ),
                     dbc.Fade([
                         html.Button(
                             html.Div(
@@ -88,8 +89,11 @@ class TrainView(View):
                     ], is_in=False, appear=False, id=self.IDs.LOAD_TRAIN_FILE_BTN_FADE)
                 ], className='load_train_file_cont'),
                 html.Div([
-                    html.Span('Select one experiment:'),
+                    html.Div('Select one experiment:'),
+                    html.Div('A new experiment with the same data as the one selected will be created',
+                             className='select_experiment_warning'),
                     dcc.Dropdown(id=self.IDs.EXPERIMENT_SELECTOR_DROPDOWN, className='dropdown_select_column'),
+                    html.P(id=self.IDs.EXPERIMENT_SELECTOR_TIME_DISPLAYER),
                     html.Button('Load model', id=self.IDs.LOAD_MODEL_BTN, n_clicks=0,
                                 className='general_btn_layout', disabled=True),
                     html.Div(className='error_box', id=self.ERROR_IDs.LOAD_MODEL_BTN),
@@ -172,11 +176,9 @@ class TrainView(View):
 
             ], is_in=False, appear=False, id=self.IDs.FADE_ALL_TRAIN_CONTROLS, className='all_controls_container'),
 
-
             dbc.Fade([html.Button(['Download training files'], n_clicks=0, id=self.IDs.DOWNLOAD_TRAIN_BTN,
                                   className='general_btn_layout')],
                      id=self.IDs.DOWNLOAD_TRAIN_BTN_FADE, is_in=False, appear=False),
-
 
             dcc.Interval(id=self.IDs.PROGRESS_LOG_INTERVAL_TRAIN, n_intervals=0, interval=3000, max_intervals=-1),
         ], className='train_container')

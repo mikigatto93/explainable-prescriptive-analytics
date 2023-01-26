@@ -37,6 +37,11 @@
 	align-items: center;
 }
 
+.select_experiment_warning {
+	font-size: 0.9em;
+    margin-left: 0.8em;
+}
+
 #exp_selector_dropdown {
 	width: 15em;
 }

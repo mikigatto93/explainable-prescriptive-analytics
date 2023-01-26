@@ -11,7 +11,7 @@ import gui.model.IO.IOManager as gui_io
 class Explainer:
     def __init__(self, experiment_info: Experiment):
         self.ex_info = experiment_info
-        self.paths = Paths(self.ex_info.ex_name)
+        self.paths = Paths(self.ex_info.ex_name, creation_timestamp=self.ex_info.creation_timestamp)
         self.df_run = pd.read_csv(self.paths.folders['recommendations']['df_run'])
         self.quantitative_vars = read(self.paths.folders['variables']['qnt'])
         self.qualitative_vars = read(self.paths.folders['variables']['qlt'])

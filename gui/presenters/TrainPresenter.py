@@ -1,6 +1,8 @@
+import datetime
 import json
 import os
 import shelve
+import shutil
 import traceback
 import uuid
 import diskcache
@@ -86,6 +88,7 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def show_error_training(error_data):
             if error_data is not None:
+                # print('errors: {}'.format(error_data))
                 error_data = {str(k): v for k, v in error_data.items()}
                 output_values = []
                 for e in self.views['train'].ERROR_IDs:
@@ -112,9 +115,26 @@ class TrainPresenter(Presenter):
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
         def populate_experiment_selector_dropdown(url):
             if url == self.views['train'].pathname:
-                return IOManager.get_experiment_folders_list(IOManager.MAIN_EXPERIMENTS_PATH)
+                folders_data_list = IOManager.get_experiment_folders_list(IOManager.MAIN_EXPERIMENTS_PATH)
+                return [
+                    {'label': d['ex_name'], 'value': d['path']} for d in folders_data_list
+                ]
             else:
                 return []
+
+        @app.callback(Output(self.views['train'].IDs.EXPERIMENT_SELECTOR_TIME_DISPLAYER, 'children'),
+                      Input(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value'))
+        def show_selected_experiment_creation_timestamp(value):
+            if value and os.path.isdir(value):
+                ex_info_data = IOManager.read(os.path.join(value, 'experiment_info.json'))
+                if 'creation_timestamp' in ex_info_data:
+                    creation_timestamp = datetime.datetime.strptime(ex_info_data['creation_timestamp'],
+                                                                    '%d-%m-%Y_%H-%M-%S_%f%z')
+                    return 'Created: {}'.format(str(creation_timestamp.strftime('%c')))
+                else:
+                    return ''
+            else:
+                raise dash.exceptions.PreventUpdate
 
         @app.callback(Output(self.views['train'].IDs.LOAD_MODEL_BTN, 'disabled'),
                       [Input(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'options'),
@@ -158,13 +178,19 @@ class TrainPresenter(Presenter):
                       [State(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value'),
                        State(self.views['base'].IDs.USER_ID, 'data')],
                       Input(self.views['train'].IDs.LOAD_MODEL_BTN, 'n_clicks'))
-        def load_trained_model_data(ex_name_val, user_id, n_clicks):
+        def load_trained_model_data(ex_folder_path, user_id, n_clicks):
             if n_clicks > 0:
-                experiment_data_path = os.path.join(ex_name_val, IOManager.Paths.EXPERIMENT_DATA)
-                ex_info_data = IOManager.read(os.path.join(IOManager.MAIN_EXPERIMENTS_PATH, experiment_data_path))
+                ex_info_data = IOManager.read(os.path.join(ex_folder_path, 'experiment_info.json'))
+                creation_timestamp = datetime.datetime.now(datetime.timezone.utc).strftime('%d-%m-%Y_%H-%M-%S_%f%z')
+                ex_info_data['creation_timestamp'] = str(creation_timestamp)
                 ex_info = build_experiment_from_dict(ex_info_data)
+                dest_path = os.path.join(os.path.split(ex_folder_path)[0],
+                                         '{}--{}'.format(ex_info.ex_name, ex_info.creation_timestamp))
+                shutil.copytree(ex_folder_path, dest_path)
+
                 trainer = Trainer(ex_info, None)  # used only for generating archive TODO: REFACTOR
                 self.zip_files_paths[user_id] = trainer.create_model_archive()
+                trainer.write_experiment_info()
                 print(ex_info)
                 kpi_options = TrainView.get_kpi_radio_items_options(True)
                 if ex_info.act_to_opt is None:
@@ -357,24 +383,26 @@ class TrainPresenter(Presenter):
                                                     'activity': activity,
                                                     'act_to_opt': act_to_opt})
                 if not error_data:
-                    experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs)
+                    experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs,
+                                                 datetime.datetime.now(
+                                                     datetime.timezone.utc
+                                                 ).strftime('%d-%m-%Y_%H-%M-%S_%f%z'))
                     print(experiment_info)
                     trainer = Trainer(experiment_info, build_TrainDataSource_from_dict(self.data_sources[user_id]))
                     self.trainers[user_id] = trainer.to_dict(user_id)
                     trainer.write_experiment_info()
 
                     self.progress_loggers[user_id] = TrainProgLogger(str(uuid.uuid4())).to_dict()
-                    print(error_data)
                     return [True, json.dumps(experiment_info.to_dict()), True, error_data]
                 else:
-                    print(error_data)
                     return [dash.no_update, dash.no_update, dash.no_update, error_data]
             else:
                 return [dash.no_update] * 4
 
         @app.callback(
             output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
-                    Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'style')],
+                    Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'style'),
+                    Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in')],
             inputs=[Input(self.views['base'].IDs.START_TRAINING_CONTROLLER, 'data'),
                     State(self.views['base'].IDs.USER_ID, 'data')],
             background=True,
@@ -382,7 +410,7 @@ class TrainPresenter(Presenter):
             running=[
                 (Output(self.views['train'].IDs.TRAIN_SPINNER, 'style'),
                  {'display': 'inline'}, {'display': 'none'}),
-                (Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'), False, True),
+                # (Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'), False, True),
                 (Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL_TRAIN, 'max_intervals'), -1, 0),
             ]
         )
@@ -394,7 +422,10 @@ class TrainPresenter(Presenter):
                 progress_logger.clear_stack()
                 progress_logger.add_to_stack('Preparing dataset...')
 
-                trainer.prepare_dataset()
+                try:
+                    trainer.prepare_dataset()
+                except (pd.errors.ParserError, ValueError) as e:
+                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}, False]
 
                 progress_logger.add_to_stack('Starting training...')
                 trainer.train(progress_logger)
@@ -407,9 +438,9 @@ class TrainPresenter(Presenter):
 
                 progress_logger.clear_stack()
 
-                return ['Training completed', {'display': 'none'}]
+                return ['Training completed', {'display': 'none'}, True]
             else:
-                raise dash.exceptions.PreventUpdate
+                raise [dash.no_update] * 3
 
         @app.callback(Output(self.views['base'].IDs.DOWNLOAD_TRAIN, 'data'),
                       State(self.views['base'].IDs.USER_ID, 'data'),
