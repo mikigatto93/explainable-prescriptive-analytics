@@ -22,5 +22,10 @@ app = DashProxy(name=__name__,
 
 USERS = DiskDict(os.path.join(os.getcwd(), 'users'), 'user_data', create_path_at_init=True)
 
-with open(os.path.join(os.getcwd(), 'gui_config.json'), 'r') as config_f:
-    CONFIG = json.loads(config_f.read())
+config_path = os.path.join(os.getcwd(), 'gui_config.json')
+if os.path.exists(config_path):
+    with open(config_path, 'r') as config_f:
+        CONFIG = json.loads(config_f.read())
+else:
+    # default configuration
+    CONFIG = {'KEEP_ALIVE_SIGNAL_MSEC_INTERVAL': 5000}

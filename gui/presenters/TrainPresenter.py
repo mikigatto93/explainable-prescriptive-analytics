@@ -116,9 +116,10 @@ class TrainPresenter(Presenter):
         def populate_experiment_selector_dropdown(url):
             if url == self.views['train'].pathname:
                 folders_data_list = IOManager.get_experiment_folders_list(IOManager.MAIN_EXPERIMENTS_PATH)
-                return [
-                    {'label': d['ex_name'], 'value': d['path']} for d in folders_data_list
-                ]
+                if folders_data_list:
+                    return [{'label': d['ex_name'], 'value': d['path']} for d in folders_data_list]
+                else:
+                    return []
             else:
                 return []
 
@@ -210,8 +211,8 @@ class TrainPresenter(Presenter):
                 return [json.dumps(ex_info_data), ex_info.ex_name, ex_info.kpi, ex_info.id, ex_info.timestamp,
                         ex_info.activity, ex_info.resource, act_to_opt_data, ex_info.out_thrs] + \
                        [kpi_options, [ex_info.id], [ex_info.timestamp], [ex_info.activity], resource_dropdown_options,
-                        act_to_opt_options, True, True, True, True, True, True, True, True, False,
-                        show_act_to_opt_dropdown, True, True, True, True]
+                        act_to_opt_options, True, True, True, True, True, True, True, True, show_act_to_opt_dropdown,
+                        False, True, True, True, True]
             else:
                 return [dash.no_update] * 29
 

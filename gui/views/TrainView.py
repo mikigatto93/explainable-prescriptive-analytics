@@ -134,6 +134,9 @@ class TrainView(View):
                             html.Div(className='error_box', id=self.ERROR_IDs.KPI_RADIO_ITEMS),
 
                             dbc.Fade([
+                                html.Div('Since the chosen KPI is to minimize activity occurrence, the system will be '
+                                         'trained several times for reaching higher accuracy.',
+                                         className='double_training_warning'),
                                 html.Span('Activity to optimize'),
                                 dcc.Dropdown(id=self.IDs.ACT_TO_OPTIMIZE_DROPDOWN, className='dropdown_select_column'),
                                 html.Div(className='error_box', id=self.ERROR_IDs.ACT_TO_OPTIMIZE_DROPDOWN),

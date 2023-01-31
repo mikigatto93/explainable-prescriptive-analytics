@@ -17,15 +17,6 @@ class Router(Presenter):
 
     def register_callbacks(self):
 
-        # app.clientside_callback(
-        #     ClientsideFunction(
-        #         namespace='clientside',
-        #         function_name='set_client_id'
-        #     ),
-        #     Output(self.views['base'].IDs.USER_ID, 'data'),
-        #     Input(self.views['base'].IDs.LOCATION_URL, 'pathname')
-        # )
-
         @app.callback([Output(self.views['base'].IDs.GO_NEXT_LINK, 'href'),
                        Output(self.views['base'].IDs.GO_BACK_LINK, 'href')],
                       State(self.views['base'].IDs.LOCATION_URL, 'pathname'),

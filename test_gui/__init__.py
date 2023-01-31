@@ -30,7 +30,7 @@ def startup_gui():
     run_pres_ = RunPresenter({
         'base': base_view,
         'run': run_view,
-    }, prog_logger_file_name='temp_to_del')
+    })
 
     app.layout = base_view.get_layout()
 
@@ -44,5 +44,6 @@ router, run_pres = startup_gui()
 
 callbacks_list = list(app.blueprint.callbacks)
 CALLBACKS = {}
+
 for callback in callbacks_list:
     CALLBACKS[callback.f.__name__] = callback.f

@@ -1,8 +1,10 @@
 import json
 import os
+import traceback
 import uuid
 import diskcache
 import dash
+import pandas as pd
 
 from app import app
 from dash_extensions.enrich import Input, Output, State
@@ -54,7 +56,8 @@ class RunPresenter(Presenter):
 
         @app.callback(
             output=[Output(self.views['run'].IDs.FADE_GENERATE_PREDS_BTN, 'is_in'),
-                    Output(self.views['run'].IDs.PROC_RUN_OUT_FADE, 'is_in')],
+                    Output(self.views['run'].IDs.PROC_RUN_OUT_FADE, 'is_in'),
+                    Output(self.views['run'].ERROR_IDs.LOAD_RUN_FILE_BTN, 'children')],
             inputs=[State(self.views['base'].IDs.RUN_FILE_PATH_STORE, 'data'),
                     State(self.views['base'].IDs.USER_ID, 'data'),
                     Input(self.views['run'].IDs.LOAD_RUN_FILE_BTN, 'n_clicks')],
@@ -69,13 +72,13 @@ class RunPresenter(Presenter):
             if n_clicks > 0:
                 try:
                     self.data_sources[user_id] = RunDataSource(run_file_path).to_dict(user_id)
-                except Exception as e:
-                    print(e)
-                    return [False, False]
+                except (pd.errors.ParserError, pd.errors.EmptyDataError, ValueError) as e:
+                    print(traceback.format_exc())
+                    return [False, False, '{}: {}'.format(type(e).__name__, e)]
 
-                return [True, True]
+                return [True, True, '']
             else:
-                return [dash.no_update, dash.no_update]
+                return [dash.no_update, dash.no_update, dash.no_update]
 
         @app.callback(
             output=[Output(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
@@ -102,14 +105,17 @@ class RunPresenter(Presenter):
                 #      "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
                 #      "pred_column": "remaining_time"})
 
-                # self.recommenders[user_id] = Recommender(ex_info, self.data_sources[user_id])
                 recommender = Recommender(ex_info,
                                           build_RunDataSource_from_dict(self.data_sources[user_id], load_df=True))
                 progress_logger = RunProgLogger(str(uuid.uuid4()))
                 self.progress_loggers[user_id] = progress_logger.to_dict()
 
                 progress_logger.add_to_stack('Preparing dataset...')
-                recommender.prepare_dataset()
+                try:
+                    recommender.prepare_dataset()
+                except (pd.errors.ParserError, pd.errors.EmptyDataError, ValueError) as e:
+                    print(traceback.format_exc())
+                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}]
 
                 progress_logger.add_to_stack('Starting recommendations generation...')
                 recommender.generate_recommendations(progress_logger)

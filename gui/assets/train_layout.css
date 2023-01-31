@@ -101,6 +101,11 @@
 	margin-bottom: 0.2em;
 }
 
+.double_training_warning {
+	font-size: 0.8em;
+	margin-bottom: 1em;
+}
+
 #next_select_phase_train_btn {
 	max-width: 10em;
 	margin-left: 30%;

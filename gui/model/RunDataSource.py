@@ -19,19 +19,17 @@ class RunDataSource(DataSource):
     def read_data(self, path):
         dataframe = None
         filename, file_extension = os.path.splitext(path)
-        try:
-            if file_extension == '.csv':
-                dataframe = pd.read_csv(path)
-            elif file_extension == '.xes':
-                # pm4py.convert_to_dataframe(pm4py.read_xes(io.BytesIO(decoded))).to_csv(path_or_buf=(filename[:-4] +
-                # '.csv'),index=None)
-                log = pm4py.read_xes(path)
-                dataframe = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
-            elif file_extension == '.xls':
-                dataframe = pd.read_excel(path)
-        except Exception as e:
-            print(e)
-            raise e
+
+        if file_extension == '.csv':
+            dataframe = pd.read_csv(path)
+        elif file_extension == '.xes':
+            # pm4py.convert_to_dataframe(pm4py.read_xes(io.BytesIO(decoded))).to_csv(path_or_buf=(filename[:-4] +
+            # '.csv'),index=None)
+            log = pm4py.read_xes(path)
+            dataframe = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
+        elif file_extension == '.xls':
+            dataframe = pd.read_excel(path)
+
         return dataframe
 
     def convert_datetime_to_seconds(self, start_time_col, date_format='%Y-%m-%d %H:%M:%S'):

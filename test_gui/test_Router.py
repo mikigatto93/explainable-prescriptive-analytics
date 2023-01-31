@@ -1,3 +1,8 @@
+import datetime
+
+import dash
+import pytest
+
 from gui.views.BaseView import IDs as baseIDs
 
 from unittest.mock import patch, PropertyMock, MagicMock
@@ -5,6 +10,8 @@ from unittest.mock import patch, PropertyMock, MagicMock
 from test_gui import router, CALLBACKS
 
 from test_gui.tutils import PropertyMocker, mock_dash_context
+from freezegun import freeze_time
+from app import USERS
 
 
 def test_update_links():
@@ -61,3 +68,16 @@ def test_disable_unreachable_links():
 
 def test_disable_link_arrows_custom():
     assert 1 == 1
+
+
+@freeze_time('2023-01-30')
+def test_send_keep_alive_signal():
+    user_id = '123456789'
+
+    with pytest.raises(dash.exceptions.PreventUpdate), patch('gui.presenters.Router.USERS', {}):
+        CALLBACKS['send_keep_alive_signal'](user_id, 0)
+        assert user_id not in USERS
+
+    with patch('gui.presenters.Router.USERS', {}):
+        CALLBACKS['send_keep_alive_signal'](user_id, 1)
+        assert USERS[user_id] == '2023-01-30 00:00:00+00:00'

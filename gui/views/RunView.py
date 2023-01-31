@@ -21,10 +21,16 @@ class _IDs(StrEnum):
     LOAD_RUN_FILE_BTN = 'load_run_btn',
 
 
+class _ERROR_IDs(StrEnum):
+    GENERATE_PREDS_BTN = 'gen_preds_btn_error',
+    LOAD_RUN_FILE_BTN = 'load_run_btn_error',
+
+
 class RunView(View):
     def __init__(self, pathname='', order=-1):
         super().__init__(pathname, order)
         self.IDs = _IDs
+        self.ERROR_IDs = _ERROR_IDs
 
     def get_layout(self):
         return html.Div([
@@ -38,7 +44,8 @@ class RunView(View):
                             html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.LOAD_RUN_SPINNER,
                                                style={'display': 'none'}, width=18, height=18, className='spinner_img'),
                                       html.Span('Load file')], className='button_spinner_cont'),
-                            n_clicks=0, id=self.IDs.LOAD_RUN_FILE_BTN, className='general_btn_layout')
+                            n_clicks=0, id=self.IDs.LOAD_RUN_FILE_BTN, className='general_btn_layout'),
+                        html.Div(className='error_box', id=self.ERROR_IDs.LOAD_RUN_FILE_BTN),
                     ],
                     is_in=False, appear=False, id=self.IDs.LOAD_RUN_FILE_BTN_FADE),
 
@@ -49,6 +56,7 @@ class RunView(View):
                                   html.Span('Generate Predictions')], className='button_spinner_cont'),
                         n_clicks=0, id=self.IDs.GENERATE_PREDS_BTN,
                         className='general_btn_layout'),
+                    html.Div(className='error_box', id=self.ERROR_IDs.GENERATE_PREDS_BTN),
                 ], is_in=False, appear=False, id=self.IDs.FADE_GENERATE_PREDS_BTN),
             ], className='run_btns_cont'),
             dbc.Fade([html.Div(id=self.IDs.TEMP_RUNNING_OUTPUT),

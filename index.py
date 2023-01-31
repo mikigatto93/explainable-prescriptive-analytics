@@ -64,10 +64,17 @@ def check_timestamps():
         for u in USERS:
             client_last_ts = datetime.datetime.fromisoformat(u.content)
             if (server_now_ts - client_last_ts).total_seconds() > CONFIG['MAX_KEEP_ALIVE_SEC_TIME_DIFFERENCE']:
+                print('--------------------------------------------------')
+                print('user: {}, server: {}, client: {}, diff: {}'.format(
+                    u.key, server_now_ts,
+                    client_last_ts,
+                    (server_now_ts - client_last_ts).total_seconds())
+                )
                 train_pres.clear_user_data(u.key)
                 run_pres.clear_user_data(u.key)
                 explain_pres.clear_user_data(u.key)
                 USERS.delete(u.key)
+                print('--------------------------------------------------')
         time.sleep(CONFIG['CLEAR_DATA_SERVER_SEC_INTERVAL'])
 
 
