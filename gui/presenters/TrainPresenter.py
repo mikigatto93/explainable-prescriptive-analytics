@@ -56,7 +56,7 @@ class TrainPresenter(Presenter):
             self.progress_loggers.delete(user_id)
             print('deleted prog logger')
 
-    def __validate_input(self, dict_values):
+    def validate_input(self, dict_values):
         # dict_values = { ex_name, kpi, id, timestamp, activity, act_to_opt }
         error_data = {}
         if 'ex_name' in dict_values and dict_values['ex_name'] is None:
@@ -319,9 +319,9 @@ class TrainPresenter(Presenter):
                       prevent_initial_call=True)
         def go_2nd_phase_train_option_selection(_id, timestamp, activity, resource, user_id, n_clicks):
             if n_clicks > 0:
-                error_data = self.__validate_input({'id': _id,
-                                                    'timestamp': timestamp,
-                                                    'activity': activity})
+                error_data = self.validate_input({'id': _id,
+                                                  'timestamp': timestamp,
+                                                  'activity': activity})
                 if not error_data:
                     act_list = build_TrainDataSource_from_dict(
                         self.data_sources[user_id], load_df=True
@@ -377,12 +377,12 @@ class TrainPresenter(Presenter):
         def collect_training_user_data(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs, user_id,
                                        n_clicks):
             if n_clicks > 0:
-                error_data = self.__validate_input({'ex_name': ex_name,
-                                                    'kpi': kpi,
-                                                    'id': _id,
-                                                    'timestamp': timestamp,
-                                                    'activity': activity,
-                                                    'act_to_opt': act_to_opt})
+                error_data = self.validate_input({'ex_name': ex_name,
+                                                  'kpi': kpi,
+                                                  'id': _id,
+                                                  'timestamp': timestamp,
+                                                  'activity': activity,
+                                                  'act_to_opt': act_to_opt})
                 if not error_data:
                     experiment_info = Experiment(ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs,
                                                  datetime.datetime.now(
@@ -441,7 +441,7 @@ class TrainPresenter(Presenter):
 
                 return ['Training completed', {'display': 'none'}, True]
             else:
-                raise [dash.no_update] * 3
+                return [dash.no_update] * 3
 
         @app.callback(Output(self.views['base'].IDs.DOWNLOAD_TRAIN, 'data'),
                       State(self.views['base'].IDs.USER_ID, 'data'),
