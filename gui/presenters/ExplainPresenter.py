@@ -53,7 +53,7 @@ class ExplainPresenter(Presenter):
             self.kpis_dfs.delete(user_id)
             print('deleted kpis df')
 
-    def __create_pred_graph(self, user_id):
+    def create_pred_graph(self, user_id):
         pred_graph_progression_data = self.pred_graph_progression_data[user_id]
         kpis_df = pd.read_parquet(self.kpis_dfs[user_id])
         df_slice = kpis_df[
@@ -106,7 +106,7 @@ class ExplainPresenter(Presenter):
 
         return fig
 
-    def __create_explanation_graph(self, gt, expl, qnt):
+    def create_explanation_graph(self, gt, expl, qnt):
         gt_slice = gt[slice(0, qnt)]
         expl_slice = expl[slice(0, qnt)]
         fig = go.Figure()
@@ -196,38 +196,6 @@ class ExplainPresenter(Presenter):
                     kpis_df_temp.to_parquet(kpi_df_path)
                     self.kpis_dfs[user_id] = kpi_df_path
 
-                    # print(kpis_dict)
-                    # print(kpis_df_temp)
-                    # print('----------------------------')
-                    #
-                    # import datetime
-                    # t1 = datetime.datetime.now()
-                    # kpis_df_temp.to_parquet(os.path.join(os.getcwd(), 'test.prq'))
-                    # t2 = datetime.datetime.now()
-                    # print('parq w: {}'.format(t2-t1))
-                    #
-                    # t1 = datetime.datetime.now()
-                    # kpis_df_temp.reset_index(inplace=True)
-                    # kpis_df_temp.to_feather(os.path.join(os.getcwd(), 'test.ftr'))
-                    # t2 = datetime.datetime.now()
-                    # print('feath w: {}'.format(t2 - t1))
-                    #
-                    # t1 = datetime.datetime.now()
-                    # df = pd.read_parquet(os.path.join(os.getcwd(), 'test.prq'))
-                    # t2 = datetime.datetime.now()
-                    # print('parq r: {}'.format(t2-t1))
-                    # print('-------------------------')
-                    # print(df)
-                    # print('#################################')
-                    #
-                    # t1 = datetime.datetime.now()
-                    # #kpis_df_temp.reset_index(inplace=True)
-                    # df = pd.read_feather(os.path.join(os.getcwd(), 'test.ftr'))
-                    # t2 = datetime.datetime.now()
-                    # print('feath r: {}'.format(t2 - t1))
-                    # print('-------------------------')
-                    # print(df)
-
                     # # TODO: TEST THIS "ORDERING" FUNCTION
                     # mask = kpis_df_temp['Current Value'] > kpis_df_temp['Following recommendation']
                     # kpis_df1 = kpis_df_temp[mask]  # current > following
@@ -246,7 +214,7 @@ class ExplainPresenter(Presenter):
 
                     self.pred_graph_progression_data[user_id] = 0
 
-                    return [self.__create_pred_graph(user_id),
+                    return [self.create_pred_graph(user_id),
                             '{}/{}'.format(1, math.ceil(kpi_df_length / self.REC_PER_PAGE))]
 
                 else:
@@ -275,7 +243,7 @@ class ExplainPresenter(Presenter):
                 self.pred_graph_progression_data[user_id] = new_pred_graph_progression_data
                 max_page = math.ceil(self.kpis_dfs_lengths[user_id] / self.REC_PER_PAGE)
                 return [
-                    self.__create_pred_graph(user_id),
+                    self.create_pred_graph(user_id),
                     '{}/{}'.format(new_pred_graph_progression_data + 1, max_page),
                     new_pred_graph_progression_data == (max_page - 1),
                     False,
@@ -287,7 +255,7 @@ class ExplainPresenter(Presenter):
                 new_pred_graph_progression_data -= 1
                 self.pred_graph_progression_data[user_id] = new_pred_graph_progression_data
                 return [
-                    self.__create_pred_graph(user_id),
+                    self.create_pred_graph(user_id),
                     '{}/{}'.format(new_pred_graph_progression_data + 1,
                                    math.ceil(self.kpis_dfs_lengths[user_id] / self.REC_PER_PAGE)),
                     False,
@@ -301,7 +269,7 @@ class ExplainPresenter(Presenter):
                     page_value_sel = int(max(1, min(page_value_sel, max_page)))
                     self.pred_graph_progression_data[user_id] = page_value_sel - 1
                     return [
-                        self.__create_pred_graph(user_id),
+                        self.create_pred_graph(user_id),
                         '{}/{}'.format(page_value_sel,
                                        math.ceil(self.kpis_dfs_lengths[user_id] / self.REC_PER_PAGE)),
                         (page_value_sel - 1) == (max_page - 1),
@@ -335,7 +303,6 @@ class ExplainPresenter(Presenter):
                        Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
                       prevent_initial_call=True)
         def show_preds_text_format(input_value, user_id, click_data, n_clicks):
-            DEFAULT_EXPL_QNT = 4
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
             search_btn_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN
@@ -350,7 +317,11 @@ class ExplainPresenter(Presenter):
                         trace_id = input_value
                     else:
                         error_data[self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT] = \
-                            'The trace selected does not exists'
+                            'The trace inserted does not exists'
+                elif search_btn_clicked and input_value == '':
+                    error_data[self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT] = \
+                        'No trace inserted'
+
                 if not error_data:
                     pred_info = explainer.get_best_n_scores_by_trace(trace_id, 3)
 
@@ -371,7 +342,7 @@ class ExplainPresenter(Presenter):
                         CSS_BASE_ROW_CLASS_NAME,
                         trace_id,
                         True,
-                        DEFAULT_EXPL_QNT,
+                        self.DEFAULT_EXPL_QNT,
                         False,
                         False,
                         error_data
@@ -433,7 +404,7 @@ class ExplainPresenter(Presenter):
                       'trace: {}, activity: {}'.format(trace_id, act_to_explain))
 
                 gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                return class_list_to_return + [self.__create_explanation_graph(gt, expl, self.DEFAULT_EXPL_QNT),
+                return class_list_to_return + [self.create_explanation_graph(gt, expl, self.DEFAULT_EXPL_QNT),
                                                False, True]
             else:
                 print('Not found shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
@@ -451,7 +422,7 @@ class ExplainPresenter(Presenter):
                     self.explainers[user_id]
                 ).generate_explanations_dataframe(trace_id, act_to_explain)
                 if gt is not None and expl is not None:
-                    return self.__create_explanation_graph(gt, expl, int(value))
+                    return self.create_explanation_graph(gt, expl, int(value))
                 else:
                     raise dash.exceptions.PreventUpdate
             else:
@@ -484,14 +455,14 @@ class ExplainPresenter(Presenter):
                     # act_to_explain = 'Resolved'
                     # time.sleep(5)
                     gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                    return [self.__create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
+                    return [self.create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
                             False, True]
                 else:
                     # print('Explanations found, visualizing shap values for '
                     #       'trace: {}, activity: {}'.format(trace_id, act_to_explain))
                     #
                     # gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                    # return self.__create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT)
+                    # return self.create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT)
                     return [dash.no_update] * 3
             else:
                 return [dash.no_update] * 3
