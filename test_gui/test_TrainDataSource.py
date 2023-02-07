@@ -138,26 +138,14 @@ def test_to_dict(datasource):
 
 
 def test_convert_datetime_to_seconds(datasource):
-    # TODO: DA CORREGGERE
-    pass
-    # datasource['csv'].convert_datetime_to_seconds('START_DATE')
-    # assert datasource['csv'].data.dtypes['START_DATE'] == 'float64'
+    datasource['csv'].convert_datetime_to_seconds('START_DATE')
+    assert datasource['csv'].data.dtypes['START_DATE'] == 'int64'
 
-    # datasource['xls'].convert_datetime_to_seconds('Change_Date+Time')
-    # assert datasource['xls'].data.dtypes['Change_Date+Time'] == 'float64'
-    #
-    # datasource['xes'].convert_datetime_to_seconds('time:timestamp')
-    # assert datasource['xes'].data.dtypes['time:timestamp'] == 'float64'
+    datasource['xls'].convert_datetime_to_seconds('Change_Date+Time')
+    assert datasource['xls'].data.dtypes['Change_Date+Time'] == 'float64'
 
-    # obj = TrainDataSource(dict_obj['file_path'], False)
-    #
-    # obj.is_xes = dict_obj['is_xes']
-    # obj.xes_columns_names = dict_obj['xes_columns_names']
-    # obj.columns_list = dict_obj['columns_list']
-    # if load_df:
-    #     obj.data = pd.read_csv(dict_obj['data'])
-    # return obj
-
+    datasource['xes'].convert_datetime_to_seconds('time:timestamp')
+    assert datasource['xes'].data.dtypes['time:timestamp'] == 'float64'
 
 def test_build_TrainDataSource_from_dict():
     dict_obj = {'columns_list': ['Unnamed: 0',

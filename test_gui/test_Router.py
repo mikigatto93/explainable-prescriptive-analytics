@@ -67,7 +67,7 @@ def test_disable_unreachable_links():
 
 
 def test_disable_link_arrows_custom():
-    assert 1 == 1
+    assert 1
 
 
 @freeze_time('2023-01-30')

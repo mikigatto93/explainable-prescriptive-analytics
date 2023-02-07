@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import pm4py
+from pandas.errors import ParserError
 
 from pm4py.objects.conversion.log import converter as log_converter
 
@@ -36,9 +37,17 @@ class RunDataSource(DataSource):
         return dataframe
 
     def convert_datetime_to_seconds(self, start_time_col, date_format='%Y-%m-%d %H:%M:%S'):
-        if not np.issubdtype(self.data[start_time_col], np.number):
-            self.data[start_time_col] = pd.to_datetime(self.data[start_time_col], format=date_format)
-            self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
+        if not pd.api.types.is_numeric_dtype(self.data[start_time_col]):
+            try:
+                self.data[start_time_col] = pd.to_datetime(self.data[start_time_col], format=date_format, utc=True)
+                self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
+            except ParserError as pe:
+                raise pe
+            except ValueError as ve:
+                raise ve
+        # if not np.issubdtype(self.data[start_time_col], np.number):
+        #     self.data[start_time_col] = pd.to_datetime(self.data[start_time_col], format=date_format)
+        #     self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
 
     def remove_unnamed_columns(self):
         for i in self.columns_list:

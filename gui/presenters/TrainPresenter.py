@@ -104,14 +104,15 @@ class TrainPresenter(Presenter):
             else:
                 raise dash.exceptions.PreventUpdate
 
-        @app.callback(Output(self.views['base'].IDs.ARROW_CONTROLLER_STORE, 'data'),
-                      Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
-        def disable_go_next_page_at_start(url):
-            if url == self.views['train'].pathname:
-                return {'go_next_disabled_status': True,
-                        'go_back_disabled_status': 'no_update'}
-            else:
-                raise dash.exceptions.PreventUpdate
+        # @app.callback(Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
+        #               Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
+        # def disable_go_next_page_at_start_train(url):
+        #     if url == self.views['train'].pathname:
+        #         return True
+        #         # return {'go_next_disabled_status': True,
+        #         #         'go_back_disabled_status': False}
+        #     else:
+        #         raise dash.exceptions.PreventUpdate
 
         @app.callback(Output(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'options'),
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
@@ -140,8 +141,8 @@ class TrainPresenter(Presenter):
                 raise dash.exceptions.PreventUpdate
 
         @app.callback(Output(self.views['train'].IDs.LOAD_MODEL_BTN, 'disabled'),
-                      [Input(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'options'),
-                       Input(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value')])
+                      State(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'options'),
+                      Input(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value'))
         def disable_load_model_btn(options, value):
             return not options or not value  # disable if options == [] or value == '', else enable it
 
@@ -177,10 +178,17 @@ class TrainPresenter(Presenter):
                        Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'),
                        # btns
                        Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
-                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled')],
+                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                       # GO NEXT BTN
+                       Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
+                       # CONTROLS DISABLED
+                       Output(self.views['train'].IDs.TRAIN_FILE_UPLOADER, 'disabled'),
+                       Output(self.views['train'].IDs.LOAD_MODEL_BTN, 'disabled'),
+                       Output(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'disabled')],
                       [State(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'value'),
                        State(self.views['base'].IDs.USER_ID, 'data')],
-                      Input(self.views['train'].IDs.LOAD_MODEL_BTN, 'n_clicks'))
+                      Input(self.views['train'].IDs.LOAD_MODEL_BTN, 'n_clicks'),
+                      prevent_initial_call=True)
         def load_trained_model_data(ex_folder_path, user_id, n_clicks):
             if n_clicks > 0:
                 ex_info_data = IOManager.read(os.path.join(ex_folder_path, 'experiment_info.json'))
@@ -215,22 +223,23 @@ class TrainPresenter(Presenter):
                         ex_info.activity, ex_info.resource, act_to_opt_data, ex_info.out_thrs] + \
                        [kpi_options, [ex_info.id], [ex_info.timestamp], [ex_info.activity], resource_dropdown_options,
                         act_to_opt_options, True, True, True, True, True, True, True, True, show_act_to_opt_dropdown,
-                        False, True, True, True, True]
+                        False, True, True, True, True, False, True, True, True]
             else:
-                return [dash.no_update] * 29
+                return [dash.no_update] * 33
 
         @du.callback(
             output=[Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN_FADE, 'is_in'),
-                    Output(self.views['base'].IDs.TRAIN_FILE_PATH_STORE, 'data')],
+                    Output(self.views['base'].IDs.TRAIN_FILE_PATH_STORE, 'data'),
+                    Output(self.views['train'].IDs.LOAD_MODEL_BTN, 'disabled')],
             id=self.views['train'].IDs.TRAIN_FILE_UPLOADER
         )
         def on_train_file_upload_complete(status):
             print(status)
             print('Upload train file completed')
             if status.is_completed:
-                return [True, str(status.latest_file)]
+                return [True, str(status.latest_file), True]
             else:
-                return [False, dash.no_update]
+                return [False, dash.no_update, dash.no_update]
 
         @app.callback(
             output=[Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data'),
@@ -253,6 +262,9 @@ class TrainPresenter(Presenter):
                     Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
                     Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
                     Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                    Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'disabled'),
+                    Output(self.views['train'].IDs.LOAD_MODEL_BTN, 'disabled'),
+                    Output(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'disabled'),
 
                     Output(self.views['train'].IDs.FADE_KPI_RADIO_ITEMS, 'is_in'),
                     Output(self.views['train'].IDs.FADE_ALL_TRAIN_CONTROLS, 'is_in')],
@@ -276,7 +288,7 @@ class TrainPresenter(Presenter):
                 except (pd.errors.ParserError, pd.errors.EmptyDataError, ValueError) as e:
                     print(traceback.format_exc())
                     error_data[self.views['train'].IDs.LOAD_TRAIN_FILE_BTN] = '{}: {}'.format(type(e).__name__, e)
-                    return [error_data] + [dash.no_update] * 17 + [False]
+                    return [error_data] + [dash.no_update] * 20 + [False]
 
                 self.data_sources[user_id] = train_data_source.to_dict(user_id)
                 options_group = train_data_source.columns_list
@@ -288,13 +300,14 @@ class TrainPresenter(Presenter):
                             DEFAULT_OUTLIER_THRS] + [xes_cols_data['id'],
                                                      xes_cols_data['timestamp'],
                                                      xes_cols_data['activity'],
-                                                     xes_cols_data['resource'], ] + [True] * 8
+                                                     xes_cols_data['resource'], ] + [True] * 11
                 else:
                     return [error_data] + [options_group] * 4 + \
-                           [dash.no_update, DEFAULT_OUTLIER_THRS] + [dash.no_update] * 11 + [True]
+                           [dash.no_update, DEFAULT_OUTLIER_THRS] + [dash.no_update] * 10 + \
+                           [True, True, True, dash.no_update, True]
 
             else:
-                return [dash.no_update] * 18 + [False]
+                return [dash.no_update] * 21 + [False]
 
         @app.callback(Output(self.views['train'].IDs.FADE_ACT_TO_OPTIMIZE_DROPDOWN, 'is_in'),
                       Input(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
@@ -365,7 +378,19 @@ class TrainPresenter(Presenter):
         @app.callback([Output(self.views['base'].IDs.START_TRAINING_CONTROLLER, 'data'),
                        Output(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                        Output(self.views['train'].IDs.PROC_TRAIN_OUT_FADE, 'is_in'),
-                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data')],
+                       Output(self.views['base'].IDs.ERRORS_MANAGER_STORE_TRAIN, 'data'),
+                       # READ-ONLY props
+                       Output(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'readOnly'),
+                       Output(self.views['train'].IDs.ID_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.TIMESTAMP_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.ACTIVITY_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.RESOURCE_NAME_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.ACT_TO_OPTIMIZE_DROPDOWN, 'disabled'),
+                       Output(self.views['train'].IDs.OUTLIERS_THRS_SLIDER, 'disabled'),
+                       # btns
+                       Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                       Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
+                      ],
                       [State(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'value'),
                        State(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
                        State(self.views['train'].IDs.ID_DROPDOWN, 'value'),
@@ -397,16 +422,18 @@ class TrainPresenter(Presenter):
                     trainer.write_experiment_info()
 
                     self.progress_loggers[user_id] = TrainProgLogger(str(uuid.uuid4())).to_dict()
-                    return [True, json.dumps(experiment_info.to_dict()), True, error_data]
+                    return [True, json.dumps(experiment_info.to_dict()), True, error_data] + [True] * 9
                 else:
-                    return [dash.no_update, dash.no_update, dash.no_update, error_data]
+                    return [dash.no_update, dash.no_update, dash.no_update, error_data] + [dash.no_update] * 9
             else:
-                return [dash.no_update] * 4
+                return [dash.no_update] * 13
 
         @app.callback(
             output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
                     Output(self.views['train'].IDs.SHOW_PROCESS_TRAINING_OUTPUT, 'style'),
-                    Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in')],
+                    Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'),
+                    Output(self.views['train'].IDs.START_TRAINING_BTN, 'disabled'),
+                    Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled')],
             inputs=[Input(self.views['base'].IDs.START_TRAINING_CONTROLLER, 'data'),
                     State(self.views['base'].IDs.USER_ID, 'data')],
             background=True,
@@ -416,6 +443,7 @@ class TrainPresenter(Presenter):
                  {'display': 'inline'}, {'display': 'none'}),
                 # (Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'), False, True),
                 (Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL_TRAIN, 'max_intervals'), -1, 0),
+                (Output(self.views['train'].IDs.START_TRAINING_BTN, 'disabled'), True, False)
             ]
         )
         def train_model(start_cont_store, user_id):
@@ -429,7 +457,8 @@ class TrainPresenter(Presenter):
                 try:
                     trainer.prepare_dataset()
                 except (pd.errors.ParserError, ValueError) as e:
-                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}, False]
+                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}, False, False,
+                            True]
 
                 progress_logger.add_to_stack('Starting training...')
                 trainer.train(progress_logger)
@@ -442,9 +471,9 @@ class TrainPresenter(Presenter):
 
                 progress_logger.clear_stack()
 
-                return ['Training completed', {'display': 'none'}, True]
+                return ['Training completed', {'display': 'none'}, True, True, False]
             else:
-                return [dash.no_update] * 3
+                return [dash.no_update] * 5
 
         @app.callback(Output(self.views['base'].IDs.DOWNLOAD_TRAIN, 'data'),
                       State(self.views['base'].IDs.USER_ID, 'data'),

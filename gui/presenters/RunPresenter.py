@@ -5,6 +5,7 @@ import uuid
 import diskcache
 import dash
 import pandas as pd
+from dash import ClientsideFunction
 
 from app import app
 from dash_extensions.enrich import Input, Output, State
@@ -54,10 +55,20 @@ class RunPresenter(Presenter):
             else:
                 return [False, dash.no_update]
 
+        # @app.callback(Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
+        #               Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
+        # def disable_go_next_page_at_start_run(url):
+        #     if url == self.views['run'].pathname:
+        #         print('ok')
+        #         return True
+        #     else:
+        #         raise dash.exceptions.PreventUpdate
+
         @app.callback(
             output=[Output(self.views['run'].IDs.FADE_GENERATE_PREDS_BTN, 'is_in'),
                     Output(self.views['run'].IDs.PROC_RUN_OUT_FADE, 'is_in'),
-                    Output(self.views['run'].ERROR_IDs.LOAD_RUN_FILE_BTN, 'children')],
+                    Output(self.views['run'].ERROR_IDs.LOAD_RUN_FILE_BTN, 'children'),
+                    Output(self.views['run'].IDs.LOAD_RUN_FILE_BTN, 'disabled')],
             inputs=[State(self.views['base'].IDs.RUN_FILE_PATH_STORE, 'data'),
                     State(self.views['base'].IDs.USER_ID, 'data'),
                     Input(self.views['run'].IDs.LOAD_RUN_FILE_BTN, 'n_clicks')],
@@ -74,15 +85,16 @@ class RunPresenter(Presenter):
                     self.data_sources[user_id] = RunDataSource(run_file_path).to_dict(user_id)
                 except (pd.errors.ParserError, pd.errors.EmptyDataError, ValueError) as e:
                     print(traceback.format_exc())
-                    return [False, False, '{}: {}'.format(type(e).__name__, e)]
+                    return [False, False, '{}: {}'.format(type(e).__name__, e), False]
 
-                return [True, True, '']
+                return [True, True, '', True]
             else:
-                return [dash.no_update, dash.no_update, dash.no_update]
+                return [dash.no_update] * 4
 
         @app.callback(
             output=[Output(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
-                    Output(self.views['run'].IDs.SHOW_PROCESS_RUNNING_OUTPUT, 'style')],
+                    Output(self.views['run'].IDs.SHOW_PROCESS_RUNNING_OUTPUT, 'style'),
+                    Output(self.views['run'].IDs.GENERATE_PREDS_BTN, 'disabled')],
             inputs=[State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
                     State(self.views['base'].IDs.USER_ID, 'data'),
                     Input(self.views['run'].IDs.GENERATE_PREDS_BTN, 'n_clicks')],
@@ -92,6 +104,7 @@ class RunPresenter(Presenter):
                 (Output(self.views['run'].IDs.RUN_SPINNER, 'style'),
                  {'display': 'inline'}, {'display': 'none'}),
                 (Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'), -1, 0),
+                (Output(self.views['run'].IDs.GENERATE_PREDS_BTN, 'disabled'), True, False),
             ]
         )
         def generate_predictions(ex_info_data, user_id, n_clicks):
@@ -115,15 +128,24 @@ class RunPresenter(Presenter):
                     recommender.prepare_dataset()
                 except (pd.errors.ParserError, pd.errors.EmptyDataError, ValueError) as e:
                     print(traceback.format_exc())
-                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}]
+                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}, False, True]
 
                 progress_logger.add_to_stack('Starting recommendations generation...')
                 recommender.generate_recommendations(progress_logger)
                 progress_logger.clear_stack()
 
-                return ['Recommendations generation completed', {'display': 'none'}]
+                return ['Recommendations generation completed', {'display': 'none'}, True, False]
             else:
-                return [dash.no_update, dash.no_update, dash.no_update]
+                return [dash.no_update] * 4
+
+        @app.callback(Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
+                      Input(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
+                      prevent_initial_call=True)
+        def activate_go_next_arrow_run(children):
+            if children == 'Recommendations generation completed':
+                return True
+            else:
+                raise dash.exceptions.PreventUpdate
 
         @app.callback(Output(self.views['run'].IDs.SHOW_PROCESS_RUNNING_OUTPUT, 'children'),
                       State(self.views['base'].IDs.USER_ID, 'data'),
@@ -143,4 +165,3 @@ class RunPresenter(Presenter):
                     raise dash.exceptions.PreventUpdate
             else:
                 raise dash.exceptions.PreventUpdate
-

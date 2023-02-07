@@ -56,11 +56,11 @@ class TrainDataSource(DataSource):
 
     def convert_datetime_to_seconds(self, start_time_col, date_format='%Y-%m-%d %H:%M:%S'):
 
-        if not np.issubdtype(self.data[start_time_col], np.number):
+        # if not np.issubdtype(self.data[start_time_col], np.number):
+        if not pd.api.types.is_numeric_dtype(self.data[start_time_col]):
             try:
                 self.data[start_time_col] = pd.to_datetime(self.data[start_time_col], format=date_format, utc=True)
                 self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
-                return self.data
             except ParserError as pe:
                 raise pe
             except ValueError as ve:

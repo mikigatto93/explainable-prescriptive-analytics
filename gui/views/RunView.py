@@ -43,7 +43,7 @@ class RunView(View):
                         html.Button(
                             html.Div([html.Img(src=app.get_asset_url('spinner-white.gif'), id=self.IDs.LOAD_RUN_SPINNER,
                                                style={'display': 'none'}, width=18, height=18, className='spinner_img'),
-                                      html.Span('Load file')], className='button_spinner_cont'),
+                                      html.Span('Process file')], className='button_spinner_cont'),
                             n_clicks=0, id=self.IDs.LOAD_RUN_FILE_BTN, className='general_btn_layout'),
                         html.Div(className='error_box', id=self.ERROR_IDs.LOAD_RUN_FILE_BTN),
                     ],
