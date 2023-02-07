@@ -14,4 +14,5 @@ class TrainProgLogger(TimeLogger):
 
 
 def build_TrainProgLogger_from_dict(dict_obj):
-    return TrainProgLogger(os.path.splitext(dict_obj['file_name'])[0])
+    head, _ = os.path.split(dict_obj['file_path'])
+    return TrainProgLogger(os.path.splitext(dict_obj['file_name'])[0], base_path=head)

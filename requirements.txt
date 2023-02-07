@@ -8,8 +8,6 @@ dill==0.3.6
 diskcache==5.4.0
 Flask==2.1.3
 imbalanced-learn==0.10.1
-# Editable install with no version control (ipdb==0.13.9)
--e f:\python\python39\lib\site-packages\ipdb-0.13.9-py3.9.egg-info
 joblib==1.2.0
 matplotlib==3.6.1
 numpy==1.21.6
@@ -23,5 +21,6 @@ shap==0.40.0
 StrEnum==0.4.8
 tqdm==4.64.1
 urllib3==1.26.12
+xlrd==2.0.1
 
 pytest~=7.2.0

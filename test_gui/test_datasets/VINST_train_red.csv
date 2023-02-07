@@ -1,0 +1,302 @@
+SR_Number,Change_Date+Time,Status,ACTIVITY,Involved_ST_Function_Div,Involved_Org_line_3,Involved_ST,SR_Latest_Impact,Product,Country,Owner_Country
+1-364285768,2010-03-31T15:59:42+01:00,Accepted,In Progress,A2_4,Org line A2,V30,Medium,PROD582,fr,France
+1-364285768,2010-03-31T16:00:56+01:00,Accepted,In Progress,A2_4,Org line A2,V30,Medium,PROD582,fr,France
+1-364285768,2010-03-31T16:45:48+01:00,Queued,Awaiting Assignment,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2010-04-06T15:44:07+01:00,Accepted,In Progress,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2010-04-06T15:44:38+01:00,Queued,Awaiting Assignment,A2_4,Org line A2,V30,Medium,PROD582,fr,France
+1-364285768,2010-04-06T15:44:47+01:00,Accepted,In Progress,A2_5,Org line A2,V13 2nd 3rd,Medium,PROD582,fr,France
+1-364285768,2010-04-06T15:44:51+01:00,Completed,Resolved,A2_5,Org line A2,V13 2nd 3rd,Medium,PROD582,fr,France
+1-364285768,2010-04-06T15:45:07+01:00,Queued,Awaiting Assignment,A2_4,Org line A2,V30,Medium,PROD582,fr,France
+1-364285768,2010-04-08T11:52:23+01:00,Accepted,In Progress,A2_4,Org line A2,V30,Medium,PROD582,fr,France
+1-364285768,2010-04-08T11:53:35+01:00,Queued,Awaiting Assignment,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2010-04-20T10:07:11+01:00,Accepted,In Progress,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2010-04-20T10:07:19+01:00,Accepted,Assigned,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2012-04-11T16:11:17+01:00,Accepted,In Progress,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2012-04-11T16:11:25+01:00,Accepted,Assigned,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2012-05-03T10:10:10+01:00,Accepted,In Progress,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2012-05-03T10:10:12+01:00,Completed,Resolved,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,France
+1-364285768,2012-05-11T00:26:15+01:00,Completed,Closed,A2_5,Org line A2,V5 3rd,Medium,PROD582,fr,0
+1-467153946,2011-01-31T11:12:22+01:00,Accepted,In Progress,V3_2,Org line C,S42,Medium,PROD453,se,Sweden
+1-467153946,2011-01-31T11:18:44+01:00,Accepted,In Progress,V3_2,Org line C,S42,Medium,PROD453,se,Sweden
+1-467153946,2011-01-31T11:19:05+01:00,Queued,Awaiting Assignment,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-01-31T12:59:46+01:00,Accepted,In Progress,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-01-31T14:37:55+01:00,Accepted,Wait - User,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-02-03T08:28:58+01:00,Queued,Awaiting Assignment,C_6,Org line C,O3 3rd,Medium,PROD453,se,Sweden
+1-467153946,2011-02-07T12:37:33+01:00,Accepted,In Progress,C_6,Org line C,O3 3rd,Medium,PROD453,se,Sweden
+1-467153946,2011-02-07T12:38:25+01:00,Accepted,Wait - Implementation,C_6,Org line C,O3 3rd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-09T11:08:06+01:00,Accepted,In Progress,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-09T11:27:05+01:00,Accepted,Wait - Implementation,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-10T11:53:10+01:00,Accepted,In Progress,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-10T11:53:22+01:00,Accepted,Assigned,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-10T12:17:22+01:00,Accepted,In Progress,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-10T12:21:51+01:00,Accepted,Wait - User,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-10T14:45:27+01:00,Accepted,Wait,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-14T07:56:20+01:00,Accepted,Assigned,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-14T07:58:01+01:00,Accepted,In Progress,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-03-14T07:58:55+01:00,Accepted,Wait,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-05T16:59:52+01:00,Accepted,In Progress,E_10,Org line C,G140 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-05T17:02:01+01:00,Queued,Awaiting Assignment,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-06T09:32:07+01:00,Accepted,In Progress,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-06T10:47:50+01:00,Accepted,Assigned,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-06T10:48:33+01:00,Accepted,In Progress,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-06T11:08:47+01:00,Accepted,Wait - User,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-07T12:36:47+01:00,Accepted,In Progress,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-07T13:06:06+01:00,Accepted,Wait,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-08T13:10:59+01:00,Accepted,In Progress,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-08T13:17:44+01:00,Accepted,Wait,V3_2,Org line C,N52 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-08T13:20:00+01:00,Queued,Awaiting Assignment,E_10,Org line C,G137 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-04-12T14:16:47+01:00,Accepted,In Progress,E_10,Org line C,G137 2nd,Medium,PROD453,se,Sweden
+1-467153946,2011-08-08T14:28:38+01:00,Accepted,In Progress,V3_2,Org line C,M25,Medium,PROD453,se,Sweden
+1-467153946,2011-09-12T10:22:38+01:00,Accepted,Assigned,V3_2,Org line C,M25,Medium,PROD453,se,Sweden
+1-467153946,2011-11-21T13:52:19+01:00,Accepted,In Progress,V3_2,Org line C,M25,Medium,PROD453,se,Sweden
+1-467153946,2011-11-21T13:52:57+01:00,Accepted,Wait - Implementation,V3_2,Org line C,M25,Medium,PROD453,se,Sweden
+1-467153946,2012-01-25T15:50:41+01:00,Queued,Awaiting Assignment,E_10,Org line C,G142 2nd,Medium,PROD453,se,Sweden
+1-467153946,2012-01-25T15:53:07+01:00,Accepted,In Progress,E_10,Org line C,G142 2nd,Medium,PROD453,se,Sweden
+1-467153946,2012-01-25T15:54:00+01:00,Queued,Awaiting Assignment,V3_2,Org line C,M25,Medium,PROD453,se,Sweden
+1-467153946,2012-05-15T16:56:51+01:00,Accepted,In Progress,V3_2,Org line C,S42,Medium,PROD453,se,Sweden
+1-467153946,2012-05-15T16:57:39+01:00,Completed,Resolved,V3_2,Org line C,S42,Medium,PROD453,se,Sweden
+1-467153946,2012-05-23T00:22:25+01:00,Completed,Closed,V3_2,Org line C,S42,Medium,PROD453,se,0
+1-503573772,2011-02-24T16:17:46+01:00,Accepted,In Progress,A2_1,Org line C,D5,Medium,PROD706,nl,Belgium
+1-503573772,2011-02-24T16:17:52+01:00,Accepted,In Progress,A2_1,Org line C,D5,Medium,PROD706,nl,Belgium
+1-503573772,2011-02-24T16:19:35+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD706,nl,Belgium
+1-503573772,2011-02-28T13:46:38+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2011-02-28T13:47:22+01:00,Queued,Awaiting Assignment,A2_1,Org line C,D5,Medium,PROD706,nl,Netherlands
+1-503573772,2011-02-28T13:48:12+01:00,Accepted,In Progress,A2_1,Org line C,D5,Medium,PROD706,nl,Belgium
+1-503573772,2011-02-28T13:53:24+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD706,nl,Belgium
+1-503573772,2011-05-04T17:07:37+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-02-17T14:49:34+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-03-21T16:21:44+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-03-26T10:55:35+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-03-26T10:57:04+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-04-03T14:29:44+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-04-03T14:29:49+01:00,Accepted,Wait,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-05-04T07:58:20+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-05-04T07:59:39+01:00,Completed,Resolved,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-503573772,2012-05-12T00:21:31+01:00,Completed,Closed,,Org line V7n,V37 2nd,Medium,PROD706,nl,0
+1-504538555,2011-02-28T14:13:33+01:00,Accepted,In Progress,A2_1,Org line C,D2,Medium,PROD706,nl,Belgium
+1-504538555,2011-02-28T14:13:40+01:00,Accepted,In Progress,A2_1,Org line C,D2,Medium,PROD706,nl,Belgium
+1-504538555,2011-02-28T14:17:09+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD706,nl,Belgium
+1-504538555,2011-03-01T15:59:36+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2011-03-01T16:00:16+01:00,Queued,Awaiting Assignment,A2_1,Org line C,D2,Medium,PROD706,nl,Netherlands
+1-504538555,2011-03-01T18:34:25+01:00,Accepted,In Progress,A2_1,Org line C,D2,Medium,PROD706,nl,Belgium
+1-504538555,2011-03-01T18:46:00+01:00,Accepted,Assigned,A2_1,Org line C,D2,Medium,PROD706,nl,Belgium
+1-504538555,2011-03-02T07:42:49+01:00,Accepted,In Progress,A2_1,Org line C,D2,Medium,PROD706,nl,Belgium
+1-504538555,2011-03-02T07:44:11+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD706,nl,Belgium
+1-504538555,2011-05-04T17:08:55+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-03-13T10:53:43+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-03-13T11:11:24+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-03-13T11:27:20+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-04-03T14:59:27+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-04-04T14:53:31+01:00,Accepted,Wait - Implementation,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-04-04T14:54:40+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-05-04T07:55:03+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-05-04T07:57:02+01:00,Completed,Resolved,,Org line V7n,V37 2nd,Medium,PROD706,nl,Netherlands
+1-504538555,2012-05-12T00:21:30+01:00,Completed,Closed,,Org line V7n,V37 2nd,Medium,PROD706,nl,0
+1-506071646,2011-03-07T10:42:08+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T10:44:43+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T10:51:59+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T10:52:51+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T11:48:31+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-07T11:55:20+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-07T12:03:37+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T12:04:35+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T13:22:56+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T13:24:38+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-07T14:13:15+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-07T14:13:58+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-08T06:53:06+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-08T06:55:54+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-08T09:16:24+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-08T09:18:18+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-08T09:20:32+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-08T09:22:46+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-09T07:16:14+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-09T07:17:16+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-09T17:03:41+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-09T17:05:12+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-10T12:29:05+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-10T12:47:33+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-14T10:19:53+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-14T10:28:30+01:00,Accepted,Assigned,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-14T10:28:35+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-14T10:29:13+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-14T10:30:27+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-14T10:37:19+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-15T10:41:17+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-15T10:53:36+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-15T11:00:18+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-15T11:12:52+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-15T11:21:49+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-15T11:23:58+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-15T11:27:28+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-15T11:33:30+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-15T12:38:16+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-15T14:39:01+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-23T10:13:28+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-23T10:13:29+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-23T10:17:21+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-24T10:12:18+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-24T10:13:25+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-24T13:20:10+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-24T13:20:46+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-03-24T17:50:30+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-03-24T17:54:55+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-05-04T17:36:03+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2011-05-23T13:52:07+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-506071646,2011-05-24T14:02:14+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-05-24T16:16:36+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-05-25T15:25:09+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-05-26T13:52:07+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,0
+1-506071646,2011-05-26T15:20:06+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-05-26T15:21:36+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-506071646,2011-05-26T15:21:59+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD542,nl,POLAND
+1-506071646,2011-07-20T14:55:42+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2012-05-04T08:00:07+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2012-05-04T08:01:21+01:00,Completed,Resolved,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-506071646,2012-05-12T00:21:30+01:00,Completed,Closed,,Org line V7n,V37 2nd,Medium,PROD542,nl,0
+1-512795200,2011-04-04T15:51:24+01:00,Accepted,In Progress,V3_2,Org line C,S42,Medium,PROD660,se,Sweden
+1-512795200,2011-04-04T15:52:15+01:00,Accepted,In Progress,V3_2,Org line C,S42,Medium,PROD660,se,Sweden
+1-512795200,2011-04-04T15:58:11+01:00,Queued,Awaiting Assignment,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-04T16:11:27+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-04T16:11:37+01:00,Accepted,Assigned,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-04T16:18:04+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-04T16:24:46+01:00,Accepted,Wait - User,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-08T10:42:53+01:00,Completed,Resolved,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-11T17:53:52+01:00,Accepted,Assigned,V3_2,Org line C,S42,Medium,PROD660,se,Sweden
+1-512795200,2011-04-11T17:56:47+01:00,Accepted,In Progress,V3_2,Org line C,S42,Medium,PROD660,se,Sweden
+1-512795200,2011-04-11T17:57:06+01:00,Queued,Awaiting Assignment,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-12T07:21:26+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-12T07:22:36+01:00,Accepted,Assigned,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-12T08:12:13+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-04-12T08:12:19+01:00,Accepted,Wait - User,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-05-31T09:39:43+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-05-31T09:39:48+01:00,Accepted,Wait - User,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-10-28T14:22:35+01:00,Accepted,Assigned,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-10-31T08:06:01+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-10-31T08:06:05+01:00,Accepted,Wait - User,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-12-09T11:24:12+01:00,Accepted,Assigned,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-12-09T15:00:24+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2011-12-09T15:00:29+01:00,Accepted,Wait - User,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-03-12T10:03:11+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-03-12T10:03:15+01:00,Accepted,Wait - User,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-03-19T13:15:59+01:00,Accepted,Assigned,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-03-19T14:21:01+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-03-19T14:23:52+01:00,Accepted,Assigned,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-03-20T09:32:27+01:00,Accepted,In Progress,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-03-20T09:32:53+01:00,Accepted,Wait - User,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-05-02T15:01:42+01:00,Completed,Resolved,V3_2,Org line C,S43,Medium,PROD660,se,Sweden
+1-512795200,2012-05-10T00:20:47+01:00,Completed,Closed,V3_2,Org line C,S43,Medium,PROD660,se,0
+1-516553982,2011-04-13T15:04:32+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-13T15:05:38+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-13T15:12:39+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-19T13:23:12+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-516553982,2011-04-19T13:27:05+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-516553982,2011-04-19T13:57:53+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-19T14:01:16+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-22T10:29:18+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-22T10:30:27+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-27T17:38:48+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-27T17:42:38+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-28T10:06:05+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-516553982,2011-04-28T10:07:04+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-516553982,2011-04-28T11:02:04+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-516553982,2011-04-28T11:08:04+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD542,nl,POLAND
+1-516553982,2011-05-11T14:31:55+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-516553982,2011-07-27T13:28:46+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-516553982,2011-08-16T16:42:06+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-516553982,2012-05-04T08:01:57+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-516553982,2012-05-04T08:02:52+01:00,Completed,Resolved,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-516553982,2012-05-12T00:21:30+01:00,Completed,Closed,,Org line V7n,V37 2nd,Medium,PROD542,nl,0
+1-522528740,2011-05-03T08:42:21+01:00,Accepted,In Progress,A2_1,Org line C,D5,Low,PROD542,nl,Belgium
+1-522528740,2011-05-03T08:42:31+01:00,Accepted,In Progress,A2_1,Org line C,D5,Low,PROD542,nl,Belgium
+1-522528740,2011-05-03T08:46:47+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Low,PROD542,nl,Belgium
+1-522528740,2011-05-03T09:44:47+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Low,PROD542,nl,Netherlands
+1-522528740,2011-05-03T09:45:41+01:00,Queued,Awaiting Assignment,A2_1,Org line C,D5,Low,PROD542,nl,Netherlands
+1-522528740,2011-05-03T11:05:52+01:00,Accepted,In Progress,A2_1,Org line C,D5,Low,PROD542,nl,Belgium
+1-522528740,2011-05-03T11:05:57+01:00,Accepted,Assigned,A2_1,Org line C,D5,Low,PROD542,nl,Belgium
+1-522528740,2011-05-03T12:20:46+01:00,Accepted,In Progress,A2_1,Org line C,D5,Low,PROD542,nl,Belgium
+1-522528740,2011-05-03T12:24:45+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Low,PROD542,nl,Belgium
+1-522528740,2011-05-11T14:39:42+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Low,PROD542,nl,Netherlands
+1-522528740,2012-04-04T14:56:22+01:00,Accepted,Wait - Implementation,,Org line V7n,V32 2nd,Low,PROD542,nl,Netherlands
+1-522528740,2012-05-04T08:03:26+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Low,PROD542,nl,Netherlands
+1-522528740,2012-05-04T08:06:01+01:00,Completed,Resolved,,Org line V7n,V37 2nd,Low,PROD542,nl,Netherlands
+1-522528740,2012-05-12T00:21:29+01:00,Completed,Closed,,Org line V7n,V37 2nd,Low,PROD542,nl,0
+1-523391859,2011-05-05T14:47:54+01:00,Accepted,In Progress,,Org line B,V39 2nd,Medium,PROD116,br,Brazil
+1-523391859,2011-05-05T14:48:38+01:00,Accepted,In Progress,,Org line B,V39 2nd,Medium,PROD116,br,Brazil
+1-523391859,2011-05-05T15:01:23+01:00,Accepted,Wait - Vendor,,Org line B,V39 2nd,Medium,PROD116,br,Brazil
+1-523391859,2011-05-05T18:21:53+01:00,Accepted,In Progress,,Org line B,V39 2nd,Medium,PROD116,br,Brazil
+1-523391859,2011-08-09T19:34:05+01:00,Accepted,Wait - User,,Org line B,V39 2nd,Medium,PROD116,br,Brazil
+1-523391859,2012-03-07T15:26:40+01:00,Accepted,In Progress,,Org line B,V39 2nd,Medium,PROD116,br,Brazil
+1-523391859,2012-05-03T13:49:21+01:00,Completed,Resolved,,Org line B,V39 2nd,Medium,PROD116,br,Brazil
+1-523391859,2012-05-04T00:21:11+01:00,Completed,Closed,,Org line B,V39 2nd,Medium,PROD116,br,0
+1-529067006,2011-05-26T14:57:29+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-26T14:57:50+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-26T15:07:31+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-30T11:44:09+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529067006,2011-05-30T11:46:01+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529067006,2011-05-30T12:47:27+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-30T12:49:28+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-31T06:30:30+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-31T06:31:53+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-31T09:02:29+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529067006,2011-05-31T09:15:32+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529067006,2011-05-31T09:16:56+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529067006,2011-05-31T09:21:50+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD542,nl,POLAND
+1-529067006,2011-07-06T15:51:06+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-529067006,2011-07-06T15:51:08+01:00,Accepted,Assigned,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-529067006,2011-07-20T13:39:07+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-529067006,2012-05-04T08:20:17+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529067006,2012-05-04T08:21:09+01:00,Completed,Resolved,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529067006,2012-05-12T00:21:29+01:00,Completed,Closed,,Org line V7n,V37 2nd,Medium,PROD542,nl,0
+1-529096847,2011-05-26T17:01:53+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-05-26T17:02:23+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-05-26T17:10:38+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529096847,2011-05-30T11:46:17+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-05-30T11:48:32+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529096847,2011-05-30T11:52:42+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-05-30T11:57:50+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-05-31T13:01:27+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-05-31T13:03:30+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529096847,2011-06-01T08:52:10+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-06-01T08:52:25+01:00,Accepted,Assigned,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-06-01T10:36:51+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-06-01T10:37:06+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529096847,2011-06-01T10:38:08+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-06-01T10:41:39+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-06-01T11:09:35+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-06-01T11:11:02+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-06-01T11:11:09+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-06-01T11:11:26+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529096847,2011-06-01T12:07:38+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-06-01T12:07:50+01:00,Accepted,Assigned,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-07-11T10:36:40+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-07-11T10:58:50+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529096847,2011-07-11T11:06:14+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-07-11T11:06:18+01:00,Accepted,Assigned,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-07-11T11:14:25+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-07-11T11:21:28+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-07-14T10:58:50+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,0
+1-529096847,2011-07-15T09:22:05+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-07-18T09:22:10+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,0
+1-529096847,2011-07-25T13:43:58+01:00,Accepted,In Progress,,Org line V7,V29 2nd,Medium,PROD542,nl,Belgium
+1-529096847,2011-07-25T13:44:03+01:00,Accepted,Wait,,Org line V7,V29 2nd,Medium,PROD542,nl,Belgium
+1-529096847,2011-08-31T10:39:40+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T10:41:40+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T13:39:45+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-08-31T13:40:02+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529096847,2011-08-31T13:42:35+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T13:51:27+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T15:30:39+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-08-31T15:30:52+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529096847,2011-08-31T15:35:34+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T15:38:36+01:00,Accepted,Wait - User,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T15:49:06+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T15:50:41+01:00,Queued,Awaiting Assignment,,Org line V7n,V37 2nd,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T16:41:51+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2011-08-31T16:43:59+01:00,Queued,Awaiting Assignment,A2_1,Org line A2,D8,Medium,PROD542,nl,Netherlands
+1-529096847,2011-08-31T16:46:46+01:00,Accepted,In Progress,A2_1,Org line A2,D8,Medium,PROD542,nl,POLAND
+1-529096847,2011-08-31T16:49:16+01:00,Queued,Awaiting Assignment,,Org line V7n,V32 2nd,Medium,PROD542,nl,POLAND
+1-529096847,2011-09-16T17:00:17+01:00,Accepted,In Progress,,Org line V7n,V32 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2012-05-04T08:24:21+01:00,Accepted,In Progress,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2012-05-04T08:25:13+01:00,Completed,Resolved,,Org line V7n,V37 2nd,Medium,PROD542,nl,Netherlands
+1-529096847,2012-05-12T00:21:29+01:00,Completed,Closed,,Org line V7n,V37 2nd,Medium,PROD542,nl,0

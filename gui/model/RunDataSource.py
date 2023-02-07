@@ -22,13 +22,16 @@ class RunDataSource(DataSource):
 
         if file_extension == '.csv':
             dataframe = pd.read_csv(path)
+            self.is_xes = False
         elif file_extension == '.xes':
             # pm4py.convert_to_dataframe(pm4py.read_xes(io.BytesIO(decoded))).to_csv(path_or_buf=(filename[:-4] +
             # '.csv'),index=None)
             log = pm4py.read_xes(path)
             dataframe = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
+            self.is_xes = True
         elif file_extension == '.xls':
             dataframe = pd.read_excel(path)
+            self.is_xes = False
 
         return dataframe
 
@@ -39,8 +42,9 @@ class RunDataSource(DataSource):
 
     def remove_unnamed_columns(self):
         for i in self.columns_list:
-            if 'Unnamed' in i:
+            if i.startswith('Unnamed'):
                 del self.data[i]
+                self.columns_list.remove(i)
 
     def to_dict(self, key, save_df_data=True):
         if save_df_data:
@@ -59,7 +63,6 @@ class RunDataSource(DataSource):
             os.remove(path)
         except OSError:
             print('An error occurred during df file deletion: ({})'.format(path))
-
 
 
 def build_RunDataSource_from_dict(dict_obj, load_df=False):

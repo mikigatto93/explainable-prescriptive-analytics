@@ -2,12 +2,49 @@ from unittest.mock import MagicMock, PropertyMock, patch
 
 import dash
 import pytest
+from freezegun import freeze_time
 
 from gui.views import TrainView
+from gui.views.TrainView import IDs as trainIDs
 from test_gui import train_pres, CALLBACKS
 from test_gui.tutils import PropertyMocker
 
 
+# TEST CLASS METHODS
+def test_validate_input():
+    # {ex_name, kpi, id, timestamp, activity, act_to_opt}
+    assert train_pres.validate_input({'ex_name': 'valid_name',
+                                      'kpi': 'valid_kpi',
+                                      'id': 'valid_id',
+                                      'timestamp': 'valid_timestamp',
+                                      'activity': 'valid_activity',
+                                      'act_to_opt': 'valid_act_to_opt'}) == {}
+
+    assert train_pres.validate_input({}) == {}
+
+    assert train_pres.validate_input({'ex_name': None,
+                                      'kpi': None,
+                                      'id': None,
+                                      'timestamp': None,
+                                      'activity': None,
+                                      'act_to_opt': None}) == {
+
+               trainIDs.ACTIVITY_DROPDOWN: 'One ACTIVITY column must be selected',
+               trainIDs.EXPERIMENT_NAME_TEXTBOX: 'Experiment name is empty',
+               trainIDs.ID_DROPDOWN: 'One ID column must be selected',
+               trainIDs.KPI_RADIO_ITEMS: 'One KPI must be selected',
+               trainIDs.TIMESTAMP_DROPDOWN: 'One TIMESTAMP column must be selected'
+           }
+
+    assert train_pres.validate_input({'ex_name': 'invalid:_ex_name'}) == \
+           {trainIDs.EXPERIMENT_NAME_TEXTBOX: 'Experiment name cannot contain the following characters: <, >, :, ", '
+                                              '/, \\, |, ?, *'}
+
+    assert train_pres.validate_input({'ex_name': '.invalid_ex_name'}) == \
+           {trainIDs.EXPERIMENT_NAME_TEXTBOX: 'Experiment name cannot start with "."'}
+
+
+# TEST CALLBACKS
 def test_show_error_training():
     with pytest.raises(dash.exceptions.PreventUpdate):
         assert CALLBACKS['show_error_training'](None)
@@ -19,6 +56,7 @@ def test_show_error_training():
     }) == ['message1', '', '', '', '', '', '', '', '', 'message10', '']
 
     assert CALLBACKS['show_error_training']({}) == ['', '', '', '', '', '', '', '', '', '', '']
+
 
 def test_disable_go_next_page_at_start():
     with pytest.raises(dash.exceptions.PreventUpdate):
@@ -79,8 +117,67 @@ def test_disable_load_model_btn():
     assert CALLBACKS['disable_load_model_btn']([], '')
 
 
+@freeze_time('2023-01-30')
 def test_load_trained_model_data():
-    pass
+    test_ex_info_data = {"ex_name": "test1", "kpi": "Minimize activity occurrence", "id": "SR_Number",
+                         "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
+                         "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
+                         "pred_column": "remaining_time"}
+
+    test_ex_info_data2 = {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
+                          "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
+                          "resource": "res", "act_to_opt": None, "out_thrs": 0.03,
+                          "pred_column": "remaining_time"}
+
+    assert CALLBACKS['load_trained_model_data']('folder_path', '1234', 0) == [dash.no_update] * 29
+
+    with patch('gui.presenters.TrainPresenter.IOManager.read') as mock_iomanagerread, \
+            patch('shutil.copytree') as mock_copytree, \
+            patch('gui.presenters.TrainPresenter.Trainer') as mock_trainer:
+        mock_iomanagerread.return_value = test_ex_info_data
+        mock_trainer.return_value.create_model_archive.return_value = None
+
+        assert CALLBACKS['load_trained_model_data']('folder_path', '1234', 1) == [
+            '{"ex_name": "test1", "kpi": "Minimize activity occurrence", "id": "SR_Number", "timestamp": '
+            '"Change_Date+Time", "activity": "ACTIVITY", "resource": null, "act_to_opt": '
+            '"Involved_ST", "out_thrs": 0.03, "pred_column": "remaining_time", '
+            '"creation_timestamp": "30-01-2023_00-00-00_000000+0000"}',
+            'test1',
+            'Minimize activity occurrence',
+            'SR_Number',
+            'Change_Date+Time',
+            'ACTIVITY',
+            None, 'Involved_ST', 0.03,
+            [{'disabled': True, 'label': 'Total time', 'value': 'Total time'},
+             {'disabled': True, 'label': 'Minimize activity occurrence', 'value': 'Minimize activity occurrence'}],
+            ['SR_Number'],
+            ['Change_Date+Time'],
+            ['ACTIVITY'],
+            [], ['Involved_ST'],
+            True, True, True, True, True, True, True, True, True, False, True, True, True, True
+        ]
+
+        mock_iomanagerread.return_value = test_ex_info_data2
+
+        assert CALLBACKS['load_trained_model_data']('folder_path', '1234', 1) == [
+            '{"ex_name": "test1", "kpi": "Total time", "id": "SR_Number", "timestamp": '
+            '"Change_Date+Time", "activity": "ACTIVITY", "resource": "res", "act_to_opt": '
+            'null, "out_thrs": 0.03, "pred_column": "remaining_time", '
+            '"creation_timestamp": "30-01-2023_00-00-00_000000+0000"}',
+            'test1',
+            'Total time',
+            'SR_Number',
+            'Change_Date+Time',
+            'ACTIVITY',
+            'res', dash.no_update, 0.03,
+            [{'disabled': True, 'label': 'Total time', 'value': 'Total time'},
+             {'disabled': True, 'label': 'Minimize activity occurrence', 'value': 'Minimize activity occurrence'}],
+            ['SR_Number'],
+            ['Change_Date+Time'],
+            ['ACTIVITY'],
+            ['res'], dash.no_update,
+            True, True, True, True, True, True, True, True, False, False, True, True, True, True
+        ]
 
 
 def test_populate_dropdown_options():
@@ -202,7 +299,16 @@ def test_train_model():
 
 
 def test_download_train_files():
-    pass
+    with pytest.raises(dash.exceptions.PreventUpdate):
+        assert CALLBACKS['download_train_files']('1234', 0)
+        with PropertyMocker(train_pres, 'zip_files_paths', PropertyMock(return_value={'1234': None})):
+            assert CALLBACKS['download_train_files']('1234', 1)
+
+    with PropertyMocker(train_pres, 'zip_files_paths', PropertyMock(return_value={'1234': 'valid_path'})):
+        with patch('gui.presenters.TrainPresenter.dash.dcc.send_file') as mock_dash_sendfile:
+            mock_dash_sendfile.return_value = 'send_file'
+            assert CALLBACKS['download_train_files']('1234', 1) == 'send_file'
+            mock_dash_sendfile.assert_called_once_with('valid_path')
 
 
 def test_update_training_progress():

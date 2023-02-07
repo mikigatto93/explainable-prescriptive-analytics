@@ -1,0 +1,50 @@
+,REQUEST_ID,CLOSURE_TYPE,CLOSURE_REASON,ACTIVITY,END_DATE,START_DATE,CE_UO,ROLE
+0,20175000168,Client Recess,1 - Client lost,Service closure Request with network responsibility,1539175786000,1539175692000,00044,APPLICANT
+1,20175000168,Client Recess,1 - Client lost,Service closure Request with BO responsibility,1539602104000,1539175786000,BOC,BACK-OFFICE
+2,20175000168,Client Recess,1 - Client lost,Pending Request for Reservation Closure,1539602345000,1539602104000,BOC,BACK-OFFICE
+3,20175000168,Client Recess,1 - Client lost,Pending Liquidation Request,1539745391000,1539602345000,BOC,BACK-OFFICE
+4,20175000642,Bank Recess,1 - Client lost,Request created,1541672852000,1541672782000,00624,APPLICANT
+5,20175000642,Bank Recess,1 - Client lost,Service closure Request with network responsibility,1541672917000,1541672852000,,APPLICANT
+6,20175000642,Bank Recess,1 - Client lost,Authorization Requested,1541673010000,1541672917000,00186,DIRECTOR
+7,20175000642,Bank Recess,1 - Client lost,Service closure Request with BO responsibility,1542125449000,1541673010000,BOC,BACK-OFFICE
+8,20175000642,Bank Recess,1 - Client lost,Pending Request for Reservation Closure,1542125459000,1542125449000,BOC,BACK-OFFICE
+9,20175001550,Client Recess,1 - Client lost,Request created,1496047765000,1496047666000,00336,APPLICANT
+10,20175001550,Client Recess,1 - Client lost,Evaluating Request (NO registered letter),1496047969000,1496047765000,00356,DIRECTOR
+11,20175001550,Client Recess,1 - Client lost,Service closure Request with network responsibility,1496048559000,1496048164000,00356,APPLICANT
+12,20175001550,Client Recess,1 - Client lost,Service closure Request with BO responsibility,1496057013000,1496048559000,BOC,BACK-OFFICE
+13,20175001550,Client Recess,1 - Client lost,Network Adjustment Requested,1496222768000,1496057013000,00356,APPLICANT
+14,20175001550,Client Recess,1 - Client lost,Service closure Request with BO responsibility,1497257101000,1496222768000,BOC,BACK-OFFICE
+15,20175001550,Client Recess,1 - Client lost,Pending Request for Reservation Closure,1497257226000,1497257101000,BOC,BACK-OFFICE
+16,20176000338,Inheritance,,Request created,1496669699000,1496668594000,00198,APPLICANT
+17,20176000338,Inheritance,,Service closure Request with network responsibility,1496672448000,1496669699000,,APPLICANT
+18,20176000338,Inheritance,,Authorization Requested,1497256082000,1496672448000,00725,DIRECTOR
+19,20176000338,Inheritance,,Service closure Request with BO responsibility,1497435074000,1497256082000,BOC,BACK-OFFICE
+20,20176000338,Inheritance,,Network Adjustment Requested,1518181986000,1497435074000,00725,APPLICANT
+21,20176000338,Inheritance,,Service closure Request with BO responsibility,1519657505000,1518181986000,BOC,BACK-OFFICE
+22,20176000338,Inheritance,,Network Adjustment Requested,1536576794000,1519657505000,00725,APPLICANT
+23,20176000338,Inheritance,,Service closure Request with BO responsibility,1536655395000,1536576794000,BOC,BACK-OFFICE
+24,20176000338,Inheritance,,Pending Request for Reservation Closure,1536655410000,1536655395000,BOC,BACK-OFFICE
+25,20177000970,Client Recess,1 - Client lost,Request created,1544629497000,1499769748000,00586,APPLICANT
+26,20177000993,Client Recess,1 - Client lost,Request created,1544629471000,1499771133000,00381,APPLICANT
+27,20177001308,Client Recess,1 - Client lost,Request created,1499855670000,1499855605000,00341,APPLICANT
+28,20177001308,Client Recess,1 - Client lost,Evaluating Request (NO registered letter),1499855837000,1499855670000,00345,DIRECTOR
+29,20177001308,Client Recess,1 - Client lost,Service closure Request with network responsibility,1536677273000,1536597675000,00345,APPLICANT
+30,20177001308,Client Recess,1 - Client lost,Service closure Request with BO responsibility,1536928135000,1536677273000,BOC,BACK-OFFICE
+31,20177001308,Client Recess,1 - Client lost,Pending Request for Reservation Closure,1536928326000,1536928135000,BOC,BACK-OFFICE
+32,20177001580,Inheritance,,Request created,1499936745000,1499936540000,00569,APPLICANT
+33,20177001580,Inheritance,,Service closure Request with network responsibility,1518175446000,1499936745000,,APPLICANT
+34,20177001580,Inheritance,,Authorization Requested,1518175684000,1518175446000,00307,DIRECTOR
+35,20177001580,Inheritance,,Service closure Request with BO responsibility,1519650187000,1518175684000,BOC,BACK-OFFICE
+36,20177001580,Inheritance,,Network Adjustment Requested,1536586531000,1519650187000,00307,APPLICANT
+37,20177001580,Inheritance,,Service closure Request with BO responsibility,1537186887000,1536586531000,BOC,BACK-OFFICE
+38,20177001580,Inheritance,,Pending Request for Reservation Closure,1537186983000,1537186887000,BOC,BACK-OFFICE
+39,20177001918,Client Recess,1 - Client lost,Request created,1500023476000,1500023454000,00258,APPLICANT
+40,20177001918,Client Recess,1 - Client lost,Evaluating Request (NO registered letter),1500280677000,1500280585000,00532,DIRECTOR
+41,20177001918,Client Recess,1 - Client lost,Service closure Request with network responsibility,1536831097000,1507120713000,00532,APPLICANT
+42,20177001918,Client Recess,1 - Client lost,Service closure Request with BO responsibility,1536841399000,1536831097000,BOC,BACK-OFFICE
+43,20177001918,Client Recess,1 - Client lost,Pending Request for Reservation Closure,1536841436000,1536841399000,BOC,BACK-OFFICE
+44,20177003282,Bank Recess,1 - Client lost,Request created,1500381755000,1500381574000,00012,APPLICANT
+45,20177003282,Bank Recess,1 - Client lost,Service closure Request with network responsibility,1535020875000,1500381755000,00012,APPLICANT
+46,20177003282,Bank Recess,1 - Client lost,Authorization Requested,1537182812000,1535020875000,00012,DIRECTOR
+47,20177003282,Bank Recess,1 - Client lost,Service closure Request with BO responsibility,1537285428000,1537182812000,BOC,BACK-OFFICE
+48,20177003282,Bank Recess,1 - Client lost,Pending Request for Reservation Closure,1537285634000,1537285428000,BOC,BACK-OFFICE

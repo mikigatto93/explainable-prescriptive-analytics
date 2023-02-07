@@ -13,7 +13,7 @@ class Router(Presenter):
     def __init__(self, views):
         super().__init__(views)
         self.pathname_list = [view.pathname for view in sorted(self.views.values(), key=lambda x: x.order)]
-        self.pathname_list = self.pathname_list[0:]  # remove first element BaseView, that has order=-1
+        self.pathname_list = self.pathname_list[0:]
 
     def register_callbacks(self):
 

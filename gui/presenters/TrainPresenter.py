@@ -65,6 +65,8 @@ class TrainPresenter(Presenter):
             if not Experiment.validate_forbidden_ex_names(dict_values['ex_name']):
                 error_data[self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX] = \
                     'Experiment name cannot contain the following characters: <, >, :, ", /, \\, |, ?, *'
+            elif dict_values['ex_name'].startswith('.'):
+                error_data[self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX] = 'Experiment name cannot start with "."'
 
         if 'kpi' in dict_values and dict_values['kpi'] is None:
             error_data[self.views['train'].IDs.KPI_RADIO_ITEMS] = 'One KPI must be selected'
@@ -194,6 +196,7 @@ class TrainPresenter(Presenter):
                 trainer.write_experiment_info()
                 print(ex_info)
                 kpi_options = TrainView.get_kpi_radio_items_options(True)
+
                 if ex_info.act_to_opt is None:
                     act_to_opt_data = dash.no_update
                     act_to_opt_options = dash.no_update

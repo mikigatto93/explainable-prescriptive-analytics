@@ -71,7 +71,31 @@ def test_scroll_graph():
                                  (1, '1234', 0, 0, 1)) == ['pred_graph_data', '1/3', False, True, '']
         assert mock_dash_context(CALLBACKS['scroll_graph'],
                                  [explainIDs.SELECT_PAGE_PRED_GRAPH_BTN + '.n_clicks'],
-                                 (3, '1234', 0, 0, 1)) == ['pred_graph_data', '3/3', False, False, '']
+                                 (3, '1234', 0, 0, 1)) == ['pred_graph_data', '3/3', True, False, '']
+
+    with PropertyMocker(explain_pres, 'pred_graph_progression_data', PropertyMock(return_value={'1234': 0})), \
+         PropertyMocker(explain_pres, 'kpis_dfs_lengths', PropertyMock(return_value={'1234': 3})), \
+         PropertyMocker(explain_pres, 'REC_PER_PAGE', PropertyMock(return_value=1)), \
+         patch('gui.presenters.ExplainPresenter.ExplainPresenter.create_pred_graph') as mock_createpredgraph:
+        mock_createpredgraph.return_value = 'pred_graph_data'
+        assert mock_dash_context(CALLBACKS['scroll_graph'],
+                                 [explainIDs.GO_UP_PRED_GRAPH + '.n_clicks'],
+                                 ('', '1234', 1, 0, 0)) == ['pred_graph_data', '2/3', False, False, '']
+        assert mock_dash_context(CALLBACKS['scroll_graph'],
+                                 [explainIDs.GO_DOWN_PRED_GRAPH + '.n_clicks'],
+                                 ('', '1234', 0, 1, 0)) == ['pred_graph_data', '1/3', False, True, '']
+
+    with PropertyMocker(explain_pres, 'pred_graph_progression_data', PropertyMock(return_value={'1234': 1})), \
+         PropertyMocker(explain_pres, 'kpis_dfs_lengths', PropertyMock(return_value={'1234': 3})), \
+         PropertyMocker(explain_pres, 'REC_PER_PAGE', PropertyMock(return_value=1)), \
+         patch('gui.presenters.ExplainPresenter.ExplainPresenter.create_pred_graph') as mock_createpredgraph:
+        mock_createpredgraph.return_value = 'pred_graph_data'
+        assert mock_dash_context(CALLBACKS['scroll_graph'],
+                                 [explainIDs.GO_UP_PRED_GRAPH + '.n_clicks'],
+                                 ('', '1234', 1, 0, 0)) == ['pred_graph_data', '3/3', True, False, '']
+        assert mock_dash_context(CALLBACKS['scroll_graph'],
+                                 [explainIDs.GO_DOWN_PRED_GRAPH + '.n_clicks'],
+                                 ('', '1234', 0, 1, 0)) == ['pred_graph_data', '2/3', False, False, '']
 
 
 
@@ -192,9 +216,9 @@ def test_change_quantity_explanations():
 
     with PropertyMocker(explain_pres, 'explainers', PropertyMock(return_value={'1234': 'test'})):
         with patch('gui.presenters.ExplainPresenter.build_Explainer_from_dict') as mock_build_explainer, \
-                patch(
-                    'gui.presenters.ExplainPresenter.ExplainPresenter.create_explanation_graph'
-                ) as mock_createexplgraph:
+             patch(
+                 'gui.presenters.ExplainPresenter.ExplainPresenter.create_explanation_graph'
+             ) as mock_createexplgraph:
             mock_createexplgraph.return_value = 'graph_result'
             mock_build_explainer.return_value.generate_explanations_dataframe.return_value = [1, 2, 3], [4, 5, 6]
             assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 4) == 'graph_result'
@@ -203,4 +227,24 @@ def test_change_quantity_explanations():
 
 def test_calculate_and_visualize_shap_by_trace():
     # act_to_explain, trace_id, expl_qnt, user_id, n_clicks
-    pass
+
+    assert CALLBACKS['calculate_and_visualize_shap_by_trace']('ACT', 'trace', 'expl_qnt', '1234', 0) == \
+           [dash.no_update] * 3
+
+    with PropertyMocker(explain_pres, 'explainers', PropertyMock(return_value={'1234': 'test'})):
+        with patch('gui.presenters.ExplainPresenter.build_Explainer_from_dict') as mock_build_explainer, \
+             patch(
+                 'gui.presenters.ExplainPresenter.ExplainPresenter.create_explanation_graph'
+             ) as mock_createexplgraph:
+            mock_createexplgraph.return_value = 'graph_result'
+            mock_build_explainer.return_value.check_if_explanations_exists.return_value = True
+            assert CALLBACKS['calculate_and_visualize_shap_by_trace']('ACT', 'trace', 'expl_qnt', '1234', 1) == \
+                   [dash.no_update] * 3
+
+            mock_build_explainer.return_value.check_if_explanations_exists.return_value = False
+            mock_build_explainer.return_value.generate_explanations_dataframe.return_value = [1, 2, 3], [4, 5, 6]
+            assert CALLBACKS['calculate_and_visualize_shap_by_trace']('ACT', 'trace', 5, '1234', 1) == \
+                ['graph_result', False, True]
+
+
+

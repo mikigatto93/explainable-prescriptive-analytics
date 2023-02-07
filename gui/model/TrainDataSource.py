@@ -18,7 +18,9 @@ class TrainDataSource(DataSource):
     def __init__(self, path, read_data=True):
         super().__init__(path, read_data)
         if read_data:
-            self.columns_list = list(self.data.columns)
+            self.columns_list = self.data.columns.tolist()
+        else:
+            self.columns_list = None
 
     def read_data(self, path, datetime=None):
         dataframe = None
@@ -30,7 +32,7 @@ class TrainDataSource(DataSource):
         elif file_extension == '.xes':
             log = pm4py.read_xes(path)
             dataframe = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
-
+            # print(dataframe)
             self.is_xes = True
             for k, v in TrainDataSource.XES_RELEVANT_COLS_NAMES.items():
                 if v in dataframe.columns:
@@ -53,10 +55,12 @@ class TrainDataSource(DataSource):
         return dataframe
 
     def convert_datetime_to_seconds(self, start_time_col, date_format='%Y-%m-%d %H:%M:%S'):
+
         if not np.issubdtype(self.data[start_time_col], np.number):
             try:
                 self.data[start_time_col] = pd.to_datetime(self.data[start_time_col], format=date_format, utc=True)
                 self.data[start_time_col] = self.data[start_time_col].view(np.int64) / int(1e9)
+                return self.data
             except ParserError as pe:
                 raise pe
             except ValueError as ve:

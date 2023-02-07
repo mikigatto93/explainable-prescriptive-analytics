@@ -6,9 +6,9 @@ from abc import ABC, abstractmethod
 
 
 class TimeLogger(ABC):
-    def __init__(self, filename):
+    def __init__(self, filename, base_path=os.getcwd()):
         self.file_name = '{}.prog'.format(filename)
-        self.file_path = os.path.join(os.getcwd(), self.file_name)
+        self.file_path = os.path.join(base_path, self.file_name)
 
     def free(self):
         try:
@@ -40,7 +40,7 @@ class TimeLogger(ABC):
     def to_dict(self):
         return {
             'file_name': self.file_name,
-            'file_path': self.file_path,
+            'file_path': self.file_path
         }
 
     @abstractmethod
