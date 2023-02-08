@@ -105,6 +105,7 @@ class RunPresenter(Presenter):
                  {'display': 'inline'}, {'display': 'none'}),
                 (Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'), -1, 0),
                 (Output(self.views['run'].IDs.GENERATE_PREDS_BTN, 'disabled'), True, False),
+                (Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled'), True, False),
             ]
         )
         def generate_predictions(ex_info_data, user_id, n_clicks):
@@ -139,11 +140,12 @@ class RunPresenter(Presenter):
                 return [dash.no_update] * 3
 
         @app.callback(Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
+                      Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled'),
                       Input(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
                       prevent_initial_call=True)
         def activate_go_next_arrow_run(children):
             if children == 'Recommendations generation completed':
-                return False
+                return [False, False]
             else:
                 raise dash.exceptions.PreventUpdate
 

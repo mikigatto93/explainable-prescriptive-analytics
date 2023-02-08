@@ -60,12 +60,14 @@ def get_experiment_folders_list(main_path):
     # paths = os.walk(main_path)
     # return next(paths)[1]
     folders_data_list = []
-    with os.scandir(main_path) as it:
-        for entry in it:
-            if not entry.name.startswith('.') and entry.is_dir():
-                ex_info_data = read(os.path.join(entry.path, 'experiment_info.json'))
-                folders_data_list.append({'ex_name': ex_info_data['ex_name'], 'path': entry.path})
-
+    try:
+        with os.scandir(main_path) as it:
+            for entry in it:
+                if not entry.name.startswith('.') and entry.is_dir():
+                    ex_info_data = read(os.path.join(entry.path, 'experiment_info.json'))
+                    folders_data_list.append({'ex_name': ex_info_data['ex_name'], 'path': entry.path})
+    except OSError:
+        print('No folder experiments found')
     return folders_data_list
 
 

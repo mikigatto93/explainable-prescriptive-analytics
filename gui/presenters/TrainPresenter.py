@@ -390,7 +390,8 @@ class TrainPresenter(Presenter):
                        # btns
                        Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
                        Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
-                      ],
+
+                       Output(self.views['train'].IDs.KPI_RADIO_ITEMS, 'options'),],
                       [State(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'value'),
                        State(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
                        State(self.views['train'].IDs.ID_DROPDOWN, 'value'),
@@ -422,11 +423,12 @@ class TrainPresenter(Presenter):
                     trainer.write_experiment_info()
 
                     self.progress_loggers[user_id] = TrainProgLogger(str(uuid.uuid4())).to_dict()
-                    return [True, json.dumps(experiment_info.to_dict()), True, error_data] + [True] * 9
+                    kpi_options = TrainView.get_kpi_radio_items_options(disabled=True)
+                    return [True, json.dumps(experiment_info.to_dict()), True, error_data] + [True] * 9 + [kpi_options]
                 else:
-                    return [dash.no_update, dash.no_update, dash.no_update, error_data] + [dash.no_update] * 9
+                    return [dash.no_update, dash.no_update, dash.no_update, error_data] + [dash.no_update] * 10
             else:
-                return [dash.no_update] * 13
+                return [dash.no_update] * 14
 
         @app.callback(
             output=[Output(self.views['train'].IDs.TEMP_TRAINING_OUTPUT, 'children'),
