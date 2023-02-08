@@ -128,22 +128,22 @@ class RunPresenter(Presenter):
                     recommender.prepare_dataset()
                 except (pd.errors.ParserError, pd.errors.EmptyDataError, ValueError) as e:
                     print(traceback.format_exc())
-                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}, False, True]
+                    return ['An error occurred: {}: {}'.format(type(e).__name__, e), {'display': 'none'}, False]
 
                 progress_logger.add_to_stack('Starting recommendations generation...')
                 recommender.generate_recommendations(progress_logger)
                 progress_logger.clear_stack()
 
-                return ['Recommendations generation completed', {'display': 'none'}, True, False]
+                return ['Recommendations generation completed', {'display': 'none'}, True]
             else:
-                return [dash.no_update] * 4
+                return [dash.no_update] * 3
 
         @app.callback(Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
                       Input(self.views['run'].IDs.TEMP_RUNNING_OUTPUT, 'children'),
                       prevent_initial_call=True)
         def activate_go_next_arrow_run(children):
             if children == 'Recommendations generation completed':
-                return True
+                return False
             else:
                 raise dash.exceptions.PreventUpdate
 
