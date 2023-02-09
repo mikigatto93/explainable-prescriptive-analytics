@@ -75,6 +75,8 @@ class RunPresenter(Presenter):
             running=[
                 (Output(self.views['run'].IDs.LOAD_RUN_SPINNER, 'style'),
                  {'display': 'inline'}, {'display': 'none'}),
+                (Output(self.views['run'].IDs.LOAD_RUN_FILE_BTN, 'disabled'), True, False),
+                (Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled'), True, False),
             ],
             background=True,
             prevent_initial_call=True

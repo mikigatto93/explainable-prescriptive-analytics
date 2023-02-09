@@ -39,7 +39,7 @@ def next_act_kpis(trace, traces_hash, model, pred_column, case_id_name, activity
             trace[colname] = np.zeros(len(trace))
 
     trace = trace[list(model.feature_names_)]
-    try :
+    try:
         del trace[case_id_name]
     except :
         None

@@ -8,5 +8,5 @@ long_callback_cache/
 long_callback_cache_for_testing/
 gui_data/
 datasets_for_gui/
-test_experiments_dir/
+venv/
 *.prog

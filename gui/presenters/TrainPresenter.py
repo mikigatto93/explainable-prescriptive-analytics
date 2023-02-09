@@ -104,16 +104,6 @@ class TrainPresenter(Presenter):
             else:
                 raise dash.exceptions.PreventUpdate
 
-        # @app.callback(Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
-        #               Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
-        # def disable_go_next_page_at_start_train(url):
-        #     if url == self.views['train'].pathname:
-        #         return True
-        #         # return {'go_next_disabled_status': True,
-        #         #         'go_back_disabled_status': False}
-        #     else:
-        #         raise dash.exceptions.PreventUpdate
-
         @app.callback(Output(self.views['train'].IDs.EXPERIMENT_SELECTOR_DROPDOWN, 'options'),
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
         def populate_experiment_selector_dropdown(url):
@@ -275,6 +265,7 @@ class TrainPresenter(Presenter):
             running=[
                 (Output(self.views['train'].IDs.LOAD_TRAIN_SPINNER, 'style'),
                  {'display': 'inline'}, {'display': 'none'}),
+                (Output(self.views['train'].IDs.LOAD_TRAIN_FILE_BTN, 'disabled'), True, False),
             ],
             background=True,
             prevent_initial_call=True
@@ -391,7 +382,7 @@ class TrainPresenter(Presenter):
                        Output(self.views['train'].IDs.NEXT_SELECT_PHASE_TRAIN_BTN, 'disabled'),
                        Output(self.views['train'].IDs.PREV_SELECT_PHASE_TRAIN_BTN, 'disabled'),
 
-                       Output(self.views['train'].IDs.KPI_RADIO_ITEMS, 'options'),],
+                       Output(self.views['train'].IDs.KPI_RADIO_ITEMS, 'options')],
                       [State(self.views['train'].IDs.EXPERIMENT_NAME_TEXTBOX, 'value'),
                        State(self.views['train'].IDs.KPI_RADIO_ITEMS, 'value'),
                        State(self.views['train'].IDs.ID_DROPDOWN, 'value'),

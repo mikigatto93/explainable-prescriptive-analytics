@@ -76,31 +76,13 @@ class Router(Presenter):
 
             return [go_next_disabled, go_back_disabled]
 
-        @app.callback([Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
-                       Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled')],
+        @app.callback(Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
         def disable_link_at_start(url):
-            if url == self.views['train'].pathname or url == self.views['run'].pathname:
-                return [True, dash.no_update]
+            if url == self.views['run'].pathname or url == self.views['train'].pathname:
+                return True
             else:
-                return [dash.no_update, dash.no_update]
-
-        # @app.callback([Output(self.views['base'].IDs.GO_NEXT_BTN, 'disabled'),
-        #                Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled')],
-        #               Input(self.views['base'].IDs.ARROW_CONTROLLER_STORE, 'data'),
-        #               prevent_initial_call=True)
-        # def disable_link_arrows_custom(controller_data):
-        #     # print(controller_data)
-        #     # return [dash.no_update, dash.no_update]
-        #     if controller_data:
-        #         print(controller_data)
-        #         if controller_data['go_next_disabled_status'] == 'no_update':
-        #             controller_data['go_next_disabled_status'] = dash.no_update
-        #         if controller_data['go_back_disabled_status'] == 'no_update':
-        #             controller_data['go_back_disabled_status'] = dash.no_update
-        #         return [controller_data['go_next_disabled_status'], controller_data['go_back_disabled_status']]
-        #     else:
-        #         return [dash.no_update, dash.no_update]
+                raise dash.exceptions.PreventUpdate
 
         @app.callback(State(self.views['base'].IDs.USER_ID, 'data'),
                       Input(self.views['base'].IDs.KEEP_ALIVE_INTERVAL, 'n_intervals'))

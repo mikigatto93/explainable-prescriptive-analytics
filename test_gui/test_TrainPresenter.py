@@ -58,16 +58,6 @@ def test_show_error_training():
     assert CALLBACKS['show_error_training']({}) == ['', '', '', '', '', '', '', '', '', '', '']
 
 
-def test_disable_go_next_page_at_start():
-    with pytest.raises(dash.exceptions.PreventUpdate):
-        assert CALLBACKS['disable_go_next_page_at_start']('other_path_name')
-
-    assert CALLBACKS['disable_go_next_page_at_start'](train_pres.views['train'].pathname) == {
-        'go_next_disabled_status': True,
-        'go_back_disabled_status': 'no_update'
-    }
-
-
 def test_populate_experiment_selector_dropdown():
     assert CALLBACKS['populate_experiment_selector_dropdown']('other_path_name') == []
 
@@ -129,7 +119,7 @@ def test_load_trained_model_data():
                           "resource": "res", "act_to_opt": None, "out_thrs": 0.03,
                           "pred_column": "remaining_time"}
 
-    assert CALLBACKS['load_trained_model_data']('folder_path', '1234', 0) == [dash.no_update] * 29
+    assert CALLBACKS['load_trained_model_data']('folder_path', '1234', 0) == [dash.no_update] * 33
 
     with patch('gui.presenters.TrainPresenter.IOManager.read') as mock_iomanagerread, \
             patch('shutil.copytree') as mock_copytree, \
@@ -154,7 +144,7 @@ def test_load_trained_model_data():
             ['Change_Date+Time'],
             ['ACTIVITY'],
             [], ['Involved_ST'],
-            True, True, True, True, True, True, True, True, True, False, True, True, True, True
+            True, True, True, True, True, True, True, True, True, False, True, True, True, True, False, True, True, True
         ]
 
         mock_iomanagerread.return_value = test_ex_info_data2
@@ -176,17 +166,18 @@ def test_load_trained_model_data():
             ['Change_Date+Time'],
             ['ACTIVITY'],
             ['res'], dash.no_update,
-            True, True, True, True, True, True, True, True, False, False, True, True, True, True
+            True, True, True, True, True, True, True, True, False, False, True, True, True, True, False, True, True,
+            True
         ]
 
 
 def test_populate_dropdown_options():
-    assert CALLBACKS['populate_dropdown_options']('train_file_path', '1234', 0) == [dash.no_update] * 18 + [False]
+    assert CALLBACKS['populate_dropdown_options']('train_file_path', '1234', 0) == [dash.no_update] * 21 + [False]
 
     with patch('gui.presenters.TrainPresenter.TrainDataSource.__init__') as mock_traindatasource_init:
         mock_traindatasource_init.side_effect = ValueError('test_exception')
         assert CALLBACKS['populate_dropdown_options']('train_file_path', '1234', 1) == \
-               [{'load_train_file_btn': 'ValueError: test_exception'}] + [dash.no_update] * 17 + [False]
+               [{'load_train_file_btn': 'ValueError: test_exception'}] + [dash.no_update] * 20 + [False]
 
     with PropertyMocker(train_pres, 'data_sources', PropertyMock(return_value={})):
         with patch('gui.presenters.TrainPresenter.TrainDataSource') as mock_traindatasource:
@@ -194,7 +185,8 @@ def test_populate_dropdown_options():
             mock_traindatasource.return_value.columns_list = ['COL1', 'COL2', 'COL3']
             mock_traindatasource.return_value.is_xes = False
             assert CALLBACKS['populate_dropdown_options']('train_file_path', '1234', 1) == \
-                   [{}] + [['COL1', 'COL2', 'COL3']] * 4 + [dash.no_update, 0.02] + [dash.no_update] * 11 + [True]
+                   [{}] + [['COL1', 'COL2', 'COL3']] * 4 + [dash.no_update, 0.02] + [dash.no_update] * 10 + \
+                   [True, True, True, dash.no_update, True]
 
     with PropertyMocker(train_pres, 'data_sources', PropertyMock(return_value={})):
         with patch('gui.presenters.TrainPresenter.TrainDataSource') as mock_traindatasource:
@@ -209,7 +201,7 @@ def test_populate_dropdown_options():
             assert CALLBACKS['populate_dropdown_options']('train_file_path', '1234', 1) == [{}] + \
                    [['COL1', 'COL2', 'COL3']] * 4 + \
                    [['ACTNAME1', 'ACTNAME2', 'ACTNAME3'], 0.02] + \
-                   ['id', 'timestamp', 'activity', 'resource'] + [True] * 8
+                   ['id', 'timestamp', 'activity', 'resource'] + [True] * 11
 
 
 def test_show_choose_act_to_opt_dropdown():
@@ -251,19 +243,19 @@ def test_return_1st_phase_train_option_selection():
 def test_collect_training_user_data():
     # ex_name, kpi, _id, timestamp, activity, resource, act_to_opt, out_thrs, user_id, n_clicks
     assert CALLBACKS['collect_training_user_data']('test', 'test', 'test', 'test',
-                                                   'test', 'test', 'test', 'test', '1234', 0) == [dash.no_update] * 4
+                                                   'test', 'test', 'test', 'test', '1234', 0) == [dash.no_update] * 14
 
     with patch('gui.presenters.TrainPresenter.TrainPresenter.validate_input') as mock_validate:
         mock_validate.return_value = {'component_id': 'error_message'}
         assert CALLBACKS['collect_training_user_data'](
             'test', 'test', 'test', 'test', 'test', 'test', 'test', 'test', '1234', 1
-        ) == [dash.no_update, dash.no_update, dash.no_update, {'component_id': 'error_message'}]
+        ) == [dash.no_update, dash.no_update, dash.no_update, {'component_id': 'error_message'}] + [dash.no_update] * 10
 
     with PropertyMocker(train_pres, 'data_sources', PropertyMock(return_value={'1234': 'dummy'})):
         with patch('gui.presenters.TrainPresenter.TrainPresenter.validate_input') as mock_validate, \
                 patch('gui.presenters.TrainPresenter.Experiment') as mock_experiment, \
                 patch('gui.presenters.TrainPresenter.Trainer') as mock_trainer, \
-                patch('gui.presenters.TrainPresenter.build_TrainDataSource_from_dict') as mock_traindatasource_builder, \
+                patch('gui.presenters.TrainPresenter.build_TrainDataSource_from_dict') as mock_traindatasource_builder,\
                 patch('gui.presenters.TrainPresenter.TrainProgLogger') as mock_trainproglogger:
             mock_validate.return_value = {}
             mock_traindatasource_builder.return_value = None
@@ -273,11 +265,11 @@ def test_collect_training_user_data():
 
             assert CALLBACKS['collect_training_user_data'](
                 'test', 'test', 'test', 'test', 'test', 'test', 'test', 'test', '1234', 1
-            ) == [True, 'null', True, {}]
+            ) == [True, 'null', True, {}] + [True] * 9 + [TrainView.get_kpi_radio_items_options(disabled=True)]
 
 
 def test_train_model():
-    assert CALLBACKS['train_model'](False, '1234') == [dash.no_update, dash.no_update, dash.no_update]
+    assert CALLBACKS['train_model'](False, '1234') == [dash.no_update] * 5
 
     mock_trainer = MagicMock()
 
@@ -291,11 +283,12 @@ def test_train_model():
             mock_trainer.create_model_archive.return_value = None
             mock_trainer.prepare_dataset.side_effect = ValueError('test_exception')  # random exception
             assert CALLBACKS['train_model'](True, '1234') == \
-                   ['An error occurred: ValueError: test_exception', {'display': 'none'}, False]
+                   ['An error occurred: ValueError: test_exception', {'display': 'none'}, False, False, True]
 
             mock_trainer.reset_mock(side_effect=True, return_value=True)
             mock_trainer.create_model_archive.return_value = None
-            assert CALLBACKS['train_model'](True, '1234') == ['Training completed', {'display': 'none'}, True]
+            assert CALLBACKS['train_model'](True, '1234') == ['Training completed', {'display': 'none'},
+                                                              True, True, False]
 
 
 def test_download_train_files():

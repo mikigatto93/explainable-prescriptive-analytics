@@ -160,24 +160,7 @@ class ExplainPresenter(Presenter):
         def show_prediction_graph(ex_info_data, user_id, url):
             if url == self.views['explain'].pathname:
 
-                # ex_info_data = {'ex_name': 'bac_test_1', 'kpi': 'Total time', 'id': 'REQUEST_ID',
-                #                 'timestamp': 'START_DATE',
-                #                 'activity': 'ACTIVITY', 'resource': None, 'act_to_opt': None, 'out_thrs': 0.02,
-                #                 'pred_column': 'remaining_time'}
-
-                # ex_info_data = {'ex_name': 'vist_test_1', 'kpi': 'Total time', 'id': 'SR_Number',
-                #                 'timestamp': 'Change_Date+Time', 'activity': 'ACTIVITY', 'resource': None,
-                #                 'act_to_opt': None, 'out_thrs': 0.02, 'pred_column': 'remaining_time'}
-
-                # ex_info_data = {"ex_name": "ex2", "kpi": "Total time",
-                #                 "id": "SR_Number", "timestamp": "Change_Date+Time",
-                #                 "activity": "ACTIVITY", "resource": None, "act_to_opt": None,
-                #                 "out_thrs": 0.03, "pred_column": "remaining_time"}
-
-                # ex_info_data = {"ex_name": "test1", "kpi": "Total time", "id": "SR_Number",
-                #                 "timestamp": "Change_Date+Time", "activity": "ACTIVITY",
-                #                 "resource": None, "act_to_opt": "Involved_ST", "out_thrs": 0.03,
-                #                 "pred_column": "remaining_time"}
+                # ex_info_data = {}
 
                 if ex_info_data:
                     explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
@@ -442,7 +425,8 @@ class ExplainPresenter(Presenter):
             running=[
                 # (Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in'), False, True),
                 (Output(self.views['explain'].IDs.GENERATE_EXPL_SPINNER, 'style'),
-                 {'display': 'inline'}, {'display': 'none'})
+                 {'display': 'inline'}, {'display': 'none'}),
+                (Output(self.views['explain'].IDs.GENERATE_EXPL_BTN, 'disabled'), True, False),
             ]
         )
         def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, user_id, n_clicks):

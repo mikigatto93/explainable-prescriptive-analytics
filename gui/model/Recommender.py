@@ -86,8 +86,8 @@ class Recommender:
                                                                                 quantitative_vars, qualitative_vars,
                                                                                 encoding='aggr-hist')
                     next_activities['kpi_rel'] = next_activities['kpi_rel'].abs()
-                except:
-                    # print('Next activity not found in transition system')
+                except Exception as e:
+                    print('Next activity not found in transition system')
                     continue
 
                 try:
