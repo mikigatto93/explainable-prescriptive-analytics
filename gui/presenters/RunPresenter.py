@@ -108,7 +108,7 @@ class RunPresenter(Presenter):
                 (Output(self.views['run'].IDs.PROGRESS_LOG_INTERVAL_RUN, 'max_intervals'), -1, 0),
                 (Output(self.views['run'].IDs.GENERATE_PREDS_BTN, 'disabled'), True, False),
                 (Output(self.views['base'].IDs.GO_BACK_BTN, 'disabled'), True, False),
-            ]
+            ],
         )
         def generate_predictions(ex_info_data, user_id, n_clicks):
             if n_clicks > 0:

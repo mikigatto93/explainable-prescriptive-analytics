@@ -15,13 +15,11 @@ class DataSource(ABC):
 
     def free(self):
         head, _ = os.path.split(self.file_path)
-        # print(head)
-        # try:
-        shutil.rmtree(head)  # remove folder
-        # except Exception as e:
-        #     print(e)
-        # except OSError:
-        #     print('OSError: Folder to delete does not exists')
+        print(head)
+        try:
+            shutil.rmtree(head)  # remove folder
+        except OSError:
+            print('OSError: Folder to delete does not exists')
 
     @abstractmethod
     def read_data(self, path):

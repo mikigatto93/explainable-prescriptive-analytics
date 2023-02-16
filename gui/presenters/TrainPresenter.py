@@ -437,7 +437,8 @@ class TrainPresenter(Presenter):
                 # (Output(self.views['train'].IDs.DOWNLOAD_TRAIN_BTN_FADE, 'is_in'), False, True),
                 (Output(self.views['train'].IDs.PROGRESS_LOG_INTERVAL_TRAIN, 'max_intervals'), -1, 0),
                 (Output(self.views['train'].IDs.START_TRAINING_BTN, 'disabled'), True, False)
-            ]
+            ],
+            cancel=[Input(self.views['base'].IDs.LOCATION_URL, 'pathname')]
         )
         def train_model(start_cont_store, user_id):
             if start_cont_store:

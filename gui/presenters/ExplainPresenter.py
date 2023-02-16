@@ -160,7 +160,11 @@ class ExplainPresenter(Presenter):
         def show_prediction_graph(ex_info_data, user_id, url):
             if url == self.views['explain'].pathname:
 
-                # ex_info_data = {}
+                # ex_info_data = {"ex_name": "test_xes_fin", "kpi": "Total time", "id": "case:concept:name",
+                #                 "timestamp": "time:timestamp", "activity": "concept:name", "resource": "org:resource",
+                #                 "act_to_opt": None, "out_thrs": 0.02,
+                #                 "creation_timestamp": "15-02-2023_20-28-46_433853+0000",
+                #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
                     explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
@@ -286,6 +290,7 @@ class ExplainPresenter(Presenter):
                        Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
                       prevent_initial_call=True)
         def show_preds_text_format(input_value, user_id, click_data, n_clicks):
+            print('show_preds_text_format click_data: {}, n_clicks: {}'.format(click_data, n_clicks))
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
             search_btn_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN
@@ -361,6 +366,9 @@ class ExplainPresenter(Presenter):
                        State(self.views['base'].IDs.USER_ID, 'data')],
                       prevent_initial_call=True)
         def select_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3, trace_id, user_id):
+            print('select_trace_activity_to_explain: n_clicks1: {}, n_clicks2: {}, n_clicks3: {}'.format(n_clicks1,
+                                                                                                         n_clicks2,
+                                                                                                         n_clicks3))
             CSS_SELECTED_ROW_CLASS_NAME = 'selected_expl_table_row'
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             row1_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.FIRST_ROW_PRED_TABLE and n_clicks1 > 0
@@ -400,7 +408,8 @@ class ExplainPresenter(Presenter):
                       Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
                       prevent_initial_call=True)
         def change_quantity_explanations(trace_id, act_to_explain, user_id, value):
-            if value:
+            print('change_quantity_explanations')
+            if value and value != self.DEFAULT_EXPL_QNT:
                 gt, expl = build_Explainer_from_dict(
                     self.explainers[user_id]
                 ).generate_explanations_dataframe(trace_id, act_to_explain)
@@ -430,14 +439,12 @@ class ExplainPresenter(Presenter):
             ]
         )
         def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, user_id, n_clicks):
+            print('calculate_and_visualize_shap_by_trace, nclicks:{}'.format(n_clicks))
             if n_clicks > 0:
                 explainer = build_Explainer_from_dict(self.explainers[user_id])
                 if not explainer.check_if_explanations_exists(trace_id, act_to_explain):
                     print('Calculating shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
                     explainer.calculate_explanation(trace_id, act_to_explain)
-                    # trace_id = '1-739610172'
-                    # act_to_explain = 'Resolved'
-                    # time.sleep(5)
                     gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
                     return [self.create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
                             False, True]

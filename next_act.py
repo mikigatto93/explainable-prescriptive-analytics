@@ -20,7 +20,6 @@ import os
 from hash_maps import str_list, list_str
 import explain_recsys
 
-
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
@@ -39,7 +38,7 @@ def next_act_kpis(trace, traces_hash, model, pred_column, case_id_name, activity
             trace[colname] = np.zeros(len(trace))
 
     trace = trace[list(model.feature_names_)]
-    try:
+    try :
         del trace[case_id_name]
     except :
         None
@@ -69,7 +68,9 @@ def next_act_kpis(trace, traces_hash, model, pred_column, case_id_name, activity
             actual_prediction = model.predict_proba(list(last))[0]  # activity case
 
         # Update history
-        last['# ACTIVITY=' + last_act] += 1
+        last['# '+ activity_name + '=' + last_act] += 1
+
+        if type(next_acts)==str: next_acts = [next_acts]
 
         for next_act in next_acts:
             # Fill with the supposed activity
@@ -92,10 +93,10 @@ def next_act_kpis(trace, traces_hash, model, pred_column, case_id_name, activity
 from utils import from_trace_to_score
 import utils
 
+
 def generate_recommendations(df_rec, df_score, columns, case_id_name, pred_column, activity_name, traces_hash, model,
                              quantitative_vars, qualitative_vars, X_test, experiment_name, predict_activities=None,
                              maximize=bool, save=True, explain=False):
-
     idx_list = df_rec[case_id_name].unique()
     results = list()
     rec_dict = dict()
@@ -106,13 +107,13 @@ def generate_recommendations(df_rec, df_score, columns, case_id_name, pred_colum
         os.mkdir(f'explanations/{experiment_name}')
     if not os.path.exists(f'recommendations/{experiment_name}'):
         os.mkdir(f'recommendations/{experiment_name}')
-    pickle.dump(quantitative_vars, open(f'explanations/{experiment_name}/quantitative_vars.pkl','wb'))
+    pickle.dump(quantitative_vars, open(f'explanations/{experiment_name}/quantitative_vars.pkl', 'wb'))
     pickle.dump(qualitative_vars, open(f'explanations/{experiment_name}/qualitative_vars.pkl', 'wb'))
 
     for trace_idx in idx_list:
         trace = df_rec[df_rec[case_id_name] == trace_idx].reset_index(drop=True)
         # trace = trace.iloc[:(randrange(len(trace)) - 1)]
-        trace = trace.reset_index(drop=True) # trace.iloc[:, :-1].reset_index(drop=True)
+        trace = trace.reset_index(drop=True)  # trace.iloc[:, :-1].reset_index(drop=True)
         import utils
         try:
             # take activity list
@@ -121,12 +122,14 @@ def generate_recommendations(df_rec, df_score, columns, case_id_name, pred_colum
             # Remove the last (it has been added because of the evaluation)
             trace = trace.iloc[:-1].reset_index(drop=True)
         except:
-            import ipdb; ipdb.set_trace()
-
+            import ipdb;
+            ipdb.set_trace()
 
         try:
-            next_activities, actual_prediciton = next_act_kpis(trace, traces_hash, model, pred_column, case_id_name, activity_name,
-                                            quantitative_vars, qualitative_vars, encoding='aggr-hist')
+            next_activities, actual_prediciton = next_act_kpis(trace, traces_hash, model, pred_column, case_id_name,
+                                                               activity_name,
+                                                               quantitative_vars, qualitative_vars,
+                                                               encoding='aggr-hist')
         except:
             print('Next activity not found in transition system')
             continue
@@ -153,10 +156,12 @@ def generate_recommendations(df_rec, df_score, columns, case_id_name, pred_colum
 
         score_before = [i for i in score_before if i]  # Remove None values that can come from empty lists
 
-        res_rec = from_trace_to_score(list(trace[activity_name]) + [rec_act], pred_column, activity_name, df_score, columns, predict_activities=predict_activities)
+        res_rec = from_trace_to_score(list(trace[activity_name]) + [rec_act], pred_column, activity_name, df_score,
+                                      columns, predict_activities=predict_activities)
 
         try:
-            score_reality = from_trace_to_score(acts, pred_column, activity_name, df_score, columns, predict_activities=predict_activities)
+            score_reality = from_trace_to_score(acts, pred_column, activity_name, df_score, columns,
+                                                predict_activities=predict_activities)
             diff_reality = score_reality - res_rec
         except:
             None
@@ -166,13 +171,14 @@ def generate_recommendations(df_rec, df_score, columns, case_id_name, pred_colum
                 f'Len trace = {len(trace)}, #following_traces = {len(next_activities)}, KPIno_rec {score_reality}, KPIrec {res_rec}, diff{diff_reality}')
         except:
             print('Not in dataset')
-        rec_dict[trace_idx] = {i:j for i,j in zip(next_activities['Next_act'], next_activities['kpi_rel'])}
-        real_dict[trace_idx] = {acts[-1] : actual_prediciton}
-        pickle.dump(rec_dict, open(f'recommendations/{experiment_name}/rec_dict.pkl','wb'))
+        rec_dict[trace_idx] = {i: j for i, j in zip(next_activities['Next_act'], next_activities['kpi_rel'])}
+        real_dict[trace_idx] = {acts[-1]: actual_prediciton}
+        pickle.dump(rec_dict, open(f'recommendations/{experiment_name}/rec_dict.pkl', 'wb'))
         pickle.dump(real_dict, open(f'recommendations/{experiment_name}/real_dict.pkl', 'wb'))
 
         print(f'The suggested activity is {rec_act}')
-        import ipdb; ipdb.set_trace()
+        import ipdb;
+        ipdb.set_trace()
         if explain:
             trace_exp = trace.copy()
             start = time.time()
@@ -181,44 +187,47 @@ def generate_recommendations(df_rec, df_score, columns, case_id_name, pred_colum
             groundtruth_explanation = explain_recsys.evaluate_shap_vals(trace_exp, model, X_test, case_id_name)
             groundtruth_explanation = [a for a in groundtruth_explanation]
             groundtruth_explanation = [trace_idx] + groundtruth_explanation
-            groundtruth_explanation = pd.Series(groundtruth_explanation, index=[i for i in df_rec.columns if i!='y'])
+            groundtruth_explanation = pd.Series(groundtruth_explanation, index=[i for i in df_rec.columns if i != 'y'])
 
-            #Save also groundtruth explanations
+            # Save also groundtruth explanations
             groundtruth_explanation.to_csv(f'explanations/{experiment_name}/{trace_idx}_expl_df_gt.csv')
             groundtruth_explanation.drop([case_id_name] + [i for i in (set(quantitative_vars).union(qualitative_vars))],
                                          inplace=True)
 
-            #stampa l'ultima riga di trace normale
+            # stampa l'ultima riga di trace normale
             trace.iloc[-1].to_csv(f'explanations/{experiment_name}/{trace_idx}_expl_df_values.csv')
-            last = trace.iloc[-1].copy().drop([case_id_name]+[i for i in (set(quantitative_vars).union(qualitative_vars))])
-            next_activities = next_activities.iloc[:3] #TODO: Note that is only optimized for minimizing a KPI
+            last = trace.iloc[-1].copy().drop(
+                [case_id_name] + [i for i in (set(quantitative_vars).union(qualitative_vars))])
+            next_activities = next_activities.iloc[:3]  # TODO: Note that is only optimized for minimizing a KPI
             for act in next_activities['Next_act'].values:
                 trace_exp.loc[len(trace_exp) - 1, activity_name] = act
 
                 explanations = explain_recsys.evaluate_shap_vals(trace_exp, model, X_test, case_id_name)
                 explanations = [a for a in explanations]
                 explanations = [trace_idx] + explanations
-                explanations = pd.Series(explanations, index=[i for i in df_rec.columns if i!='y'])
+                explanations = pd.Series(explanations, index=[i for i in df_rec.columns if i != 'y'])
                 explanations.to_csv(f'explanations/{experiment_name}/{trace_idx}_{act}_expl_df.csv')
 
-                #Take the best-4 deltas
-                explanations.drop([case_id_name]+[i for i in (set(quantitative_vars).union(qualitative_vars))], inplace=True)
+                # Take the best-4 deltas
+                explanations.drop([case_id_name] + [i for i in (set(quantitative_vars).union(qualitative_vars))],
+                                  inplace=True)
                 deltas_expls = groundtruth_explanation - explanations
                 deltas_expls.sort_values(ascending=False, inplace=True)
                 idxs_chosen = deltas_expls.index[:4]
 
                 pickle.dump(idxs_chosen, open(f'explanations/{experiment_name}/{trace_idx}_{act}_idx_chosen.pkl', 'wb'))
                 pickle.dump(last, open(f'explanations/{experiment_name}/{trace_idx}_last.pkl', 'wb'))
-                explain_recsys.plot_explanations_recs(groundtruth_explanation, explanations, idxs_chosen, last, experiment_name, trace_idx, act)
+                explain_recsys.plot_explanations_recs(groundtruth_explanation, explanations, idxs_chosen, last,
+                                                      experiment_name, trace_idx, act)
 
-        print(f'The total execution split for 4 explanations generated is {int(time.time()-start)}')
+        print(f'The total execution split for 4 explanations generated is {int(time.time() - start)}')
 
         try:
             results.append([len(trace), len(next_activities), score_reality, res_rec, acts, rec_act])
         except:
-            None  
+            None
 
-    # total_time = time.time() - start_time
+            # total_time = time.time() - start_time
     # print(f'The total execution time is {total_time}')
     if save:
         pickle.dump(results, open(f'/home/padela/Scrivania/results_backup/results_{experiment_name}.pkl', 'wb'))

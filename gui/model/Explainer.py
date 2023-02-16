@@ -1,4 +1,5 @@
 import os.path
+import traceback
 
 import pandas as pd
 
@@ -71,6 +72,8 @@ class Explainer:
         self.df_run[self.ex_info.id] = [str(i) for i in self.df_run[self.ex_info.id]]
 
         if value in set(self.df_run[self.ex_info.activity]):
+            print('Activity {} on set: act: {}, set: {}'.format(value, self.ex_info.activity,
+                                                                set(self.df_run[self.ex_info.activity])))
             act = value
 
             for i in self.df_run.columns:
@@ -132,12 +135,16 @@ class Explainer:
             explanations = [trace_idx] + explanations
             explanations = pd.Series(explanations, index=[i for i in trace_exp.columns if i != 'y'])
             write(explanations.to_dict(), self.paths.get_explanation_path(trace_idx, act))
+        else:
+            print('No activity {} on set: act: {}, set: {}'.format(value, self.ex_info.activity,
+                                                                   set(self.df_run[self.ex_info.activity])))
 
     def generate_explanations_dataframe(self, trace_id, value):
         try:
             groundtruth_explanation = pd.read_json(self.paths.get_gt_explanation_path(trace_id), typ='series')
             explanations = pd.read_json(self.paths.get_explanation_path(trace_id, value), typ='series')
-        except Exception as e:
+        except Exception:
+            print(traceback.format_exc())
             return None, None
 
         explanations.drop(

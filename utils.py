@@ -287,7 +287,8 @@ def from_trace_to_score(trace, pred_column, activity_name, df_score, columns, pr
     l = list()
     # list(trace[activity_name]) + [rec_act], pred_column, activity_name, df_score, columns
     if pred_column == 'independent_activity':
-        index_pa = list(columns).index('# ACTIVITY=' + predict_activities[0]) - sum([('#' not in i) for i in columns])
+        index_pa = list(columns).index('# ' + activity_name + '=' + predict_activities[0]) - sum(
+            [('#' not in i) for i in columns])
         for line in df_score[:, :-1]:
             if (encoded_trace <= line).all():
                 l.append(line - encoded_trace)

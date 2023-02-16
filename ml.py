@@ -367,6 +367,7 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             params["loss_function"] = "MAE"
             train_data = Pool(X_train, y_train, cat_features=categorical_features)
             model = CatBoostRegressor(**params)
+            print('train1')
             model.fit(train_data, log_cout=progress_logger if progress_logger else sys.stdout)
         else:
             params["loss_function"] = "Logloss"
@@ -400,6 +401,7 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             train_data = Pool(X_train_without_valid, y_train_without_valid, cat_features=categorical_features)
             eval_pool = Pool(X_valid, y_valid, cat_features=categorical_features)
             model = CatBoostClassifier(**params)
+            print('train2')
             model.fit(train_data, log_cout=progress_logger if progress_logger else sys.stdout)
 
             fnrs = [0.10, 0.20, 0.30, 0.40, 0.50]
@@ -412,6 +414,7 @@ def fit_model(column_type, history, case_id_name, activity_name, experiment_name
             train_data = Pool(X_train, y_train, cat_features=categorical_features)
             model = CatBoostClassifier(**params)
             print('Re training on all train set...')
+            print('train3')
             model.fit(train_data, log_cout=progress_logger if progress_logger else sys.stdout)
 
         if paths:

@@ -7,7 +7,7 @@ from gui.views.View import View
 import dash_uploader as du
 
 
-class _IDs(StrEnum):
+class IDs(StrEnum):
     LOAD_RUN_SPINNER = 'load_run_spinner',
     LOAD_RUN_FILE_BTN_FADE = 'load_run_file_btn_fade',
     RUN_SPINNER = 'run_spinner',
@@ -29,7 +29,7 @@ class _ERROR_IDs(StrEnum):
 class RunView(View):
     def __init__(self, pathname='', order=-1):
         super().__init__(pathname, order)
-        self.IDs = _IDs
+        self.IDs = IDs
         self.ERROR_IDs = _ERROR_IDs
 
     def get_layout(self):

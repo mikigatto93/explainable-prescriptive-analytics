@@ -13,10 +13,14 @@ import zipfile
 
 
 class Trainer:
-    def __init__(self, experiment_info: Experiment, data_source: TrainDataSource):
+    def __init__(self, experiment_info: Experiment, data_source: TrainDataSource, main_path=None):
         self.train_info: Optional[TrainInfo] = None
         self.ex_info = experiment_info
-        self.paths = Paths(self.ex_info.ex_name, creation_timestamp=self.ex_info.creation_timestamp)
+        if main_path is not None:
+            self.paths = Paths(self.ex_info.ex_name, creation_timestamp=self.ex_info.creation_timestamp,
+                               main_path=main_path)
+        else:
+            self.paths = Paths(self.ex_info.ex_name, creation_timestamp=self.ex_info.creation_timestamp)
         self.data_source = data_source
 
     def write_experiment_info(self):
@@ -97,10 +101,11 @@ class Trainer:
         }
 
 
-def build_Trainer_from_dict(dict_obj, load_data_source=False):
+def build_Trainer_from_dict(dict_obj, load_data_source=False, main_path=None):
     obj = Trainer(build_experiment_from_dict(dict_obj['ex_info']),
-                  build_TrainDataSource_from_dict(dict_obj['data_source'], load_data_source))
+                  build_TrainDataSource_from_dict(dict_obj['data_source'], load_data_source), main_path=main_path)
+
     # self.paths is build on demand
-    # obj.train_info = dict_obj['train_info']
+
     return obj
 

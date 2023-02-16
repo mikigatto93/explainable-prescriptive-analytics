@@ -86,15 +86,14 @@ class Recommender:
                                                                                 quantitative_vars, qualitative_vars,
                                                                                 encoding='aggr-hist')
                     next_activities['kpi_rel'] = next_activities['kpi_rel'].abs()
-                except Exception as e:
-                    print('Next activity not found in transition system')
+                except:
+                    # print('Next activity not found in transition system')
                     continue
 
                 try:
                     rec_act = \
                         next_activities[next_activities['kpi_rel'] == min(next_activities['kpi_rel'])][
-                            'Next_act'].values[
-                            0]
+                            'Next_act'].values
                     other_traces = [
                         next_activities[next_activities['kpi_rel'] != min(next_activities['kpi_rel'])][
                             'Next_act'].values]
@@ -111,7 +110,7 @@ class Recommender:
         real_dict = {str(A): N for (A, N) in [x for x in real_dict.items()]}
         write(rec_dict, self.paths.folders['recommendations']['rec_dict'])
         write(real_dict, self.paths.folders['recommendations']['real_dict'])
-        # print('Prediction generation completed')
+        print('done')
 
 #     def to_dict(self, key, save_df_data=False):
 #         return {

@@ -138,9 +138,9 @@ def frequency_table(X_train, case_id_name=str, activity_name=str, thrs=.2):
         else:
             freq_dict[str_list(trace[activity_name])] = 1
 
-    # Order by frequence and get the first
-    freq_dict = list({k: v for k, v in sorted(freq_dict.items(), key=lambda item: item[1], reverse=True)}.keys())
-    freq_dict = set(freq_dict[:int(len(freq_dict) * thrs + 1)])
+    # Get the thrs value
+    frequence_value_for_cut = int(len(idx_list) * (thrs))
+    freq_dict = list({k: freq_dict[k] for k in freq_dict.keys() if freq_dict[k] >= frequence_value_for_cut}.keys())
 
     return freq_dict
 
@@ -154,7 +154,7 @@ def fill_hashmap(X_train, case_id_name=str, activity_name=str, thrs=.2):
         print(f'Creating hash-map with a threshold of {thrs} of acceptability for outliers')
         traces_selected = frequency_table(X_train, case_id_name=case_id_name, activity_name=activity_name, thrs=thrs)
 
-    else :
+    else:
         traces_selected = []
 
     # Create an empty hash map, large as the maximum number of traces possible (TO EDIT)
