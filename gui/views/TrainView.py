@@ -4,7 +4,7 @@ from strenum import StrEnum
 from dash_extensions.enrich import html, dcc, Output, Input, dcc
 import dash_bootstrap_components as dbc
 
-from app import app
+from app import app, CONFIG
 
 from gui.views.View import View
 import dash_uploader as du
@@ -77,7 +77,8 @@ class TrainView(View):
             html.H1('Train'),
             html.Div([
                 html.Div([
-                    du.Upload(id=self.IDs.TRAIN_FILE_UPLOADER, filetypes=['csv', 'xes'], max_file_size=2048, ),
+                    du.Upload(id=self.IDs.TRAIN_FILE_UPLOADER, filetypes=['csv', 'xes', 'xls'],
+                              max_file_size=CONFIG['UPLOAD_BYTE_SIZE']),
                     dbc.Fade([
                         html.Button(
                             html.Div(

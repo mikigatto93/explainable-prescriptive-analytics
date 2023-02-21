@@ -15,6 +15,7 @@
 	flex-direction: row;
 	justify-content: center;
 	align-items: center;
+	flex-wrap: nowrap;
 }
 
 .load_train_file_cont {
@@ -26,6 +27,13 @@
 	align-items: center;
 	padding-right: 1em;
 	border-right: 1px solid #000;
+}
+
+
+@media screen and (max-width: 1275px) {
+	.train_load_area {
+		flex-wrap: wrap;
+	}
 }
 
 .load_model_cont {

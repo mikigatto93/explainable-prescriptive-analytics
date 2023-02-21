@@ -31,7 +31,6 @@ class TrainPresenter(Presenter):
         super().__init__(views)
         self.zip_files_paths = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'zip_files_paths')
         self.data_sources = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'data_sources')
-        # self.files_to_train_paths = {}
         self.trainers = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'trainers')
         self.progress_loggers = DiskDict(os.path.join(os.getcwd(), 'gui_data', 'train'), 'progress_loggers')
 

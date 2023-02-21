@@ -29,7 +29,9 @@ def test_create_missing_folders():
 def test_get_experiment_folders_list():
     folder_list = get_experiment_folders_list('test_experiments_dir')
     assert folder_list == [{'ex_name': 'ex1', 'path': 'test_experiments_dir\\ex1##123'},
-                           {'ex_name': 'ex2', 'path': 'test_experiments_dir\\ex2##234'}]
+                           {'ex_name': 'ex2', 'path': 'test_experiments_dir\\ex2##234'},
+                           {'ex_name': 'test',
+                            'path': 'test_experiments_dir\\test--10-02-2023_21-48-26_541142+0000'}]
 
 
 def test_path_maker():

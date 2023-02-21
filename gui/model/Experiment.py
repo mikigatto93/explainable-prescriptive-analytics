@@ -5,8 +5,6 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from gui.model import DiskDict
-
 
 @dataclass
 class Experiment:

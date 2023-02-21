@@ -61,6 +61,11 @@ def test_write(log):
     output = log[0].get_from_stack()
     assert output == 'elapsed: 182ms, remaining: 1.64s'
 
+    log[0].phase_number = 1
+    log[0].write(log_entry)
+    output = log[0].get_from_stack()
+    assert output == '1/2 training phases, elapsed: 182ms, remaining: 1.64s'
+
 
 def test_build_trainlogger(log):
     temp_path = pathlib.Path(log[1].name)

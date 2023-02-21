@@ -208,11 +208,11 @@ def test_change_quantity_explanations():
         with PropertyMocker(explain_pres, 'explainers', PropertyMock(return_value={'1234': 'test'})):
             with patch('gui.presenters.ExplainPresenter.build_Explainer_from_dict') as mock_build_explainer:
                 mock_build_explainer.return_value.generate_explanations_dataframe.return_value = None, None
-                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 4)
+                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5)
                 mock_build_explainer.return_value.generate_explanations_dataframe.return_value = 'NotNone', None
-                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 4)
+                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5)
                 mock_build_explainer.return_value.generate_explanations_dataframe.return_value = None, 'NotNone'
-                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 4)
+                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5)
 
     with PropertyMocker(explain_pres, 'explainers', PropertyMock(return_value={'1234': 'test'})):
         with patch('gui.presenters.ExplainPresenter.build_Explainer_from_dict') as mock_build_explainer, \
@@ -221,8 +221,12 @@ def test_change_quantity_explanations():
              ) as mock_createexplgraph:
             mock_createexplgraph.return_value = 'graph_result'
             mock_build_explainer.return_value.generate_explanations_dataframe.return_value = [1, 2, 3], [4, 5, 6]
-            assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 4) == 'graph_result'
-            mock_createexplgraph.assert_called_with([1, 2, 3], [4, 5, 6], 4)
+            assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5) == 'graph_result'
+            mock_createexplgraph.assert_called_with([1, 2, 3], [4, 5, 6], 5)
+            with pytest.raises(dash.exceptions.PreventUpdate):
+                CALLBACKS['change_quantity_explanations']('trace',
+                                                          'act_to_explain', '1234', explain_pres.DEFAULT_EXPL_QNT)
+
 
 
 def test_calculate_and_visualize_shap_by_trace():

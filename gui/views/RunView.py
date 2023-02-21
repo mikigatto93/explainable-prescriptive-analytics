@@ -2,7 +2,7 @@ from strenum import StrEnum
 from dash_extensions.enrich import html, dcc
 import dash_bootstrap_components as dbc
 
-from app import app
+from app import app, CONFIG
 from gui.views.View import View
 import dash_uploader as du
 
@@ -35,7 +35,8 @@ class RunView(View):
     def get_layout(self):
         return html.Div([
             html.H1('Run'),
-            du.Upload(id=self.IDs.RUN_FILE_UPLOADER, filetypes=['csv', 'xes']),
+            du.Upload(id=self.IDs.RUN_FILE_UPLOADER, filetypes=['csv', 'xes', 'xls'],
+                      max_file_size=CONFIG['UPLOAD_BYTE_SIZE']),
             html.Div([
 
                 dbc.Fade(

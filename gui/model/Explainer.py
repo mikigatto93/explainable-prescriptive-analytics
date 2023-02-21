@@ -68,40 +68,42 @@ class Explainer:
             'real': trace_real_pred
         }
 
-    def calculate_explanation(self, trace_idx, value):
+    def calculate_explanation(self, trace_idx, value, generate_gt=True):
         self.df_run[self.ex_info.id] = [str(i) for i in self.df_run[self.ex_info.id]]
 
-        if value in set(self.df_run[self.ex_info.activity]):
-            print('Activity {} on set: act: {}, set: {}'.format(value, self.ex_info.activity,
-                                                                set(self.df_run[self.ex_info.activity])))
-            act = value
+        # if value in set(self.df_run[self.ex_info.activity]):
+        # print('Activity {} on set: act: {}, set: {}'.format(value, self.ex_info.activity,
+        #                                                     set(self.df_run[self.ex_info.activity])))
+        act = value
 
-            for i in self.df_run.columns:
-                if 'Unnamed' in i:
-                    del self.df_run[i]
-            # self.ex_info.id = pickle.load(open('gui_backup/self.ex_info.id.pkl', 'rb'))
-            # experiment_name = 'Gui_experiment'
-            X_test = self.df_run.copy()
-            # traces_hash = pickle.load(open('gui_backup/transition_system.pkl', 'rb'))
+        for i in self.df_run.columns:
+            if 'Unnamed' in i:
+                del self.df_run[i]
+        # self.ex_info.id = pickle.load(open('gui_backup/self.ex_info.id.pkl', 'rb'))
+        # experiment_name = 'Gui_experiment'
+        X_test = self.df_run.copy()
+        # traces_hash = pickle.load(open('gui_backup/transition_system.pkl', 'rb'))
 
-            trace_exp = self.df_run[self.df_run[self.ex_info.id] == trace_idx].copy()
-            trace = self.df_run[self.df_run[self.ex_info.id] == trace_idx].iloc[:, 1:].copy()
-            trace_exp.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
-            trace.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
+        trace_exp = self.df_run[self.df_run[self.ex_info.id] == trace_idx].copy()
+        trace = self.df_run[self.df_run[self.ex_info.id] == trace_idx].iloc[:, 1:].copy()
+        trace_exp.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
+        trace.rename(columns={'time_from_midnight': 'daytime'}, inplace=True)
 
-            # start = time.time()
-            # quantitative_vars = pickle.load(open(f'explanations/{experiment_name}/quantitative_vars.pkl', 'rb'))
-            # qualitative_vars = pickle.load(open(f'explanations/{experiment_name}/qualitative_vars.pkl', 'rb'))
-            # pred_column = pickle.load(open('gui_backup/pred_column.pkl', 'rb'))
+        # start = time.time()
+        # quantitative_vars = pickle.load(open(f'explanations/{experiment_name}/quantitative_vars.pkl', 'rb'))
+        # qualitative_vars = pickle.load(open(f'explanations/{experiment_name}/qualitative_vars.pkl', 'rb'))
+        # pred_column = pickle.load(open('gui_backup/pred_column.pkl', 'rb'))
 
-            # model = utils.import_predictor(experiment_name=experiment_name, pred_column=pred_column)
-            # rec_dict = pickle.load(open(f'recommendations/{experiment_name}/rec_dict.pkl', 'rb'))[trace_idx]
-            rec_dict = read(self.paths.folders['recommendations']['rec_dict'])[trace_idx]
-            rec_dict = dict(sorted(rec_dict.items(), key=lambda x: x[1]))
-            rec_dict = {A: N for (A, N) in [x for x in rec_dict.items()][:3]}
+        # model = utils.import_predictor(experiment_name=experiment_name, pred_column=pred_column)
+        # rec_dict = pickle.load(open(f'recommendations/{experiment_name}/rec_dict.pkl', 'rb'))[trace_idx]
+        rec_dict = read(self.paths.folders['recommendations']['rec_dict'])[trace_idx]
+        rec_dict = dict(sorted(rec_dict.items(), key=lambda x: x[1]))
+        rec_dict = {A: N for (A, N) in [x for x in rec_dict.items()][:3]}
 
-            for var in (set(self.quantitative_vars).union(self.qualitative_vars)):
-                trace_exp[var] = "none"
+        for var in (set(self.quantitative_vars).union(self.qualitative_vars)):
+            trace_exp[var] = "none"
+
+        if generate_gt:
             groundtruth_explanation = explain_recsys.evaluate_shap_vals(trace_exp, self.model, self.df_run,
                                                                         self.ex_info.id)
             groundtruth_explanation = [a for a in groundtruth_explanation]
@@ -110,34 +112,28 @@ class Explainer:
                                                 index=[i for i in self.df_run.columns if i != 'y'])
 
             # Save also groundtruth explanations
-            # write(groundtruth_explanation, self.paths.get_explanation_path(trace_idx, 'groundtruth'))
             write(groundtruth_explanation.to_dict(), self.paths.get_gt_explanation_path(trace_idx))
-            # print('____________')
-            # print(groundtruth_explanation)
-            # print('____________')
-            # groundtruth_explanation.drop([self.ex_info.id] + [i for i in (set(quantitative_vars).union(qualitative_vars))],
-            #                              inplace=True)
-            # print(groundtruth_explanation)
 
-            # # stampa l'ultima riga di trace normale
-            # trace_exp.iloc[-1].to_csv(f'explanations/{experiment_name}/{trace_idx}_expl_df_values.csv')
-            # last = trace_exp.iloc[-1].copy().drop(
-            #     [self.ex_info.id] + [i for i in (set(quantitative_vars).union(qualitative_vars))])
-            # next_activities = list(rec_dict.keys())  # TODO: Note that is only optimized for minimizing a KPI
 
-            trace_exp.reset_index(drop=True, inplace=True)
-            trace_exp.loc[len(trace_exp) - 1, self.ex_info.activity] = act
-            for i in trace_exp.columns:
-                if 'Unnamed' in i:
-                    del self.df_run[i]
-            explanations = explain_recsys.evaluate_shap_vals(trace_exp, self.model, X_test, self.ex_info.id)
-            explanations = [a for a in explanations]
-            explanations = [trace_idx] + explanations
-            explanations = pd.Series(explanations, index=[i for i in trace_exp.columns if i != 'y'])
-            write(explanations.to_dict(), self.paths.get_explanation_path(trace_idx, act))
-        else:
-            print('No activity {} on set: act: {}, set: {}'.format(value, self.ex_info.activity,
-                                                                   set(self.df_run[self.ex_info.activity])))
+        # # stampa l'ultima riga di trace normale
+        # trace_exp.iloc[-1].to_csv(f'explanations/{experiment_name}/{trace_idx}_expl_df_values.csv')
+        # last = trace_exp.iloc[-1].copy().drop(
+        #     [self.ex_info.id] + [i for i in (set(quantitative_vars).union(qualitative_vars))])
+        # next_activities = list(rec_dict.keys())  # TODO: Note that is only optimized for minimizing a KPI
+
+        trace_exp.reset_index(drop=True, inplace=True)
+        trace_exp.loc[len(trace_exp) - 1, self.ex_info.activity] = act
+        for i in trace_exp.columns:
+            if 'Unnamed' in i:
+                del self.df_run[i]
+        explanations = explain_recsys.evaluate_shap_vals(trace_exp, self.model, X_test, self.ex_info.id)
+        explanations = [a for a in explanations]
+        explanations = [trace_idx] + explanations
+        explanations = pd.Series(explanations, index=[i for i in trace_exp.columns if i != 'y'])
+        write(explanations.to_dict(), self.paths.get_explanation_path(trace_idx, act))
+        # else:
+        #     print('No activity {} on set: act: {}, set: {}'.format(value, self.ex_info.activity,
+        #                                                            set(self.df_run[self.ex_info.activity])))
 
     def generate_explanations_dataframe(self, trace_id, value):
         try:
@@ -160,23 +156,15 @@ class Explainer:
                 explanations.reindex(index=deltas_expls.keys()))
 
     def check_if_explanations_exists(self, trace_id, value):
-        return (os.path.isfile(self.paths.get_gt_explanation_path(trace_id)) and
-                os.path.isfile(self.paths.get_explanation_path(trace_id, value)))
+        return os.path.isfile(self.paths.get_explanation_path(trace_id, value))
+
+    def check_if_groundtruth_exists(self, trace_id):
+        return os.path.isfile(self.paths.get_gt_explanation_path(trace_id))
 
     def check_if_trace_is_valid(self, trace_id):
         return trace_id in self.rec_dict
 
     def to_dict(self):
-        # def __init__(self, experiment_info: Experiment):
-        #     self.real_dict = None
-        #     self.rec_dict = None
-        #     self.ex_info = experiment_info
-        #     self.paths = Paths(self.ex_info.ex_name)
-        #     self.df_run = pd.read_csv(self.paths.folders['recommendations']['df_run'])
-        #     self.quantitative_vars = read(self.paths.folders['variables']['qnt'])
-        #     self.qualitative_vars = read(self.paths.folders['variables']['qlt'])
-        #     self.model = read(self.paths.folders['model']['model'])
-
         return {
             'ex_info': self.ex_info.to_dict(),
         }

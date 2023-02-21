@@ -290,7 +290,6 @@ class ExplainPresenter(Presenter):
                        Input(self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN, 'n_clicks')],
                       prevent_initial_call=True)
         def show_preds_text_format(input_value, user_id, click_data, n_clicks):
-            print('show_preds_text_format click_data: {}, n_clicks: {}'.format(click_data, n_clicks))
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             graph_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH
             search_btn_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.SEARCH_TRACE_ID_INPUT_BTN
@@ -366,9 +365,6 @@ class ExplainPresenter(Presenter):
                        State(self.views['base'].IDs.USER_ID, 'data')],
                       prevent_initial_call=True)
         def select_trace_activity_to_explain(n_clicks1, n_clicks2, n_clicks3, ch1, ch2, ch3, trace_id, user_id):
-            print('select_trace_activity_to_explain: n_clicks1: {}, n_clicks2: {}, n_clicks3: {}'.format(n_clicks1,
-                                                                                                         n_clicks2,
-                                                                                                         n_clicks3))
             CSS_SELECTED_ROW_CLASS_NAME = 'selected_expl_table_row'
             CSS_BASE_ROW_CLASS_NAME = 'expl_table_selectable_row'
             row1_clicked = dash.ctx.triggered_id == self.views['explain'].IDs.FIRST_ROW_PRED_TABLE and n_clicks1 > 0
@@ -390,7 +386,9 @@ class ExplainPresenter(Presenter):
             else:
                 return [dash.no_update] * 7
             explainer = build_Explainer_from_dict(self.explainers[user_id])
-            if explainer.check_if_explanations_exists(trace_id, act_to_explain):
+
+            if explainer.check_if_groundtruth_exists(trace_id) and \
+               explainer.check_if_explanations_exists(trace_id, act_to_explain):
                 print('Explanations found, visualizing shap values for '
                       'trace: {}, activity: {}'.format(trace_id, act_to_explain))
 
@@ -408,7 +406,6 @@ class ExplainPresenter(Presenter):
                       Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
                       prevent_initial_call=True)
         def change_quantity_explanations(trace_id, act_to_explain, user_id, value):
-            print('change_quantity_explanations')
             if value and value != self.DEFAULT_EXPL_QNT:
                 gt, expl = build_Explainer_from_dict(
                     self.explainers[user_id]
@@ -439,12 +436,14 @@ class ExplainPresenter(Presenter):
             ]
         )
         def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, user_id, n_clicks):
-            print('calculate_and_visualize_shap_by_trace, nclicks:{}'.format(n_clicks))
             if n_clicks > 0:
                 explainer = build_Explainer_from_dict(self.explainers[user_id])
                 if not explainer.check_if_explanations_exists(trace_id, act_to_explain):
                     print('Calculating shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
-                    explainer.calculate_explanation(trace_id, act_to_explain)
+                    explainer.calculate_explanation(trace_id,
+                                                    act_to_explain,
+                                                    generate_gt=not explainer.check_if_groundtruth_exists(trace_id))
+
                     gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
                     return [self.create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
                             False, True]
