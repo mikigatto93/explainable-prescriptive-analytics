@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import pm4py
 
@@ -81,7 +83,6 @@ def test_remove_unnamed_columns(datasource):
     assert 'Unnamed: 0' not in datasource['xes'].columns_list
 
 
-
 def test_to_dict(datasource):
     assert datasource['csv'].to_dict('1234', save_df_data=False) == \
            {'columns_list': ['Unnamed: 0',
@@ -93,7 +94,7 @@ def test_to_dict(datasource):
                              'START_DATE',
                              'CE_UO',
                              'ROLE'],
-            'data': 'F:\\STAGE\\explainable-prescriptive-analytics\\test_gui\\datasets_for_gui\\run_df_1234.csv',
+            'data': os.path.join(os.getcwd(), 'datasets_for_gui\\run_df_1234.csv'),
             'file_path': 'test_datasets/bac_train_red.csv',
             'is_xes': False,
             'xes_columns_names': {}}
@@ -111,7 +112,7 @@ def test_to_dict(datasource):
                              'Product',
                              'Country',
                              'Owner_Country'],
-            'data': 'F:\\STAGE\\explainable-prescriptive-analytics\\test_gui\\datasets_for_gui\\run_df_1234.csv',
+            'data': os.path.join(os.getcwd(), 'datasets_for_gui\\run_df_1234.csv'),
             'file_path': 'test_datasets/VINST_train_red.xls',
             'is_xes': False,
             'xes_columns_names': {}}
@@ -122,7 +123,7 @@ def test_to_dict(datasource):
                              'concept:name',
                              'lifecycle:transition',
                              'case:concept:name'],
-            'data': 'F:\\STAGE\\explainable-prescriptive-analytics\\test_gui\\datasets_for_gui\\run_df_1234.csv',
+            'data': os.path.join(os.getcwd(), 'datasets_for_gui\\run_df_1234.csv'),
             'file_path': 'test_datasets/test_file_xes.xes',
             'is_xes': True,
             'xes_columns_names': {}}
@@ -149,7 +150,7 @@ def test_build_RunDataSource_from_dict():
                                  'START_DATE',
                                  'CE_UO',
                                  'ROLE'],
-                'data': 'F:\\STAGE\\explainable-prescriptive-analytics\\test_gui\\datasets_for_gui\\run_df_1234.csv',
+                'data': os.path.join(os.getcwd(), 'datasets_for_gui\\run_df_1234.csv'),
                 'file_path': 'test_datasets/bac_train_red.csv',
                 'is_xes': False,
                 'xes_columns_names': {}}

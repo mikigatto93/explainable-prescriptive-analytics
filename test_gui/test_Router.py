@@ -66,15 +66,6 @@ def test_disable_unreachable_links():
     assert CALLBACKS['disable_unreachable_links']('test', 'test') == [False, False]
 
 
-def test_disable_link_at_start():
-    # TODO: DA RIFARE
-    assert 1
-    # with pytest.raises(dash.exceptions.PreventUpdate):
-    #     CALLBACKS['disable_link_at_start']('INVALID_URL')
-    # assert CALLBACKS['disable_link_at_start'](router.views['train'].pathname)
-    # assert CALLBACKS['disable_link_at_start'](router.views['run'].pathname)
-
-
 @freeze_time('2023-01-30')
 def test_send_keep_alive_signal():
     user_id = '123456789'
