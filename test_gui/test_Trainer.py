@@ -65,8 +65,8 @@ def test_to_dict(trainer):
                                              'START_DATE',
                                              'CE_UO',
                                              'ROLE'],
-                            'data': 'F:\\STAGE\\explainable-prescriptive-analytics\\test_gui\\datasets_for_gui'
-                                    '\\train_df_1234.csv',
+                            'data': os.path.join(os.getcwd(), 'datasets_for_gui'
+                                                              '\\train_df_1234.csv'),
                             'file_path': 'test_datasets/bac_train_red.csv',
                             'is_xes': False,
                             'xes_columns_names': {}},
