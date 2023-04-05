@@ -9,6 +9,28 @@ from gui.model.IO.IOManager import Paths, read, write
 import gui.model.IO.IOManager as gui_io
 
 
+# GENERIC ORDERING FUNCTION
+
+def order_by_delta_max(df: pd.DataFrame, col1, col2):
+    return df.assign(tmp=df[col1] - df[col2]) \
+        .sort_values(by='tmp', ascending=False) \
+        .drop(columns='tmp')
+
+
+def order_by_delta_min(df: pd.DataFrame, col1, col2):
+    return df.assign(tmp=df[col1] - df[col2]) \
+        .sort_values(by='tmp', ascending=True) \
+        .drop(columns='tmp')
+
+
+def order_by_max_value(df: pd.DataFrame, col):
+    return df.sort_values(by=col, ascending=False)
+
+
+def order_by_min_value(df: pd.DataFrame, col):
+    return df.sort_values(by=col, ascending=True)
+
+
 class Explainer:
     def __init__(self, experiment_info: Experiment):
         self.ex_info = experiment_info
@@ -114,7 +136,6 @@ class Explainer:
             # Save also groundtruth explanations
             write(groundtruth_explanation.to_dict(), self.paths.get_gt_explanation_path(trace_idx))
 
-
         # # stampa l'ultima riga di trace normale
         # trace_exp.iloc[-1].to_csv(f'explanations/{experiment_name}/{trace_idx}_expl_df_values.csv')
         # last = trace_exp.iloc[-1].copy().drop(
@@ -141,7 +162,7 @@ class Explainer:
             explanations = pd.read_json(self.paths.get_explanation_path(trace_id, value), typ='series')
         except Exception:
             print(traceback.format_exc())
-            return None, None
+            return None
 
         explanations.drop(
             [self.ex_info.id] + [i for i in (set(self.quantitative_vars).union(self.qualitative_vars))],
@@ -151,9 +172,14 @@ class Explainer:
         deltas_expls = groundtruth_explanation - explanations
 
         deltas_expls.sort_values(ascending=False, inplace=True)
+        groundtruth_explanation = groundtruth_explanation.reindex(index=deltas_expls.keys())
+        explanations = explanations.reindex(index=deltas_expls.keys())
+        # groundtruth_explanation.rename('groundtruth')
+        # explanations.rename('explanations')
+        explanations_df = pd.concat([groundtruth_explanation.rename('groundtruth'),
+                                     explanations.rename('explanations')], axis=1)
 
-        return (groundtruth_explanation.reindex(index=deltas_expls.keys()),
-                explanations.reindex(index=deltas_expls.keys()))
+        return explanations_df
 
     def check_if_explanations_exists(self, trace_id, value):
         return os.path.isfile(self.paths.get_explanation_path(trace_id, value))
@@ -163,6 +189,11 @@ class Explainer:
 
     def check_if_trace_is_valid(self, trace_id):
         return trace_id in self.rec_dict
+
+    def generate_explanation_details(self, trace_id, act_to_explain, expl_df, expl_var):
+        delta = expl_df.loc[expl_var, 'explanations'] - expl_df.loc[expl_var, 'groundtruth']
+        return 'Details for explanation of {}, {}: delta: {}'.format(trace_id, act_to_explain, delta)
+
 
     def to_dict(self):
         return {

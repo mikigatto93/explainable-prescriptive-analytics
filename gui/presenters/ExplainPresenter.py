@@ -16,7 +16,8 @@ import plotly.express as px
 
 from gui.model import Experiment
 import gui.model.DiskDict as diskdict
-from gui.model.Explainer import Explainer, build_Explainer_from_dict
+from gui.model.Explainer import Explainer, build_Explainer_from_dict, order_by_delta_max, \
+    order_by_delta_min, order_by_max_value, order_by_min_value
 from gui.presenters.Presenter import Presenter
 
 
@@ -56,10 +57,12 @@ class ExplainPresenter(Presenter):
     def create_pred_graph(self, user_id):
         pred_graph_progression_data = self.pred_graph_progression_data[user_id]
         kpis_df = pd.read_parquet(self.kpis_dfs[user_id])
+
         df_slice = kpis_df[
             slice(max(self.REC_PER_PAGE * pred_graph_progression_data, 0),
                   min(self.REC_PER_PAGE * (pred_graph_progression_data + 1),
                       self.kpis_dfs_lengths[user_id]))]
+        df_slice = df_slice.iloc[::-1]  # reverse dataframe so it can be watched from top to bottom
 
         fig = go.Figure()
         fig.add_trace(
@@ -106,15 +109,22 @@ class ExplainPresenter(Presenter):
 
         return fig
 
-    def create_explanation_graph(self, gt, expl, qnt):
-        gt_slice = gt[slice(0, qnt)]
-        expl_slice = expl[slice(0, qnt)]
+    def create_explanation_graph(self, expl_df, qnt, order=None):
+
+        if order == 'Delta from maximum':
+            expl_df = order_by_delta_max(expl_df, 'explanations', 'groundtruth')
+        elif order == 'Delta from minimum':
+            expl_df = order_by_delta_min(expl_df, 'explanations', 'groundtruth')
+
+        expl_slice = expl_df[slice(0, qnt)]
+        expl_slice = expl_slice.iloc[::-1]  # reverse dataframe so it can be watched from top to bottom
+
         fig = go.Figure()
         fig.add_trace(
             go.Bar(
                 name='Following recommendation',
                 y=list(expl_slice.index),
-                x=list(expl_slice.array),
+                x=list(expl_slice['explanations']),
                 marker_color='darkgreen',
                 orientation='h',
             )
@@ -123,8 +133,8 @@ class ExplainPresenter(Presenter):
         fig.add_trace(
             go.Bar(
                 name='Current Value',
-                y=list(gt_slice.index),
-                x=list(gt_slice.array),
+                y=list(expl_slice.index),
+                x=list(expl_slice['groundtruth']),
                 marker_color='darkred',
                 orientation='h',
             )
@@ -153,22 +163,30 @@ class ExplainPresenter(Presenter):
                 raise dash.exceptions.PreventUpdate
 
         @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
-                       Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children')],
+                       Output(self.views['explain'].IDs.RECOMMENDATION_GRAPH_PAGING_INFO, 'children'),
+                       Output(self.views['explain'].IDs.CHANGE_ORDER_EXPL_DROPDOWN, 'value')],
                       [State(self.views['base'].IDs.EXPERIMENT_DATA_STORE, 'data'),
-                       State(self.views['base'].IDs.USER_ID, 'data')],
+                       State(self.views['base'].IDs.USER_ID, 'data'),
+                       State(self.views['base'].IDs.EXPL_SORT_METHOD, 'data')],
                       Input(self.views['base'].IDs.LOCATION_URL, 'pathname'))
-        def show_prediction_graph(ex_info_data, user_id, url):
+        def show_prediction_graph(ex_info_data, user_id, expl_sort_method, url):
             if url == self.views['explain'].pathname:
 
-                # ex_info_data = {"ex_name": "test_xes_fin", "kpi": "Total time", "id": "case:concept:name",
-                #                 "timestamp": "time:timestamp", "activity": "concept:name", "resource": "org:resource",
-                #                 "act_to_opt": None, "out_thrs": 0.02,
-                #                 "creation_timestamp": "15-02-2023_20-28-46_433853+0000",
+                ex_info_data = {"ex_name": "test_xes_fin", "kpi": "Total time", "id": "case:concept:name",
+                                "timestamp": "time:timestamp", "activity": "concept:name", "resource": "org:resource",
+                                "act_to_opt": None, "out_thrs": 0.02,
+                                "creation_timestamp": "15-02-2023_20-28-46_433853+0000",
+                                "pred_column": "remaining_time"}
+
+                # ex_info_data = {"ex_name": "vinst_test_time1", "kpi": "Total time", "id": "SR_Number",
+                #                 "timestamp": "Change_Date+Time",
+                #                 "activity": "ACTIVITY", "resource": None, "act_to_opt": None, "out_thrs": 0.02,
+                #                 "creation_timestamp": "08-02-2023_17-48-25_520923+0000",
                 #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
-                    explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    # explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    # explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     print(user_id)
                     self.explainers[user_id] = explainer.to_dict()
 
@@ -183,7 +201,6 @@ class ExplainPresenter(Presenter):
                     kpis_df_temp.to_parquet(kpi_df_path)
                     self.kpis_dfs[user_id] = kpi_df_path
 
-                    # # TODO: TEST THIS "ORDERING" FUNCTION
                     # mask = kpis_df_temp['Current Value'] > kpis_df_temp['Following recommendation']
                     # kpis_df1 = kpis_df_temp[mask]  # current > following
                     # kpis_df2 = kpis_df_temp[~mask]  # current <= following
@@ -202,16 +219,42 @@ class ExplainPresenter(Presenter):
                     self.pred_graph_progression_data[user_id] = 0
 
                     return [self.create_pred_graph(user_id),
-                            '{}/{}'.format(1, math.ceil(kpi_df_length / self.REC_PER_PAGE))]
+                            '{}/{}'.format(1, math.ceil(kpi_df_length / self.REC_PER_PAGE)), expl_sort_method]
 
                 else:
                     # TODO: ERROR
-                    return [dash.no_update] * 2
+                    return [dash.no_update] * 3
             else:
-                return [dash.no_update] * 2
+                return [dash.no_update] * 3
+
+        @app.callback(Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
+                      [State(self.views['base'].IDs.USER_ID, 'data'),
+                       State(self.views['explain'].IDs.CHANGE_ORDER_PRED_DROPDOWN, 'value')],
+                      Input(self.views['explain'].IDs.CHANGE_ORDER_PRED_BTN, 'n_clicks'),
+                      prevent_initial_call=True)
+        def change_pred_graph_order(user_id, pred_sort_method, n_clicks):
+            if n_clicks > 0 and pred_sort_method is not None:
+                kpis_df = pd.read_parquet(self.kpis_dfs[user_id])
+
+                if pred_sort_method == 'Minimize':
+                    kpis_df = order_by_min_value(kpis_df, 'Following recommendation')
+                elif pred_sort_method == 'Maximize':
+                    kpis_df = order_by_max_value(kpis_df, 'Following recommendation')
+                elif pred_sort_method == 'Delta from maximum':
+                    kpis_df = order_by_delta_max(kpis_df, 'Following recommendation', 'Current Value')
+                elif pred_sort_method == 'Delta from minimum':
+                    kpis_df = order_by_delta_min(kpis_df, 'Following recommendation', 'Current Value')
+
+                kpi_df_path = diskdict.get_df_path('kpi_df', user_id, ext='pqt')
+                kpis_df.to_parquet(kpi_df_path)
+                self.kpis_dfs[user_id] = kpi_df_path
+
+                return self.create_pred_graph(user_id)
+            else:
+                raise dash.exceptions.PreventUpdate
 
         @app.callback([Output(self.views['explain'].IDs.PREDICTION_SEARCH_GRAPH, 'figure'),
-                       Output(self.views['explain'].IDs.RECOMMANDATION_GRAPH_PAGING_INFO, 'children'),
+                       Output(self.views['explain'].IDs.RECOMMENDATION_GRAPH_PAGING_INFO, 'children'),
                        Output(self.views['explain'].IDs.GO_UP_PRED_GRAPH, 'disabled'),
                        Output(self.views['explain'].IDs.GO_DOWN_PRED_GRAPH, 'disabled'),
                        Output(self.views['explain'].IDs.SELECT_PAGE_PRED_GRAPH_INPUT, 'value')],
@@ -348,13 +391,39 @@ class ExplainPresenter(Presenter):
             Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value')
         )
 
+        @app.callback([Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+                       Output(self.views['base'].IDs.EXPL_SORT_METHOD, 'data')],
+                      [State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.USER_ID, 'data'),
+                       State(self.views['base'].IDs.EXPLANATION_QUANTITY_STORE, 'data'),
+                       State(self.views['explain'].IDs.CHANGE_ORDER_EXPL_DROPDOWN, 'value')],
+                      Input(self.views['explain'].IDs.CHANGE_ORDER_EXPL_BTN, 'n_clicks'),
+                      prevent_initial_call=True)
+        def change_expl_graph_order(trace_id, act_to_explain, user_id, expl_qnt, expl_sort_method, n_clicks):
+            if n_clicks > 0 and expl_sort_method is not None:
+
+                if expl_qnt is None:
+                    expl_qnt = self.DEFAULT_EXPL_QNT
+                else:
+                    expl_qnt = int(expl_qnt)
+
+                expl_df = build_Explainer_from_dict(
+                    self.explainers[user_id]
+                ).generate_explanations_dataframe(trace_id, act_to_explain)
+
+                return [self.create_explanation_graph(expl_df, expl_qnt, order=expl_sort_method), expl_sort_method]
+            else:
+                return [dash.no_update] * 2
+
         @app.callback([Output(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
                        Output(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'className'),
                        Output(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'className'),
                        Output(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'className'),
                        Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
                        Output(self.views['explain'].IDs.GENERATE_EXPL_BTN_FADE, 'is_in'),
-                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in')],
+                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in'),
+                       Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_DETAILS, 'children')],
                       [Input(self.views['explain'].IDs.FIRST_ROW_PRED_TABLE, 'n_clicks'),
                        Input(self.views['explain'].IDs.SECOND_ROW_PRED_TABLE, 'n_clicks'),
                        Input(self.views['explain'].IDs.THIRD_ROW_PRED_TABLE, 'n_clicks')],
@@ -384,47 +453,53 @@ class ExplainPresenter(Presenter):
                 class_list_to_return = [act_to_explain,
                                         CSS_BASE_ROW_CLASS_NAME, CSS_BASE_ROW_CLASS_NAME, CSS_SELECTED_ROW_CLASS_NAME]
             else:
-                return [dash.no_update] * 7
+                return [dash.no_update] * 8
             explainer = build_Explainer_from_dict(self.explainers[user_id])
 
             if explainer.check_if_groundtruth_exists(trace_id) and \
-               explainer.check_if_explanations_exists(trace_id, act_to_explain):
+                    explainer.check_if_explanations_exists(trace_id, act_to_explain):
                 print('Explanations found, visualizing shap values for '
                       'trace: {}, activity: {}'.format(trace_id, act_to_explain))
 
-                gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                return class_list_to_return + [self.create_explanation_graph(gt, expl, self.DEFAULT_EXPL_QNT),
-                                               False, True]
+                expl_df = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+                print(expl_df)
+                return class_list_to_return + [self.create_explanation_graph(expl_df, self.DEFAULT_EXPL_QNT),
+                                               False, True, []]
             else:
                 print('Not found shap values for trace: {}, activity: {}'.format(trace_id, act_to_explain))
-                return class_list_to_return + [dash.no_update, True, False]
+                return class_list_to_return + [dash.no_update, True, False, []]
 
-        @app.callback(Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+        @app.callback([Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
+                       Output(self.views['base'].IDs.EXPLANATION_QUANTITY_STORE, 'data')],
                       [State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
                        State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
-                       State(self.views['base'].IDs.USER_ID, 'data')],
+                       State(self.views['base'].IDs.USER_ID, 'data'),
+                       State(self.views['base'].IDs.EXPL_SORT_METHOD, 'data')],
                       Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
                       prevent_initial_call=True)
-        def change_quantity_explanations(trace_id, act_to_explain, user_id, value):
+        def change_quantity_explanations(trace_id, act_to_explain, user_id, expl_sort_method, value):
             if value and value != self.DEFAULT_EXPL_QNT:
-                gt, expl = build_Explainer_from_dict(
+                expl_df = build_Explainer_from_dict(
                     self.explainers[user_id]
                 ).generate_explanations_dataframe(trace_id, act_to_explain)
-                if gt is not None and expl is not None:
-                    return self.create_explanation_graph(gt, expl, int(value))
+                if expl_df is not None:
+                    return [self.create_explanation_graph(expl_df, int(value), order=expl_sort_method), int(value)]
                 else:
-                    raise dash.exceptions.PreventUpdate
+                    return [dash.no_update] * 2
             else:
-                raise dash.exceptions.PreventUpdate
+                return [dash.no_update] * 2
 
         @app.callback(
             output=[Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'figure'),
                     Output(self.views['explain'].IDs.GENERATE_EXPL_BTN_FADE, 'is_in'),
-                    Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in')],
+                    Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH_FADE, 'is_in'),
+                    Output(self.views['explain'].IDs.CHANGE_ORDER_EXPL_DROPDOWN, 'value'),
+                    Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_DETAILS, 'children')],
             inputs=[State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
                     State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
                     State(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
                     State(self.views['base'].IDs.USER_ID, 'data'),
+                    State(self.views['base'].IDs.EXPL_SORT_METHOD, 'data'),
                     Input(self.views['explain'].IDs.GENERATE_EXPL_BTN, 'n_clicks')],
             background=True,
             prevent_initial_call=True,
@@ -435,7 +510,8 @@ class ExplainPresenter(Presenter):
                 (Output(self.views['explain'].IDs.GENERATE_EXPL_BTN, 'disabled'), True, False),
             ]
         )
-        def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, user_id, n_clicks):
+        def calculate_and_visualize_shap_by_trace(act_to_explain, trace_id, expl_qnt, user_id,
+                                                  expl_sort_method, n_clicks):
             if n_clicks > 0:
                 explainer = build_Explainer_from_dict(self.explainers[user_id])
                 if not explainer.check_if_explanations_exists(trace_id, act_to_explain):
@@ -444,15 +520,26 @@ class ExplainPresenter(Presenter):
                                                     act_to_explain,
                                                     generate_gt=not explainer.check_if_groundtruth_exists(trace_id))
 
-                    gt, expl = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                    return [self.create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT),
-                            False, True]
+                    expl_df = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+                    print(expl_df)
+                    return [self.create_explanation_graph(expl_df, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT,
+                                                          order=expl_sort_method),
+                            False, True, expl_sort_method, []]
                 else:
-                    # print('Explanations found, visualizing shap values for '
-                    #       'trace: {}, activity: {}'.format(trace_id, act_to_explain))
-                    #
-                    # gt, expl = self.explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-                    # return self.create_explanation_graph(gt, expl, expl_qnt if expl_qnt else self.DEFAULT_EXPL_QNT)
-                    return [dash.no_update] * 3
+                    return [dash.no_update] * 5
             else:
-                return [dash.no_update] * 3
+                return [dash.no_update] * 5
+
+        @app.callback(Output(self.views['explain'].IDs.VISUALIZE_EXPLANATION_DETAILS, 'children'),
+                      [State(self.views['base'].IDs.ACT_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.TRACE_ID_TO_EXPLAIN_STORE, 'data'),
+                       State(self.views['base'].IDs.USER_ID, 'data')],
+                      Input(self.views['explain'].IDs.VISUALIZE_EXPLANATION_GRAPH, 'clickData'))
+        def show_explanation_details_on_click(act_to_explain, trace_id, user_id, click_data):
+            print(click_data)
+
+            explainer = build_Explainer_from_dict(self.explainers[user_id])
+            expl_df = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
+            expl_var = click_data['points'][0]['y']
+
+            return explainer.generate_explanation_details(trace_id, act_to_explain, expl_df, expl_var)

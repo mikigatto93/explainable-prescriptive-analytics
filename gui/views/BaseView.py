@@ -8,6 +8,8 @@ from gui.views.View import View
 
 
 class IDs(StrEnum):
+    EXPL_SORT_METHOD = 'explanations_sort_method_store',
+    PRED_SORT_METHOD = 'predictions_sort_method_store',
     KEEP_ALIVE_INTERVAL = 'keep_alive_interval',
     RUN_FILE_PATH_STORE = 'run_file_path_store',
     TRAIN_FILE_PATH_STORE = 'train_file_path_store',
@@ -66,6 +68,8 @@ class BaseView(View):
                 dcc.Store(id=self.IDs.TRAIN_FILE_PATH_STORE, data=None),
                 dcc.Store(id=self.IDs.RUN_FILE_PATH_STORE, data=None),
                 dcc.Store(id=self.IDs.USER_ID, data=str(uuid.uuid4())),
+                # dcc.Store(id=self.IDs.EXPLANATION_QUANTITY_STORE, data=None),
+                dcc.Store(id=self.IDs.EXPL_SORT_METHOD, data=None),
                 dcc.Interval(id=self.IDs.KEEP_ALIVE_INTERVAL,
                              interval=CONFIG['KEEP_ALIVE_SIGNAL_MSEC_INTERVAL'], n_intervals=0),
                 dcc.Download(id=self.IDs.DOWNLOAD_TRAIN),

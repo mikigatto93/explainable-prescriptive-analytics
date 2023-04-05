@@ -82,6 +82,15 @@
 	margin: 10px 0;
 }
 
+.order_options_dropdown {
+	width: 20em;
+	margin-right: 1em;
+}
+
+.order_changer_controls_container {
+	display: flex;
+}
+
 .explanation_table td,
 .explanation_table th {
 	border: 1px solid #000;

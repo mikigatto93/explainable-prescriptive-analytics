@@ -9,6 +9,11 @@ from gui.views.View import View
 
 
 class IDs(StrEnum):
+    VISUALIZE_EXPLANATION_DETAILS = 'visualize_explainations_details'
+    CHANGE_ORDER_EXPL_DROPDOWN = 'change_order_expl_dropdown',
+    CHANGE_ORDER_EXPL_BTN = 'change_order_expl_btn',
+    CHANGE_ORDER_PRED_DROPDOWN = 'change_order_pred_dropdown',
+    CHANGE_ORDER_PRED_BTN = 'change_order_pred_btn',
     SELECT_PAGE_PRED_GRAPH_BTN = 'sel_page_pred_graph_btn',
     SELECT_PAGE_PRED_GRAPH_INPUT = 'sel_page_pred_graph_input',
     GENERATE_EXPL_SPINNER = 'generate_expl_spinner',
@@ -18,7 +23,7 @@ class IDs(StrEnum):
     QNT_EXPL_SLIDER_VALUE_LABEL = 'explain_qnt_slider_value_label',
     CURRENT_ACTIVITY = 'curretn_activity',
     VISUALIZE_EXPL_FADE = 'visualize_explan_fade',
-    RECOMMANDATION_GRAPH_PAGING_INFO = 'recomm_graph_paging_info',
+    RECOMMENDATION_GRAPH_PAGING_INFO = 'recomm_graph_paging_info',
     SEARCH_TRACE_ID_INPUT_BTN = 'search_trace_id_input_btn',
     CURRENT_TRACE_ID = 'current_trace_id_selected'
     CURRENT_EXPECTED_KPI = 'current_expected_kpi',
@@ -36,6 +41,7 @@ class IDs(StrEnum):
 
 class _ERROR_IDs(StrEnum):
     SEARCH_TRACE_ID_INPUT = 'search_trace_id_input_error'
+
 
 def _get_blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
@@ -66,6 +72,14 @@ class ExplainView(View):
             html.Div([
                 html.Div([
                     dcc.Loading([dcc.Graph(id=self.IDs.PREDICTION_SEARCH_GRAPH, figure={})], type='circle'),
+                    html.Div([
+                        html.Span('Change order of recommendations'),
+                        html.Div([
+                            dcc.Dropdown(['Maximize', 'Minimize', 'Delta from maximum', 'Delta from minimum'],
+                                         className='order_options_dropdown', id=self.IDs.CHANGE_ORDER_PRED_DROPDOWN),
+                            html.Button('Change order', id=self.IDs.CHANGE_ORDER_PRED_BTN, n_clicks=0)
+                        ], className='order_changer_controls_container')
+                    ]),
                 ], className='search_trace_graph_cont'),
 
                 html.Div([
@@ -78,7 +92,7 @@ class ExplainView(View):
                         html.Button('Go', id=self.IDs.SELECT_PAGE_PRED_GRAPH_BTN, n_clicks=0),
                     ], className='select_page_paging_controls_cont'),
 
-                    html.Span(id=self.IDs.RECOMMANDATION_GRAPH_PAGING_INFO),
+                    html.Span(id=self.IDs.RECOMMENDATION_GRAPH_PAGING_INFO),
                 ], className='paging_controls_cont'),
 
                 html.Div([
@@ -101,7 +115,7 @@ class ExplainView(View):
                               html.Span('Generate explanations')], className='button_spinner_cont'),
                     n_clicks=0, id=self.IDs.GENERATE_EXPL_BTN,
                     className='general_btn_layout')], id=self.IDs.GENERATE_EXPL_BTN_FADE,
-                         is_in=False, appear=False),
+                    is_in=False, appear=False),
 
                 dbc.Fade([
                     html.Div('Select how many explanations to visualize'),
@@ -110,7 +124,20 @@ class ExplainView(View):
                                    updatemode='drag'),
                         html.Span(id=self.IDs.QNT_EXPL_SLIDER_VALUE_LABEL),
                     ], className='slider_cont'),
+
+                    html.Div([
+                        html.Span('Change order of explanations'),
+                        html.Div([
+                            dcc.Dropdown(['Delta from maximum', 'Delta from minimum'],
+                                         className='order_options_dropdown', id=self.IDs.CHANGE_ORDER_EXPL_DROPDOWN),
+                            html.Button('Change order', id=self.IDs.CHANGE_ORDER_EXPL_BTN, n_clicks=0)
+                        ], className='order_changer_controls_container')
+                    ]),
+
+                    html.P(id=self.IDs.VISUALIZE_EXPLANATION_DETAILS),
+
                     dcc.Graph(id=self.IDs.VISUALIZE_EXPLANATION_GRAPH, figure={}),
+
                 ], is_in=False, appear=False, id=self.IDs.VISUALIZE_EXPLANATION_GRAPH_FADE),
 
             ], is_in=False, appear=False, id=self.IDs.VISUALIZE_EXPL_FADE, className='visualize_expl_cont')
