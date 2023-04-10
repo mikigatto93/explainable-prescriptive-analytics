@@ -25,8 +25,8 @@ def test_show_error_explain():
 def test_show_prediction_graph():
     # ex_info_data, user_id, url
     valid_pathname = explain_pres.views['explain'].pathname
-    assert CALLBACKS['show_prediction_graph']({}, '123', valid_pathname) == [dash.no_update] * 2
-    assert CALLBACKS['show_prediction_graph']({}, '123', 'invalid_pathname') == [dash.no_update] * 2
+    assert CALLBACKS['show_prediction_graph']({}, '123', 'EXPL_SORT_METHOD', valid_pathname) == [dash.no_update] * 3
+    assert CALLBACKS['show_prediction_graph']({}, '123', 'EXPL_SORT_METHOD', 'invalid_pathname') == [dash.no_update] * 3
 
     with patch('gui.presenters.ExplainPresenter.Explainer') as mock_explainer, \
          patch('gui.presenters.ExplainPresenter.Experiment.build_experiment_from_dict') as mock_experiment_builder, \
@@ -39,12 +39,14 @@ def test_show_prediction_graph():
             'trace2': [12347, 34568],
         }
         mock_createpredgraph.return_value = 'pred_graph_data'
-        assert CALLBACKS['show_prediction_graph'](json.dumps({'experiment': 'data'}), '123', valid_pathname) == \
-               ['pred_graph_data', '1/1']
+        assert CALLBACKS['show_prediction_graph'](json.dumps({'experiment': 'data'}), '123',
+                                                  'EXPL_SORT_METHOD', valid_pathname) == \
+               ['pred_graph_data', '1/1', 'EXPL_SORT_METHOD']
 
         with PropertyMocker(explain_pres, 'REC_PER_PAGE', PropertyMock(return_value=2)):
-            assert CALLBACKS['show_prediction_graph'](json.dumps({'experiment': 'data'}), '123', valid_pathname) == \
-                   ['pred_graph_data', '1/2']
+            assert CALLBACKS['show_prediction_graph'](json.dumps({'experiment': 'data'}), '123',
+                                                      'EXPL_SORT_METHOD', valid_pathname) == \
+                   ['pred_graph_data', '1/2', 'EXPL_SORT_METHOD']
 
 
 def test_scroll_graph():
@@ -170,13 +172,13 @@ def test_show_preds_text_format():
 def test_select_trace_activity_to_explain():
     assert mock_dash_context(CALLBACKS['select_trace_activity_to_explain'],
                              [explainIDs.FIRST_ROW_PRED_TABLE + '.n_clicks'],
-                             (0, 1, 1, [], [], [], 'trace', '1234')) == [dash.no_update] * 7
+                             (0, 1, 1, [], [], [], 'trace', '1234')) == [dash.no_update] * 8
     assert mock_dash_context(CALLBACKS['select_trace_activity_to_explain'],
                              [explainIDs.SECOND_ROW_PRED_TABLE + '.n_clicks'],
-                             (1, 0, 1, [], [], [], 'trace', '1234')) == [dash.no_update] * 7
+                             (1, 0, 1, [], [], [], 'trace', '1234')) == [dash.no_update] * 8
     assert mock_dash_context(CALLBACKS['select_trace_activity_to_explain'],
                              [explainIDs.THIRD_ROW_PRED_TABLE + '.n_clicks'],
-                             (1, 1, 0, [], [], [], 'trace', '1234')) == [dash.no_update] * 7
+                             (1, 1, 0, [], [], [], 'trace', '1234')) == [dash.no_update] * 8
 
     with PropertyMocker(explain_pres, 'explainers', PropertyMock(return_value={'1234': 'test'})):
         with patch('gui.presenters.ExplainPresenter.build_Explainer_from_dict') as mock_build_explainer, \
@@ -188,7 +190,7 @@ def test_select_trace_activity_to_explain():
                                      [explainIDs.FIRST_ROW_PRED_TABLE + '.n_clicks'],
                                      (1, 0, 0, [{'props': {'children': 'ACT1'}}], [], [], 'trace', '1234')) == \
                    ['ACT1', 'selected_expl_table_row', 'expl_table_selectable_row', 'expl_table_selectable_row',
-                    dash.no_update, True, False]
+                    dash.no_update, True, False, []]
 
             mock_build_explainer.return_value.check_if_explanations_exists.return_value = True
             mock_build_explainer.return_value.generate_explanations_dataframe.return_value = [1, 2, 3], [4, 5, 6]
@@ -197,22 +199,22 @@ def test_select_trace_activity_to_explain():
                                      [explainIDs.FIRST_ROW_PRED_TABLE + '.n_clicks'],
                                      (1, 0, 0, [{'props': {'children': 'ACT1'}}], [], [], 'trace', '1234')) == \
                    ['ACT1', 'selected_expl_table_row', 'expl_table_selectable_row', 'expl_table_selectable_row',
-                    'graph_result', False, True]
-            mock_createexplgraph.assert_called_with([1, 2, 3], [4, 5, 6], explain_pres.DEFAULT_EXPL_QNT)
+                    'graph_result', False, True, []]
+            mock_createexplgraph.assert_called_with(([1, 2, 3], [4, 5, 6]), explain_pres.DEFAULT_EXPL_QNT)
 
 
 def test_change_quantity_explanations():
     with pytest.raises(dash.exceptions.PreventUpdate):
-        assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 0)
+        assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', None, 0)
 
         with PropertyMocker(explain_pres, 'explainers', PropertyMock(return_value={'1234': 'test'})):
             with patch('gui.presenters.ExplainPresenter.build_Explainer_from_dict') as mock_build_explainer:
                 mock_build_explainer.return_value.generate_explanations_dataframe.return_value = None, None
-                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5)
+                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', None, 5)
                 mock_build_explainer.return_value.generate_explanations_dataframe.return_value = 'NotNone', None
-                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5)
+                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', None, 5)
                 mock_build_explainer.return_value.generate_explanations_dataframe.return_value = None, 'NotNone'
-                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5)
+                assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', None, 5)
 
     with PropertyMocker(explain_pres, 'explainers', PropertyMock(return_value={'1234': 'test'})):
         with patch('gui.presenters.ExplainPresenter.build_Explainer_from_dict') as mock_build_explainer, \
@@ -221,7 +223,8 @@ def test_change_quantity_explanations():
              ) as mock_createexplgraph:
             mock_createexplgraph.return_value = 'graph_result'
             mock_build_explainer.return_value.generate_explanations_dataframe.return_value = [1, 2, 3], [4, 5, 6]
-            assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234', 5) == 'graph_result'
+            assert CALLBACKS['change_quantity_explanations']('trace', 'act_to_explain', '1234',
+                                                             'EXPL_SORT_METHOD', 5) == 'graph_result'
             mock_createexplgraph.assert_called_with([1, 2, 3], [4, 5, 6], 5)
             with pytest.raises(dash.exceptions.PreventUpdate):
                 CALLBACKS['change_quantity_explanations']('trace',

@@ -172,11 +172,11 @@ class ExplainPresenter(Presenter):
         def show_prediction_graph(ex_info_data, user_id, expl_sort_method, url):
             if url == self.views['explain'].pathname:
 
-                ex_info_data = {"ex_name": "test_xes_fin", "kpi": "Total time", "id": "case:concept:name",
-                                "timestamp": "time:timestamp", "activity": "concept:name", "resource": "org:resource",
-                                "act_to_opt": None, "out_thrs": 0.02,
-                                "creation_timestamp": "15-02-2023_20-28-46_433853+0000",
-                                "pred_column": "remaining_time"}
+                # ex_info_data = {"ex_name": "test_xes_fin", "kpi": "Total time", "id": "case:concept:name",
+                #                 "timestamp": "time:timestamp", "activity": "concept:name", "resource": "org:resource",
+                #                 "act_to_opt": None, "out_thrs": 0.02,
+                #                 "creation_timestamp": "15-02-2023_20-28-46_433853+0000",
+                #                 "pred_column": "remaining_time"}
 
                 # ex_info_data = {"ex_name": "vinst_test_time1", "kpi": "Total time", "id": "SR_Number",
                 #                 "timestamp": "Change_Date+Time",
@@ -185,8 +185,8 @@ class ExplainPresenter(Presenter):
                 #                 "pred_column": "remaining_time"}
 
                 if ex_info_data:
-                    # explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    # explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     print(user_id)
                     self.explainers[user_id] = explainer.to_dict()
 
