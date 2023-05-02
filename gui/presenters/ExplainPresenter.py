@@ -181,12 +181,23 @@ class ExplainPresenter(Presenter):
                 # ex_info_data = {"ex_name": "vinst_test_time1", "kpi": "Total time", "id": "SR_Number",
                 #                 "timestamp": "Change_Date+Time",
                 #                 "activity": "ACTIVITY", "resource": None, "act_to_opt": None, "out_thrs": 0.02,
-                #                 "creation_timestamp": "08-02-2023_17-48-25_520923+0000",
+                #                 "creation_timestamp": "21-02-2023_16-36-56_524573+0000",
                 #                 "pred_column": "remaining_time"}
 
+                ex_info_data = {"ex_name": "test-exp3", "kpi": "Total time", "id": "SR_Number",
+                                "timestamp": "Change_Date+Time", "activity": "ACTIVITY", "resource": None,
+                                "act_to_opt": None, "out_thrs": 0,
+                                "creation_timestamp": "15-04-2023_08-34-13_272399+0000",
+                                "pred_column": "remaining_time"}
+
+                # ex_info_data = {"ex_name": "test_bac5", "kpi": "Minimize activity occurrence", "id": "REQUEST_ID",
+                #  "timestamp": "START_DATE", "activity": "ACTIVITY", "resource": "CE_UO",
+                #  "act_to_opt": "Pending Liquidation Request", "out_thrs": 0.02,
+                #  "creation_timestamp": "20-02-2023_20-13-27_362264+0000", "pred_column": "independent_activity"}
+
                 if ex_info_data:
-                    explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
-                    # explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
+                    # explainer = Explainer(Experiment.build_experiment_from_dict(json.loads(ex_info_data)))
+                    explainer = Explainer(Experiment.build_experiment_from_dict(ex_info_data))
                     print(user_id)
                     self.explainers[user_id] = explainer.to_dict()
 
@@ -411,8 +422,10 @@ class ExplainPresenter(Presenter):
                 expl_df = build_Explainer_from_dict(
                     self.explainers[user_id]
                 ).generate_explanations_dataframe(trace_id, act_to_explain)
-
-                return [self.create_explanation_graph(expl_df, expl_qnt, order=expl_sort_method), expl_sort_method]
+                if expl_df is not None:
+                    return [self.create_explanation_graph(expl_df, expl_qnt, order=expl_sort_method), expl_sort_method]
+                else:
+                    return [dash.no_update] * 2
             else:
                 return [dash.no_update] * 2
 
@@ -478,7 +491,7 @@ class ExplainPresenter(Presenter):
                       Input(self.views['explain'].IDs.EXPLANATION_QUANTITY_SLIDER, 'value'),
                       prevent_initial_call=True)
         def change_quantity_explanations(trace_id, act_to_explain, user_id, expl_sort_method, value):
-            if value and value != self.DEFAULT_EXPL_QNT:
+            if value:
                 expl_df = build_Explainer_from_dict(
                     self.explainers[user_id]
                 ).generate_explanations_dataframe(trace_id, act_to_explain)
@@ -540,6 +553,8 @@ class ExplainPresenter(Presenter):
 
             explainer = build_Explainer_from_dict(self.explainers[user_id])
             expl_df = explainer.generate_explanations_dataframe(trace_id, act_to_explain)
-            expl_var = click_data['points'][0]['y']
-
-            return explainer.generate_explanation_details(trace_id, act_to_explain, expl_df, expl_var)
+            if expl_df is not None:
+                expl_var = click_data['points'][0]['y']
+                return explainer.generate_explanation_details(trace_id, act_to_explain, expl_df, expl_var)
+            else:
+                raise dash.exceptions.PreventUpdate

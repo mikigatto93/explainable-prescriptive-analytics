@@ -12,15 +12,15 @@ import gui.model.IO.IOManager as gui_io
 # GENERIC ORDERING FUNCTION
 
 def order_by_delta_max(df: pd.DataFrame, col1, col2):
-    return df.assign(tmp=df[col1] - df[col2]) \
-        .sort_values(by='tmp', ascending=False) \
-        .drop(columns='tmp')
+    # df = df.assign(tmp=df[col1] - df[col2]).sort_values(by='tmp', ascending=False)
+    # print(df)
+    return df.assign(tmp=df[col1] - df[col2]).sort_values(by='tmp', ascending=False).drop(columns='tmp')
 
 
 def order_by_delta_min(df: pd.DataFrame, col1, col2):
-    return df.assign(tmp=df[col1] - df[col2]) \
-        .sort_values(by='tmp', ascending=True) \
-        .drop(columns='tmp')
+    # df = df.assign(tmp=df[col1] - df[col2]).sort_values(by='tmp', ascending=True)
+    # print(df)
+    return df.assign(tmp=df[col1] - df[col2]).sort_values(by='tmp', ascending=True).drop(columns='tmp')
 
 
 def order_by_max_value(df: pd.DataFrame, col):
@@ -161,7 +161,7 @@ class Explainer:
             groundtruth_explanation = pd.read_json(self.paths.get_gt_explanation_path(trace_id), typ='series')
             explanations = pd.read_json(self.paths.get_explanation_path(trace_id, value), typ='series')
         except Exception:
-            print(traceback.format_exc())
+            print('Explanations file not found')
             return None
 
         explanations.drop(
